@@ -33,6 +33,7 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
   const [videoUrl, setVideoUrl] = useState(editProduct?.videoUrl || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Section 3: Pricing
   const [buyingPrice, setBuyingPrice] = useState(String(editProduct?.buyingPrice || ''));
@@ -65,24 +66,45 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
     : null;
 
   // --- Image Handling ---
-  const handleImageFile = (file: File) => {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setImages(prev => [...prev, result]);
-    };
-    reader.readAsDataURL(file);
+  const uploadFiles = async (files: File[]) => {
+    const imageFiles = files.filter(f => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) return;
+
+    setIsUploading(true);
+    try {
+      const uploadPromises = imageFiles.map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 't0biqvdq'); // Unsigned upload preset
+
+        const response = await fetch('https://api.cloudinary.com/v1_1/tltie4hz/image/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) throw new Error('Upload failed');
+        const data = await response.json();
+        return data.secure_url;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      setImages(prev => [...prev, ...uploadedUrls]);
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      alert('Failed to upload some images to Cloudinary. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-    Array.from(e.dataTransfer.files).forEach(handleImageFile);
+    uploadFiles(Array.from(e.dataTransfer.files));
   };
 
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    Array.from(e.target.files || []).forEach(handleImageFile);
+    uploadFiles(Array.from(e.target.files || []));
     e.target.value = '';
   };
 
@@ -175,9 +197,10 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-medium text-white bg-primary-500 hover:bg-primary-600 transition-all shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2"
+            disabled={isUploading}
+            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-medium text-white transition-all shadow-lg flex items-center justify-center gap-2 ${isUploading ? 'bg-slate-400 cursor-not-allowed shadow-none' : 'bg-primary-500 hover:bg-primary-600 shadow-primary-500/20'}`}
           >
-            <Save size={18} /> {isEdit ? 'Save Changes' : 'Save Product'}
+            <Save size={18} /> {isUploading ? 'Uploading Images...' : (isEdit ? 'Save Changes' : 'Save Product')}
           </button>
         </div>
       </div>
@@ -250,15 +273,19 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
               onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center cursor-pointer transition-colors mb-6 ${isDragging ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : 'border-slate-300 dark:border-slate-600 hover:border-primary-400 hover:bg-slate-50 dark:hover:bg-dark-900/50'}`}
+              onClick={() => !isUploading && fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center transition-colors mb-6 ${isUploading ? 'opacity-50 cursor-wait' : 'cursor-pointer'} ${isDragging ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/10' : 'border-slate-300 dark:border-slate-600 hover:border-primary-400 hover:bg-slate-50 dark:hover:bg-dark-900/50'}`}
             >
               <div className="w-16 h-16 bg-primary-50 dark:bg-primary-500/10 rounded-full flex items-center justify-center mb-4">
-                <UploadCloud size={28} className="text-primary-500" />
+                {isUploading ? (
+                  <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <UploadCloud size={28} className="text-primary-500" />
+                )}
               </div>
-              <p className="font-medium text-slate-900 dark:text-white text-lg">Click to Upload or Drag & Drop</p>
+              <p className="font-medium text-slate-900 dark:text-white text-lg">{isUploading ? 'Uploading to Cloudinary...' : 'Click to Upload or Drag & Drop'}</p>
               <p className="text-slate-500 text-sm mt-1">PNG, JPG, WebP up to 5MB. Multiple files allowed.</p>
-              <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileInput} />
+              <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileInput} disabled={isUploading} />
             </div>
 
             {images.length > 0 && (
