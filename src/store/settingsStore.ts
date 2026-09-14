@@ -36,7 +36,7 @@ export const useSettingsStore = create<SettingsStore>()(
       isCODEnabled: true,
       codFee: 60,
       topBar: {
-        enabled: true,
+        enabled: false,
         message: 'FREE SHIPPING ON ORDERS OVER ৳5000!',
         linkText: 'Shop Now',
         linkUrl: '/products',

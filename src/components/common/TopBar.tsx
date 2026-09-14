@@ -12,7 +12,7 @@ export default function TopBar() {
     setMounted(true);
   }, []);
 
-  if (!mounted || !topBar?.enabled) {
+  if (true) { // Forcefully disabled
     return null;
   }
 
