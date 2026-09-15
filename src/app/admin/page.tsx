@@ -43,6 +43,12 @@ export default function AdminDashboard() {
 
   const getRole = () => {
     if (!session?.user?.email) return null;
+    
+    // Use role from Supabase session if available
+    const sessionRole = (session.user as any).role;
+    if (sessionRole) return sessionRole;
+    
+    // Fallback to local authorized list
     const userEmail = session.user.email.toLowerCase();
     const foundUser = authorizedUsers.find(u => u.email === userEmail);
     return foundUser ? foundUser.role : null;
