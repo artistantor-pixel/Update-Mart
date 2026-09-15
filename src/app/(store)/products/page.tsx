@@ -17,7 +17,7 @@ const SORT_OPTIONS = [
 ];
 
 function ProductsContent() {
-  const { products } = useProductStore();
+  const { products, fetchProducts, isLoading } = useProductStore();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   
   // Filter States
@@ -32,11 +32,13 @@ function ProductsContent() {
   useEffect(() => {
     document.title = 'Shop Products | Update Mart';
     window.scrollTo(0, 0);
-  }, []);
+    fetchProducts();
+  }, [fetchProducts]);
 
   // Filter & Sort Logic
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    // Only show live/published products
+    let result = [...products].filter(p => p.isLive !== false);
 
     if (selectedCategory !== 'All') {
       result = result.filter(p => p.category === selectedCategory);
@@ -219,7 +221,12 @@ function ProductsContent() {
           </div>
 
           {/* Product Grid */}
-          {filteredProducts.length > 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-24">
+              <div className="w-12 h-12 border-4 border-slate-200 border-t-primary-500 rounded-full animate-spin mb-4" />
+              <p className="text-slate-500 dark:text-slate-400 text-sm">Loading products...</p>
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredProducts.map(product => (
                 <ProductCard key={product.id} {...product} />
@@ -232,7 +239,7 @@ function ProductsContent() {
               </div>
               <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No products found</h3>
               <p className="text-slate-500 dark:text-slate-400 max-w-md">
-                Try adjusting your filters or price range to find what you're looking for.
+                Try adjusting your filters or price range to find what you&apos;re looking for.
               </p>
               <button 
                 onClick={() => { setSelectedCategory('All'); setSelectedBrand('All'); setPriceRange(300); }}
