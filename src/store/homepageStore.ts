@@ -140,7 +140,7 @@ const SETTINGS_ID = 'homepage_settings';
 
 export const useHomepageStore = create<HomepageStore>()((set, get) => ({
   content: DEFAULT_CONTENT,
-  isLoading: false,
+  isLoading: true,
 
   fetchSettings: async () => {
     set({ isLoading: true });

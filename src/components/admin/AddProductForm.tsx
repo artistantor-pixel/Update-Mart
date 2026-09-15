@@ -75,9 +75,9 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
       const uploadPromises = imageFiles.map(async (file) => {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', 't0biqvdq'); // Unsigned upload preset
+        formData.append('upload_preset', 'Update Mart'); // Unsigned upload preset
 
-        const response = await fetch('https://api.cloudinary.com/v1_1/tltie4hz/image/upload', {
+        const response = await fetch('https://api.cloudinary.com/v1_1/ulfibakr/image/upload', {
           method: 'POST',
           body: formData,
         });

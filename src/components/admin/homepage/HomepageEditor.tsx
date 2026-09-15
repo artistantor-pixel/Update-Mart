@@ -52,20 +52,37 @@ export default function HomepageEditor() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [heroImageMode, setHeroImageMode] = useState<'url' | 'upload'>('url');
   const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchSettings();
   }, [fetchSettings]);
 
-  const handleImageFile = (file: File) => {
+  const handleImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      updateHero({ heroImageUrl: result });
-    };
-    reader.readAsDataURL(file);
+    
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'Update Mart');
+
+      const response = await fetch('https://api.cloudinary.com/v1_1/ulfibakr/image/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+      
+      const data = await response.json();
+      updateHero({ heroImageUrl: data.secure_url });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
@@ -196,18 +213,22 @@ export default function HomepageEditor() {
                     onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`relative flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+                    onClick={() => !isUploading && fileInputRef.current?.click()}
+                    className={`relative flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed rounded-xl transition-colors ${
+                      isUploading ? 'opacity-50 cursor-wait' : 'cursor-pointer'
+                    } ${
                       isDragging
                         ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                         : 'border-slate-300 dark:border-slate-600 hover:border-primary-400 hover:bg-slate-50 dark:hover:bg-dark-800'
                     }`}
                   >
                     <div className="w-12 h-12 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-500 flex items-center justify-center">
-                      <UploadCloud size={24} />
+                      <UploadCloud size={24} className={isUploading ? 'animate-pulse' : ''} />
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Click or drag & drop to upload</p>
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        {isUploading ? 'Uploading...' : 'Click or drag & drop to upload'}
+                      </p>
                       <p className="text-xs text-slate-500 mt-1">PNG, JPG, WebP — Max 5MB</p>
                     </div>
                     <input
@@ -215,6 +236,7 @@ export default function HomepageEditor() {
                       type="file"
                       accept="image/*"
                       className="hidden"
+                      disabled={isUploading}
                       onChange={(e) => { const file = e.target.files?.[0]; if (file) handleImageFile(file); }}
                     />
                   </div>
@@ -233,7 +255,7 @@ export default function HomepageEditor() {
                       </button>
                     </div>
                     <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 rounded text-white text-xs">
-                      {content.hero.heroImageUrl.startsWith('data:') ? '📁 Uploaded image' : '🔗 URL image'}
+                      {content.hero.heroImageUrl.startsWith('data:') || content.hero.heroImageUrl.includes('cloudinary') ? '📁 Uploaded image' : '🔗 URL image'}
                     </div>
                   </div>
                 )}
