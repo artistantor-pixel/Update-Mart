@@ -10,7 +10,7 @@ export default function HeroSection() {
   const hero = content.hero;
 
   return (
-    <section className="relative w-full min-h-screen overflow-hidden bg-[#0a0a0f]">
+    <section className="relative w-full min-h-screen overflow-hidden bg-[#0a0a0f] -mt-24">
 
       {/* ── FULL-BLEED BACKGROUND IMAGE ── */}
       <div className="absolute inset-0 z-0">
