@@ -20,7 +20,7 @@ interface UserStore {
 const INITIAL_USERS: AdminUser[] = [
   {
     id: 'master-admin',
-    email: 'charukul.web@gmail.com',
+    email: 'artistantor@gmail.com',
     role: 'Super Admin',
     addedAt: new Date().toISOString(),
   },
