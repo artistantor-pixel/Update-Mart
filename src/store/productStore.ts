@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 export interface ProductColor {
   name: string;
@@ -97,9 +96,7 @@ interface ProductStore {
   removeVariantGroup: (productId: string) => void;
 }
 
-export const useProductStore = create<ProductStore>()(
-  persist(
-    (set, get) => ({
+export const useProductStore = create<ProductStore>()((set, get) => ({
       products: INITIAL_PRODUCTS,
       isLoading: false,
 
@@ -108,7 +105,8 @@ export const useProductStore = create<ProductStore>()(
         try {
           const { data, error } = await supabase.from('products').select('*');
           if (error) throw error;
-          if (data && data.length > 0) {
+          
+          if (data) {
             // Map db snake_case to camelCase where needed
             const formattedProducts = data.map(p => ({
               ...p,
@@ -214,9 +212,4 @@ export const useProductStore = create<ProductStore>()(
           p.id === productId ? { ...p, variantGroupId: undefined } : p
         )
       }))
-    }),
-    {
-      name: 'updatemart-products-storage',
-    }
-  )
-);
+    }));
