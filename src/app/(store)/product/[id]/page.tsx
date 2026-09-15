@@ -265,10 +265,12 @@ export default function ProductDetails() {
             <div className="flex items-center gap-4 mb-6">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={18} className="text-accent-500 fill-accent-500" />
+                  <Star key={i} size={18} className={`text-accent-500 ${i < Math.round(avgRating) ? 'fill-accent-500' : 'fill-transparent'}`} />
                 ))}
               </div>
-              <span className="text-slate-600 dark:text-slate-400 text-sm font-medium border-l border-slate-300 dark:border-slate-700 pl-4">4.8 (128 Reviews)</span>
+              <span className="text-slate-600 dark:text-slate-400 text-sm font-medium border-l border-slate-300 dark:border-slate-700 pl-4">
+                {avgRating > 0 ? `${avgRating.toFixed(1)} (${reviews.length} Reviews)` : 'No Reviews Yet'}
+              </span>
             </div>
 
             {/* Pricing */}
@@ -392,13 +394,16 @@ export default function ProductDetails() {
               </button>
               <button 
                 onClick={() => {
+                  const variantLabel = Object.entries(selectedVariants)
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join(', ');
                   addItem({
                     productId: product.id,
                     name: product.name,
-                    price: product.price,
+                    price: effectivePrice,
                     image: product.image,
                     quantity: 1,
-                    variant: selectedColor
+                    variant: variantLabel || selectedColor || ''
                   });
                   router.push('/checkout');
                 }}
@@ -443,16 +448,20 @@ export default function ProductDetails() {
                   </ul>
                 )}
               </Accordion>
-              <Accordion title="Materials & Care">
-                <p className="mb-2"><strong>Case:</strong> Aerospace-grade Titanium</p>
-                <p className="mb-2"><strong>Strap:</strong> Premium Italian Leather</p>
-                <p>Clean with a soft, dry cloth. Avoid prolonged exposure to water for the leather strap.</p>
-              </Accordion>
-              <Accordion title="Shipping & Returns">
-                <p>Delivery time depends on your location. Usually, it takes 2-3 business days inside Dhaka and 3-5 business days outside Dhaka.</p>
-                <h3 className="font-semibold mt-4 mb-2 text-slate-900 dark:text-white">Shipping Policy</h3>
-                <p>We offer free shipping on all orders over ৳5000. Returns are accepted within 7 days of receipt, provided the item is unworn and in original packaging.</p>
-              </Accordion>
+              {product.materialsAndCare && (
+                <Accordion title="Materials & Care">
+                  <div className="whitespace-pre-line text-slate-700 dark:text-slate-300">
+                    {product.materialsAndCare}
+                  </div>
+                </Accordion>
+              )}
+              {product.shippingAndReturns && (
+                <Accordion title="Shipping & Returns">
+                  <div className="whitespace-pre-line text-slate-700 dark:text-slate-300">
+                    {product.shippingAndReturns}
+                  </div>
+                </Accordion>
+              )}
               <Accordion title="Warranty Info">
                 <p>{product.warranty ? product.warranty + ' — Covers manufacturing defects. Does not cover normal wear and tear.' : 'No warranty information available.'}</p>
               </Accordion>

@@ -58,6 +58,8 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
   const [isLive, setIsLive] = useState(editProduct?.isLive ?? true);
   const [warranty, setWarranty] = useState(editProduct?.warranty || 'No Warranty');
   const [deliveryType, setDeliveryType] = useState(editProduct?.deliveryType || 'Standard Delivery');
+  const [materialsAndCare, setMaterialsAndCare] = useState(editProduct?.materialsAndCare || '');
+  const [shippingAndReturns, setShippingAndReturns] = useState(editProduct?.shippingAndReturns || '');
   const [metaTitle, setMetaTitle] = useState(editProduct?.metaTitle || '');
   const [metaDesc, setMetaDesc] = useState(editProduct?.metaDesc || '');
 
@@ -160,6 +162,8 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
       variants: variants.filter(v => v.value),
       description: description || undefined,
       specs: specs.filter(s => s.key),
+      materialsAndCare: materialsAndCare || undefined,
+      shippingAndReturns: shippingAndReturns || undefined,
       warranty,
       deliveryType,
       videoUrl: videoUrl || undefined,
@@ -471,6 +475,19 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
                   <option>Digital Delivery</option>
                 </select>
               </div>
+              
+              <div className="border-t border-slate-200 dark:border-white/10 pt-4 space-y-3">
+                <h3 className="font-semibold text-slate-900 dark:text-white text-sm">Additional Policies (Optional)</h3>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Materials & Care</label>
+                  <textarea rows={3} value={materialsAndCare} onChange={e => setMaterialsAndCare(e.target.value)} placeholder="Case: Titanium... Clean with dry cloth." className={`${inputCls} resize-none`} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">Shipping & Returns</label>
+                  <textarea rows={3} value={shippingAndReturns} onChange={e => setShippingAndReturns(e.target.value)} placeholder="Ships in 24 hrs. 30-day returns." className={`${inputCls} resize-none`} />
+                </div>
+              </div>
+
               <div className="border-t border-slate-200 dark:border-white/10 pt-4 space-y-3">
                 <h3 className="font-semibold text-slate-900 dark:text-white text-sm">SEO Meta Data</h3>
                 <div>

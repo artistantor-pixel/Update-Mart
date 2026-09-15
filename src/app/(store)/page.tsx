@@ -7,9 +7,11 @@ import TrendingProducts from '@/components/home/TrendingProducts';
 import Testimonials from '@/components/home/Testimonials';
 import { useEffect } from 'react';
 import { useHomepageStore } from '@/store/homepageStore';
+import { useProductStore } from '@/store/productStore';
 
 export default function Home() {
   const { content, fetchSettings, isLoading } = useHomepageStore();
+  const { fetchProducts } = useProductStore();
   const newsletter = content.newsletter;
   const visibility = content.visibility || {
     hero: true,
@@ -23,7 +25,8 @@ export default function Home() {
   useEffect(() => {
     document.title = 'Update Mart | Premium E-Commerce Experience';
     fetchSettings();
-  }, [fetchSettings]);
+    fetchProducts();
+  }, [fetchSettings, fetchProducts]);
 
   if (isLoading) {
     return (

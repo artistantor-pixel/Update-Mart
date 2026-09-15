@@ -45,6 +45,8 @@ export interface Product {
   isLive?: boolean;
   videoUrl?: string;
   tags?: string[];
+  materialsAndCare?: string;
+  shippingAndReturns?: string;
   
   // Variant Mapping
   primaryColor?: { name: string; hex: string };
@@ -113,7 +115,9 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
               regularPrice: p.regular_price,
               isNew: p.is_new,
               deliveryType: p.delivery_type,
-              isLive: p.is_live
+              isLive: p.is_live,
+              materialsAndCare: p.materials_and_care,
+              shippingAndReturns: p.shipping_and_returns
             })) as Product[];
             set({ products: formattedProducts });
           }
@@ -149,7 +153,9 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
             variants: product.variants,
             specs: product.specs,
             images: product.images,
-            tags: product.tags
+            tags: product.tags,
+            materials_and_care: product.materialsAndCare,
+            shipping_and_returns: product.shippingAndReturns
           };
           
           const { error } = await supabase.from('products').insert([dbProduct]);
@@ -172,12 +178,16 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
           if (updates.isNew !== undefined) dbUpdates.is_new = updates.isNew;
           if (updates.deliveryType !== undefined) dbUpdates.delivery_type = updates.deliveryType;
           if (updates.isLive !== undefined) dbUpdates.is_live = updates.isLive;
+          if (updates.materialsAndCare !== undefined) dbUpdates.materials_and_care = updates.materialsAndCare;
+          if (updates.shippingAndReturns !== undefined) dbUpdates.shipping_and_returns = updates.shippingAndReturns;
           
           // Remove camelCase keys from db updates
           delete dbUpdates.regularPrice;
           delete dbUpdates.isNew;
           delete dbUpdates.deliveryType;
           delete dbUpdates.isLive;
+          delete dbUpdates.materialsAndCare;
+          delete dbUpdates.shippingAndReturns;
           delete dbUpdates.id;
 
           const { error } = await supabase.from('products').update(dbUpdates).eq('id', id);
