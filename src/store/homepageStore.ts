@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { supabase } from '@/lib/supabase';
 
 export interface FloatingCard {
   id: string;
@@ -60,14 +60,16 @@ export interface HomepageContent {
 
 interface HomepageStore {
   content: HomepageContent;
-  updateHero: (hero: Partial<HeroContent>) => void;
-  updateFeature: (id: string, updates: Partial<FeatureItem>) => void;
-  addTestimonial: (t: Testimonial) => void;
-  updateTestimonial: (id: string, updates: Partial<Testimonial>) => void;
-  removeTestimonial: (id: string) => void;
-  updateNewsletter: (n: Partial<NewsletterContent>) => void;
-  updateVisibility: (section: keyof HomepageContent['visibility'], isVisible: boolean) => void;
-  resetToDefaults: () => void;
+  isLoading: boolean;
+  fetchSettings: () => Promise<void>;
+  updateHero: (hero: Partial<HeroContent>) => Promise<void>;
+  updateFeature: (id: string, updates: Partial<FeatureItem>) => Promise<void>;
+  addTestimonial: (t: Testimonial) => Promise<void>;
+  updateTestimonial: (id: string, updates: Partial<Testimonial>) => Promise<void>;
+  removeTestimonial: (id: string) => Promise<void>;
+  updateNewsletter: (n: Partial<NewsletterContent>) => Promise<void>;
+  updateVisibility: (section: keyof HomepageContent['visibility'], isVisible: boolean) => Promise<void>;
+  resetToDefaults: () => Promise<void>;
 }
 
 const DEFAULT_CONTENT: HomepageContent = {
@@ -134,50 +136,85 @@ const DEFAULT_CONTENT: HomepageContent = {
   }
 };
 
-export const useHomepageStore = create<HomepageStore>()(
-  persist(
-    (set) => ({
-      content: DEFAULT_CONTENT,
+const SETTINGS_ID = 'homepage_settings';
 
-      updateHero: (hero) => set((state) => ({
-        content: { ...state.content, hero: { ...state.content.hero, ...hero } }
-      })),
+export const useHomepageStore = create<HomepageStore>()((set, get) => ({
+  content: DEFAULT_CONTENT,
+  isLoading: false,
 
-      updateFeature: (id, updates) => set((state) => ({
-        content: {
-          ...state.content,
-          features: state.content.features.map(f => f.id === id ? { ...f, ...updates } : f),
-        }
-      })),
+  fetchSettings: async () => {
+    set({ isLoading: true });
+    try {
+      const { data, error } = await supabase.from('app_settings').select('value').eq('id', SETTINGS_ID).single();
+      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "No rows found"
+      
+      if (data && data.value) {
+        set({ content: data.value as HomepageContent });
+      } else {
+        // If no row exists, upsert default
+        await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: DEFAULT_CONTENT });
+        set({ content: DEFAULT_CONTENT });
+      }
+    } catch (err) {
+      console.error("Error fetching homepage settings:", err);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
-      addTestimonial: (t) => set((state) => ({
-        content: { ...state.content, testimonials: [...state.content.testimonials, t] }
-      })),
+  updateHero: async (hero) => {
+    const newContent = { ...get().content, hero: { ...get().content.hero, ...hero } };
+    set({ content: newContent });
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: newContent });
+  },
 
-      updateTestimonial: (id, updates) => set((state) => ({
-        content: {
-          ...state.content,
-          testimonials: state.content.testimonials.map(t => t.id === id ? { ...t, ...updates } : t),
-        }
-      })),
+  updateFeature: async (id, updates) => {
+    const newContent = {
+      ...get().content,
+      features: get().content.features.map(f => f.id === id ? { ...f, ...updates } : f),
+    };
+    set({ content: newContent });
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: newContent });
+  },
 
-      removeTestimonial: (id) => set((state) => ({
-        content: {
-          ...state.content,
-          testimonials: state.content.testimonials.filter(t => t.id !== id),
-        }
-      })),
+  addTestimonial: async (t) => {
+    const newContent = { ...get().content, testimonials: [...get().content.testimonials, t] };
+    set({ content: newContent });
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: newContent });
+  },
 
-      updateNewsletter: (n) => set((state) => ({
-        content: { ...state.content, newsletter: { ...state.content.newsletter, ...n } }
-      })),
+  updateTestimonial: async (id, updates) => {
+    const newContent = {
+      ...get().content,
+      testimonials: get().content.testimonials.map(t => t.id === id ? { ...t, ...updates } : t),
+    };
+    set({ content: newContent });
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: newContent });
+  },
 
-      updateVisibility: (section, isVisible) => set((state) => ({
-        content: { ...state.content, visibility: { ...state.content.visibility, [section]: isVisible } }
-      })),
+  removeTestimonial: async (id) => {
+    const newContent = {
+      ...get().content,
+      testimonials: get().content.testimonials.filter(t => t.id !== id),
+    };
+    set({ content: newContent });
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: newContent });
+  },
 
-      resetToDefaults: () => set({ content: DEFAULT_CONTENT }),
-    }),
-    { name: 'updatemart-homepage-storage' }
-  )
-);
+  updateNewsletter: async (n) => {
+    const newContent = { ...get().content, newsletter: { ...get().content.newsletter, ...n } };
+    set({ content: newContent });
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: newContent });
+  },
+
+  updateVisibility: async (section, isVisible) => {
+    const newContent = { ...get().content, visibility: { ...get().content.visibility, [section]: isVisible } };
+    set({ content: newContent });
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: newContent });
+  },
+
+  resetToDefaults: async () => {
+    set({ content: DEFAULT_CONTENT });
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: DEFAULT_CONTENT });
+  },
+}));

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Plus, Trash2, RefreshCcw, Star, ChevronDown, ChevronUp, Layout, UploadCloud, Link2 } from 'lucide-react';
 import { useHomepageStore, Testimonial } from '@/store/homepageStore';
 
@@ -45,13 +46,17 @@ function SectionCard({ title, children }: { title: string; children: React.React
 }
 
 export default function HomepageEditor() {
-  const { content, updateHero, updateFeature, addTestimonial, updateTestimonial, removeTestimonial, updateNewsletter, updateVisibility, resetToDefaults } = useHomepageStore();
+  const { content, fetchSettings, updateHero, updateFeature, addTestimonial, updateTestimonial, removeTestimonial, updateNewsletter, updateVisibility, resetToDefaults } = useHomepageStore();
   const [activeTab, setActiveTab] = useState<EditorTab>('hero');
   const [expandedTestimonial, setExpandedTestimonial] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [heroImageMode, setHeroImageMode] = useState<'url' | 'upload'>('url');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
 
   const handleImageFile = (file: File) => {
     if (!file.type.startsWith('image/')) return;

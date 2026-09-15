@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 import { useHomepageStore } from '@/store/homepageStore';
 
 export default function Home() {
-  const { content } = useHomepageStore();
+  const { content, fetchSettings } = useHomepageStore();
   const newsletter = content.newsletter;
   const visibility = content.visibility || {
     hero: true,
@@ -22,7 +22,8 @@ export default function Home() {
 
   useEffect(() => {
     document.title = 'Update Mart | Premium E-Commerce Experience';
-  }, []);
+    fetchSettings();
+  }, [fetchSettings]);
 
   return (
     <div className="flex flex-col">

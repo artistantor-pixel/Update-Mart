@@ -28,7 +28,11 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'customers' | 'settings' | 'couriers' | 'homepage' | 'marketing' | 'accounting' | 'promotions' | 'users'>('overview');
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<import('@/store/productStore').Product | null>(null);
-  const { isCODEnabled, toggleCOD, codFee, setCodFee, topBar, setTopBar, footer, setFooter } = useSettingsStore();
+  const { isCODEnabled, toggleCOD, codFee, setCodFee, topBar, setTopBar, footer, setFooter, fetchSettings } = useSettingsStore();
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
   
   const { data: session, status } = useSession();
 

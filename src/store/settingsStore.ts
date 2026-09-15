@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { supabase } from '@/lib/supabase';
 
 export interface TopBarConfig {
   enabled: boolean;
@@ -24,40 +24,81 @@ interface SettingsStore {
   codFee: number;
   topBar: TopBarConfig;
   footer: FooterConfig;
-  toggleCOD: (enabled: boolean) => void;
-  setCodFee: (fee: number) => void;
-  setTopBar: (config: TopBarConfig) => void;
-  setFooter: (config: FooterConfig) => void;
+  isLoading: boolean;
+  fetchSettings: () => Promise<void>;
+  toggleCOD: (enabled: boolean) => Promise<void>;
+  setCodFee: (fee: number) => Promise<void>;
+  setTopBar: (config: TopBarConfig) => Promise<void>;
+  setFooter: (config: FooterConfig) => Promise<void>;
 }
 
-export const useSettingsStore = create<SettingsStore>()(
-  persist(
-    (set) => ({
-      isCODEnabled: true,
-      codFee: 60,
-      topBar: {
-        enabled: false,
-        message: 'FREE SHIPPING ON ORDERS OVER ৳5000!',
-        linkText: 'Shop Now',
-        linkUrl: '/products',
-        bgColor: '#1e293b', // slate-800
-        textColor: '#ffffff',
-      },
-      footer: {
-        aboutText: 'Premium products tailored for your modern lifestyle. Quality and excellence delivered straight to your door.',
-        phone: '+1 (555) 123-4567',
-        email: 'support@updatemart.com',
-        facebookUrl: '#',
-        twitterUrl: '#',
-        instagramUrl: '#',
-      },
-      toggleCOD: (enabled) => set({ isCODEnabled: enabled }),
-      setCodFee: (fee) => set({ codFee: fee }),
-      setTopBar: (config) => set({ topBar: config }),
-      setFooter: (config) => set({ footer: config }),
-    }),
-    {
-      name: 'updatemart-settings-storage',
+const DEFAULT_SETTINGS = {
+  isCODEnabled: true,
+  codFee: 60,
+  topBar: {
+    enabled: false,
+    message: 'FREE SHIPPING ON ORDERS OVER ৳5000!',
+    linkText: 'Shop Now',
+    linkUrl: '/products',
+    bgColor: '#1e293b', // slate-800
+    textColor: '#ffffff',
+  },
+  footer: {
+    aboutText: 'Premium products tailored for your modern lifestyle. Quality and excellence delivered straight to your door.',
+    phone: '+1 (555) 123-4567',
+    email: 'support@updatemart.com',
+    facebookUrl: '#',
+    twitterUrl: '#',
+    instagramUrl: '#',
+  }
+};
+
+const SETTINGS_ID = 'general_settings';
+
+export const useSettingsStore = create<SettingsStore>()((set, get) => ({
+  ...DEFAULT_SETTINGS,
+  isLoading: false,
+
+  fetchSettings: async () => {
+    set({ isLoading: true });
+    try {
+      const { data, error } = await supabase.from('app_settings').select('value').eq('id', SETTINGS_ID).single();
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      if (data && data.value) {
+        set({ ...data.value });
+      } else {
+        await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: DEFAULT_SETTINGS });
+        set({ ...DEFAULT_SETTINGS });
+      }
+    } catch (err) {
+      console.error("Error fetching general settings:", err);
+    } finally {
+      set({ isLoading: false });
     }
-  )
-);
+  },
+
+  toggleCOD: async (enabled) => {
+    set({ isCODEnabled: enabled });
+    const { isCODEnabled, codFee, topBar, footer } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer } });
+  },
+
+  setCodFee: async (fee) => {
+    set({ codFee: fee });
+    const { isCODEnabled, codFee, topBar, footer } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer } });
+  },
+
+  setTopBar: async (config) => {
+    set({ topBar: config });
+    const { isCODEnabled, codFee, topBar, footer } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer } });
+  },
+
+  setFooter: async (config) => {
+    set({ footer: config });
+    const { isCODEnabled, codFee, topBar, footer } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer } });
+  },
+}));

@@ -8,6 +8,12 @@ import { useEffect, useState } from 'react';
 
 export default function Footer() {
   const footer = useSettingsStore((state) => state.footer);
+  const fetchSettings = useSettingsStore((state) => state.fetchSettings);
+
+  useEffect(() => {
+    fetchSettings();
+  }, [fetchSettings]);
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
