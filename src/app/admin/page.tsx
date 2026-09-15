@@ -100,7 +100,7 @@ export default function AdminDashboard() {
             <LogOut size={32} />
           </div>
           <h2 className="text-xl font-bold mb-2">Access Denied</h2>
-          <p className="text-slate-500 mb-6">Your Google account ({session.user.email}) is not authorized to access the admin dashboard.</p>
+          <p className="text-slate-500 mb-6">Your account ({session.user.email}) is not authorized to access the admin dashboard.</p>
           <button 
             onClick={() => signOut()}
             className="w-full bg-slate-900 dark:bg-slate-700 text-white font-medium py-3 rounded-xl transition-colors hover:bg-slate-800 dark:hover:bg-slate-600"

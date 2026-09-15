@@ -57,7 +57,7 @@ export default function UserManager() {
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="email"
-                placeholder="Google Email Address"
+                placeholder="Email Address"
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
                 className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 pl-11 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -93,7 +93,7 @@ export default function UserManager() {
           </form>
           <div className="mt-4 flex items-start gap-2 text-sm text-slate-500">
             <AlertCircle size={16} className="mt-0.5 text-amber-500 flex-shrink-0" />
-            <p>The user must sign in using this exact Google Email address to gain access.</p>
+            <p>The user must sign in using this exact Email address to gain access.</p>
           </div>
         </div>
       )}
