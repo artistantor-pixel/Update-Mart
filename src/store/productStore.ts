@@ -97,7 +97,7 @@ interface ProductStore {
 }
 
 export const useProductStore = create<ProductStore>()((set, get) => ({
-      products: INITIAL_PRODUCTS,
+      products: [],
       isLoading: false,
 
       fetchProducts: async () => {
