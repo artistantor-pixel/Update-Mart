@@ -128,6 +128,7 @@ export default function Checkout() {
         price: item.price
       })),
       total: total,
+      deliveryCharge: shipping,
       discountAmount: discountAmount > 0 ? discountAmount : undefined,
       promoCode: appliedPromo ? appliedPromo.code : undefined,
       paymentMethod: paymentMethod === 'cod' ? 'COD' : 'Paid',

@@ -222,7 +222,8 @@ export default function ProductDetails() {
     const variantLabel = Object.entries(selectedVariants)
       .map(([k, v]) => `${k}: ${v}`)
       .join(', ');
-    const finalVariant = [selectedColor ? `Color: ${selectedColor}` : '', variantLabel].filter(Boolean).join(' | ');
+    const actualColor = selectedColor || product.primaryColor?.name || colors[0]?.name || 'Standard';
+    const finalVariant = [actualColor !== 'Standard' ? `${actualColor}` : 'Standard', variantLabel].filter(Boolean).join(' | ');
     addItem({
       productId: product.id,
       name: product.name,

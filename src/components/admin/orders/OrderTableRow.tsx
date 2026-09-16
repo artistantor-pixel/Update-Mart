@@ -157,7 +157,7 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
                     </div>
                     <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
                       <span>Shipping Cost</span>
-                      <span>৳ {(order.deliveryCharge ?? Math.max(0, order.total - order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) + (order.discountAmount || 0))).toLocaleString()}</span>
+                      <span>৳ {(order.deliveryCharge || Math.max(0, order.total - order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) + (order.discountAmount || 0))).toLocaleString()}</span>
                     </div>
                     {order.discountAmount && order.discountAmount > 0 ? (
                       <div className="flex justify-between items-center text-green-600 dark:text-green-400">
