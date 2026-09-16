@@ -6,10 +6,11 @@ import { CheckCircle2, ArrowRight, Package, MapPin, ListOrdered } from 'lucide-r
 import { useOrderStore } from '@/store/orderStore';
 
 export default function OrderComplete() {
-  const orders = useOrderStore(state => state.orders);
+  const columns = useOrderStore(state => state.columns);
   // Get the most recently added order based on createdAt
-  const latestOrder = orders.length > 0 
-    ? [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] 
+  const allOrders = Object.values(columns).flat();
+  const latestOrder = allOrders.length > 0 
+    ? allOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] 
     : null;
   
   useEffect(() => {
