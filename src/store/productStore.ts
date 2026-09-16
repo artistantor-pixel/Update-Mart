@@ -117,7 +117,9 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
               deliveryType: p.delivery_type,
               isLive: p.is_live,
               materialsAndCare: p.materials_and_care,
-              shippingAndReturns: p.shipping_and_returns
+              shippingAndReturns: p.shipping_and_returns,
+              primaryColor: p.primary_color,
+              variantGroupId: p.variant_group_id
             })) as Product[];
             set({ products: formattedProducts });
           }
@@ -155,7 +157,8 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
             images: product.images,
             tags: product.tags,
             materials_and_care: product.materialsAndCare,
-            shipping_and_returns: product.shippingAndReturns
+            shipping_and_returns: product.shippingAndReturns,
+            primary_color: product.primaryColor
           };
           
           const { error } = await supabase.from('products').insert([dbProduct]);
@@ -180,6 +183,7 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
           if (updates.isLive !== undefined) dbUpdates.is_live = updates.isLive;
           if (updates.materialsAndCare !== undefined) dbUpdates.materials_and_care = updates.materialsAndCare;
           if (updates.shippingAndReturns !== undefined) dbUpdates.shipping_and_returns = updates.shippingAndReturns;
+          if (updates.primaryColor !== undefined) dbUpdates.primary_color = updates.primaryColor;
           
           // Remove camelCase keys from db updates
           delete dbUpdates.regularPrice;
@@ -188,6 +192,7 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
           delete dbUpdates.isLive;
           delete dbUpdates.materialsAndCare;
           delete dbUpdates.shippingAndReturns;
+          delete dbUpdates.primaryColor;
           delete dbUpdates.id;
 
           const { error } = await supabase.from('products').update(dbUpdates).eq('id', id);
@@ -211,15 +216,35 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
         }
       },
 
-      setVariantGroup: (productIds, groupId) => set((state) => ({
-        products: state.products.map(p => 
-          productIds.includes(p.id) ? { ...p, variantGroupId: groupId } : p
-        )
-      })),
+      setVariantGroup: async (productIds, groupId) => {
+        // Optimistic update
+        set((state) => ({
+          products: state.products.map(p => 
+            productIds.includes(p.id) ? { ...p, variantGroupId: groupId } : p
+          )
+        }));
 
-      removeVariantGroup: (productId) => set((state) => ({
-        products: state.products.map(p => 
-          p.id === productId ? { ...p, variantGroupId: undefined } : p
-        )
-      }))
+        try {
+          const { error } = await supabase.from('products').update({ variant_group_id: groupId }).in('id', productIds);
+          if (error) throw error;
+        } catch (error) {
+          console.error('Error setting variant group in Supabase:', error);
+        }
+      },
+
+      removeVariantGroup: async (productId) => {
+        // Optimistic update
+        set((state) => ({
+          products: state.products.map(p => 
+            p.id === productId ? { ...p, variantGroupId: undefined } : p
+          )
+        }));
+
+        try {
+          const { error } = await supabase.from('products').update({ variant_group_id: null }).eq('id', productId);
+          if (error) throw error;
+        } catch (error) {
+          console.error('Error removing variant group from Supabase:', error);
+        }
+      }
     }));
