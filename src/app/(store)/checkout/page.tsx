@@ -11,9 +11,9 @@ import { useCartStore } from '@/store/cartStore';
 import { usePromoStore, PromoCode } from '@/store/promoStore';
 import { Order } from '@/components/admin/orders/types';
 
-const BD_DISTRICTS = [
-  "Bagerhat", "Bandarban", "Barguna", "Barisal", "Bhola", "Bogra", "Brahmanbaria", "Chandpur", "Chittagong", "Chuadanga", "Comilla", "Cox's Bazar", "Dhaka", "Dinajpur", "Faridpur", "Feni", "Gaibandha", "Gazipur", "Gopalganj", "Habiganj", "Jamalpur", "Jessore", "Jhalokati", "Jhenaidah", "Joypurhat", "Khagrachhari", "Khulna", "Kishoreganj", "Kurigram", "Kushtia", "Lakshmipur", "Lalmonirhat", "Madaripur", "Magura", "Manikganj", "Meherpur", "Moulvibazar", "Munshiganj", "Mymensingh", "Naogaon", "Narail", "Narayanganj", "Narsingdi", "Natore", "Nawabganj", "Netrokona", "Nilphamari", "Noakhali", "Pabna", "Panchagarh", "Patuakhali", "Pirojpur", "Rajbari", "Rajshahi", "Rangamati", "Rangpur", "Satkhira", "Shariatpur", "Sherpur", "Sirajganj", "Sunamganj", "Sylhet", "Tangail", "Thakurgaon"
-].sort();
+import { BD_DISTRICTS_MAP } from '@/lib/data/bd-districts';
+
+const BD_DISTRICTS = Object.keys(BD_DISTRICTS_MAP).sort();
 
 export default function Checkout() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function Checkout() {
   
   const [selectedDistrict, setSelectedDistrict] = useState("Dhaka");
   const [selectedThana, setSelectedThana] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cod'>('card');
+  const [paymentMethod, setPaymentMethod] = useState<'cod'>('cod');
   const [phoneError, setPhoneError] = useState("");
   const [phone, setPhone] = useState("");
   
@@ -52,6 +52,16 @@ export default function Checkout() {
       }
     }
   }, [subtotal, appliedPromo, validatePromo]);
+
+  // Update thana selection when district changes
+  useEffect(() => {
+    const thanas = BD_DISTRICTS_MAP[selectedDistrict] || [];
+    if (thanas.length > 0 && !thanas.includes(selectedThana)) {
+      setSelectedThana(thanas[0]);
+    } else if (thanas.length === 0) {
+      setSelectedThana("");
+    }
+  }, [selectedDistrict]);
 
   const handleApplyPromo = () => {
     if (!promoInput.trim()) {
@@ -145,37 +155,42 @@ export default function Checkout() {
             <form onSubmit={handleSubmit} className="space-y-10">
               
               {/* Contact Info */}
-              <section className="bg-white dark:bg-dark-800 p-5 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Contact Information</h2>
+              <section className="bg-white/80 dark:bg-dark-800/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/40 dark:border-white/10 shadow-xl shadow-slate-200/40 dark:shadow-none">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-500 flex items-center justify-center font-bold">1</div>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">Contact Information</h2>
+                </div>
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email address</label>
+                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email address <span className="font-normal text-slate-500">(Optional)</span></label>
                     <input 
                       type="email" 
                       id="email" 
                       name="email"
-                      required
-                      className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-shadow text-slate-900 dark:text-white"
+                      className="w-full bg-slate-50/50 dark:bg-dark-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all text-slate-900 dark:text-white hover:border-slate-300 dark:hover:border-slate-600"
                       placeholder="you@example.com"
                     />
                   </div>
-                  <label className="flex items-center gap-3 cursor-pointer group">
+                  <label className="flex items-center gap-3 cursor-pointer group w-fit">
                     <input type="checkbox" className="w-5 h-5 rounded border-slate-300 text-primary-500 focus:ring-primary-500 bg-slate-50 dark:bg-dark-900 dark:border-slate-700 cursor-pointer" />
-                    <span className="text-sm text-slate-600 dark:text-slate-400">Email me with news and offers</span>
+                    <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">Email me with news and offers</span>
                   </label>
                 </div>
               </section>
 
               {/* Shipping Address */}
-              <section className="bg-white dark:bg-dark-800 p-5 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Shipping Address</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <section className="bg-white/80 dark:bg-dark-800/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/40 dark:border-white/10 shadow-xl shadow-slate-200/40 dark:shadow-none">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-500 flex items-center justify-center font-bold">2</div>
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">Shipping Address</h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="md:col-span-2">
-                    <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Full name</label>
-                    <input type="text" id="firstName" name="firstName" required className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white" />
+                    <label htmlFor="firstName" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Full name *</label>
+                    <input type="text" id="firstName" name="firstName" required className="w-full bg-slate-50/50 dark:bg-dark-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all text-slate-900 dark:text-white hover:border-slate-300 dark:hover:border-slate-600" placeholder="e.g. Ahmed Rahman" />
                   </div>
                   <div className="md:col-span-2">
-                    <label htmlFor="phone" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Mobile Number</label>
+                    <label htmlFor="phone" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Mobile Number *</label>
                     <input 
                       type="tel" 
                       id="phone" 
@@ -192,23 +207,23 @@ export default function Checkout() {
                       }}
                       maxLength={11}
                       required 
-                      className={`w-full bg-slate-50 dark:bg-dark-900 border ${phoneError ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white`} 
+                      className={`w-full bg-slate-50/50 dark:bg-dark-900/50 border ${phoneError ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all text-slate-900 dark:text-white hover:border-slate-300 dark:hover:border-slate-600`} 
                       placeholder="01XXXXXXXXX" 
                     />
                     {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
                   </div>
                   <div className="md:col-span-2">
-                    <label htmlFor="address" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Address</label>
-                    <input type="text" id="address" name="address" required className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white" placeholder="Apartment, suite, etc. (optional)" />
+                    <label htmlFor="address" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Address *</label>
+                    <input type="text" id="address" name="address" required className="w-full bg-slate-50/50 dark:bg-dark-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all text-slate-900 dark:text-white hover:border-slate-300 dark:hover:border-slate-600" placeholder="House number, Street, Apartment etc." />
                   </div>
                   <div className="md:col-span-1">
-                    <label htmlFor="district" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">District</label>
+                    <label htmlFor="district" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">District *</label>
                     <div className="relative">
                       <select 
                         id="district" 
                         value={selectedDistrict}
                         onChange={(e) => setSelectedDistrict(e.target.value)}
-                        className="w-full bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white appearance-none"
+                        className="w-full bg-slate-50/50 dark:bg-dark-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all text-slate-900 dark:text-white appearance-none hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer"
                       >
                         {BD_DISTRICTS.map(d => (
                           <option key={d} value={d}>{d}</option>
@@ -220,71 +235,51 @@ export default function Checkout() {
                     </div>
                   </div>
                   <div className="md:col-span-1">
-                    <label htmlFor="thana" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Thana / Upazila <span className="font-normal text-slate-500">(Optional)</span></label>
-                    <input 
-                      type="text"
-                      id="thana" 
-                      value={selectedThana}
-                      onChange={(e) => setSelectedThana(e.target.value)}
-                      placeholder="e.g. Dhanmondi"
-                      className="w-full bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
-                    />
+                    <label htmlFor="thana" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Thana / Upazila *</label>
+                    <div className="relative">
+                      <select 
+                        id="thana" 
+                        value={selectedThana}
+                        onChange={(e) => setSelectedThana(e.target.value)}
+                        required
+                        className="w-full bg-slate-50/50 dark:bg-dark-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all text-slate-900 dark:text-white appearance-none hover:border-slate-300 dark:hover:border-slate-600 cursor-pointer"
+                      >
+                        {(BD_DISTRICTS_MAP[selectedDistrict] || []).map(t => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                        <ChevronRight size={16} className="rotate-90" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
 
               {/* Payment Method */}
-              <section className="bg-white dark:bg-dark-800 p-5 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/10 shadow-sm">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Payment</h2>
-                <p className="text-slate-500 text-sm mb-6 flex items-center gap-2"><Lock size={14}/> All transactions are secure and encrypted.</p>
-                
-                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden mb-4">
-                  <div 
-                    className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${paymentMethod === 'card' ? 'bg-primary-50 dark:bg-primary-500/10 border-b border-slate-200 dark:border-slate-700' : 'bg-white dark:bg-dark-800'}`}
-                    onClick={() => setPaymentMethod('card')}
-                  >
-                    <label className="flex items-center gap-3 cursor-pointer font-medium text-slate-900 dark:text-white">
-                      <input type="radio" name="payment" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} className="w-5 h-5 text-primary-500 focus:ring-primary-500 bg-slate-50 dark:bg-dark-900 border-slate-300 cursor-pointer" />
-                      Credit / Debit Card
-                    </label>
-                    <CreditCard size={24} className={paymentMethod === 'card' ? 'text-primary-500' : 'text-slate-400'} />
+              <section className="bg-white/80 dark:bg-dark-800/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/40 dark:border-white/10 shadow-xl shadow-slate-200/40 dark:shadow-none">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-500 flex items-center justify-center font-bold">3</div>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">Payment Method</h2>
                   </div>
-                  {paymentMethod === 'card' && (
-                    <div className="p-6 space-y-4 bg-slate-50 dark:bg-dark-900/50">
-                      <div>
-                        <input type="text" placeholder="Card number" required className="w-full bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white" />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <input type="text" placeholder="Expiration date (MM / YY)" required className="w-full bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white" />
-                        <input type="text" placeholder="Security code" required className="w-full bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white" />
-                      </div>
-                      <div>
-                        <input type="text" placeholder="Name on card" required className="w-full bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white" />
-                      </div>
-                    </div>
-                  )}
                 </div>
-
-                {/* COD Option */}
-                {isCODEnabled && (
-                  <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
-                    <div 
-                      className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${paymentMethod === 'cod' ? 'bg-primary-50 dark:bg-primary-500/10' : 'bg-white dark:bg-dark-800'}`}
-                      onClick={() => setPaymentMethod('cod')}
-                    >
-                      <label className="flex items-center gap-3 cursor-pointer font-medium text-slate-900 dark:text-white">
-                        <input type="radio" name="payment" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} className="w-5 h-5 text-primary-500 focus:ring-primary-500 bg-slate-50 dark:bg-dark-900 border-slate-300 cursor-pointer" />
-                        Cash on Delivery (COD)
-                      </label>
-                      <Banknote size={24} className={paymentMethod === 'cod' ? 'text-primary-500' : 'text-slate-400'} />
-                    </div>
-                    {paymentMethod === 'cod' && (
-                      <div className="p-4 bg-slate-50 dark:bg-dark-900/50 border-t border-slate-200 dark:border-slate-700 text-sm text-slate-600 dark:text-slate-400">
-                        An additional fee of ৳{codFee.toFixed(2)} will be applied for Cash on Delivery. Please keep exact change ready.
+                
+                <div className="border-2 border-primary-500 rounded-2xl overflow-hidden shadow-sm bg-primary-50/50 dark:bg-primary-500/5 relative">
+                  <div className="absolute top-0 right-0 bg-primary-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">RECOMMENDED</div>
+                  <div className="p-5 flex items-center justify-between cursor-pointer">
+                    <label className="flex items-center gap-3 cursor-pointer font-medium text-slate-900 dark:text-white">
+                      <div className="w-5 h-5 rounded-full border-4 border-primary-500 flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-full bg-primary-500"></div>
                       </div>
-                    )}
+                      Cash on Delivery (COD)
+                    </label>
+                    <Banknote size={24} className="text-primary-500" />
                   </div>
-                )}
+                  <div className="p-5 bg-white/50 dark:bg-dark-900/30 border-t border-primary-500/20 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                    Pay safely with cash when your order is delivered to your doorstep. An additional delivery fee of <strong>৳{codFee.toFixed(2)}</strong> is applied.
+                  </div>
+                </div>
               </section>
 
               {/* Submit */}
@@ -299,8 +294,8 @@ export default function Checkout() {
           </div>
 
           {/* Order Summary Sidebar (Right side) */}
-          <div className="lg:w-1/3">
-            <div className="bg-slate-100 dark:bg-dark-800 rounded-3xl p-5 sm:p-8 border border-slate-200 dark:border-white/10 sticky top-32">
+          <div className="lg:w-1/3 mt-8 lg:mt-0">
+            <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 border border-white/60 dark:border-white/10 shadow-2xl shadow-slate-200/50 dark:shadow-none sticky top-28">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Order Summary</h2>
               
               {/* Mini Cart Items */}
