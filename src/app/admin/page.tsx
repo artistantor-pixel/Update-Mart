@@ -37,7 +37,7 @@ export default function AdminDashboard() {
     fetchProducts();
     fetchOrders();
   }, [fetchSettings, fetchProducts, fetchOrders]);
-  
+
   const { data: session, status } = useSession();
 
   const handleDeleteProduct = (id: string, name: string) => {
@@ -51,11 +51,11 @@ export default function AdminDashboard() {
 
   const getRole = () => {
     if (!session?.user?.email) return null;
-    
+
     // Use role from Supabase session if available
     const sessionRole = (session.user as any).role;
     if (sessionRole) return sessionRole;
-    
+
     // Fallback to local authorized list
     const userEmail = session.user.email.toLowerCase();
     const foundUser = authorizedUsers.find(u => u.email === userEmail);
@@ -65,21 +65,21 @@ export default function AdminDashboard() {
   const hasAccess = (tab: string) => {
     const role = getRole();
     if (!role) return false;
-    
+
     if (role === 'Super Admin') return true;
-    
+
     if (role === 'Manager') {
       return ['overview', 'orders', 'products', 'variants', 'customers', 'couriers'].includes(tab);
     }
-    
+
     if (role === 'Editor') {
       return ['homepage', 'marketing', 'promotions', 'products'].includes(tab);
     }
-    
+
     if (role === 'Accountant') {
       return ['overview', 'orders', 'accounting'].includes(tab);
     }
-    
+
     return false;
   };
 
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
           </div>
           <h2 className="text-xl font-bold mb-2">Access Denied</h2>
           <p className="text-slate-500 mb-6">Your account ({session.user.email}) is not authorized to access the admin dashboard.</p>
-          <button 
+          <button
             onClick={() => signOut()}
             className="w-full bg-slate-900 dark:bg-slate-700 text-white font-medium py-3 rounded-xl transition-colors hover:bg-slate-800 dark:hover:bg-slate-600"
           >
@@ -128,7 +128,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-dark-900 flex text-slate-900 dark:text-white transition-colors">
-      
+
       {/* Sidebar */}
       <aside className="w-64 bg-white dark:bg-dark-800 border-r border-slate-200 dark:border-white/5 flex flex-col transition-colors">
         <div className="p-6 border-b border-slate-200 dark:border-white/5">
@@ -136,10 +136,10 @@ export default function AdminDashboard() {
             <Image src="/logo.svg" alt="Update Mart" width={240} height={69} className="w-auto h-12 dark:brightness-0 dark:invert transition-all" />
           </Link>
         </div>
-        
+
         <nav className="flex-1 p-4 space-y-2">
           {hasAccess('overview') && (
-            <button 
+            <button
               onClick={() => setActiveTab('overview')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'overview' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
             </button>
           )}
           {hasAccess('products') && (
-            <button 
+            <button
               onClick={() => setActiveTab('products')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'products' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
             </button>
           )}
           {hasAccess('variants') && (
-            <button 
+            <button
               onClick={() => setActiveTab('variants')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'variants' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
@@ -163,7 +163,7 @@ export default function AdminDashboard() {
             </button>
           )}
           {hasAccess('homepage') && (
-            <button 
+            <button
               onClick={() => setActiveTab('homepage')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'homepage' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
             </button>
           )}
           {hasAccess('orders') && (
-            <button 
+            <button
               onClick={() => setActiveTab('orders')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'orders' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
@@ -179,7 +179,7 @@ export default function AdminDashboard() {
             </button>
           )}
           {hasAccess('couriers') && (
-            <button 
+            <button
               onClick={() => setActiveTab('couriers')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'couriers' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
@@ -187,7 +187,7 @@ export default function AdminDashboard() {
             </button>
           )}
           {hasAccess('accounting') && (
-            <button 
+            <button
               onClick={() => setActiveTab('accounting')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'accounting' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
             </button>
           )}
           {hasAccess('customers') && (
-            <button 
+            <button
               onClick={() => setActiveTab('customers')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'customers' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
             </button>
           )}
           {hasAccess('marketing') && (
-            <button 
+            <button
               onClick={() => setActiveTab('marketing')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === 'marketing' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-dark-800 hover:text-primary-500 dark:hover:text-primary-400'}`}
             >
@@ -211,7 +211,7 @@ export default function AdminDashboard() {
             </button>
           )}
           {hasAccess('promotions') && (
-            <button 
+            <button
               onClick={() => setActiveTab('promotions')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'promotions' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
@@ -222,7 +222,7 @@ export default function AdminDashboard() {
 
         <div className="p-4 border-t border-slate-200 dark:border-white/5 space-y-2">
           {hasAccess('users') && (
-            <button 
+            <button
               onClick={() => setActiveTab('users')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'users' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
@@ -230,7 +230,7 @@ export default function AdminDashboard() {
             </button>
           )}
           {hasAccess('settings') && (
-            <button 
+            <button
               onClick={() => setActiveTab('settings')}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'settings' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
       <main className="flex-1 p-8 overflow-y-auto">
         <header className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold capitalize">{activeTab}</h1>
-          
+
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-bold text-slate-900 dark:text-white">{session.user.name}</p>
@@ -276,14 +276,14 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white text-left">Products Catalog</h2>
                 <p className="text-sm text-slate-500 text-left mt-1">Manage your store's inventory and listings.</p>
               </div>
-              <button 
+              <button
                 onClick={() => setIsAddingProduct(true)}
                 className="bg-primary-500 hover:bg-primary-600 text-white px-5 py-2.5 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-lg shadow-primary-500/20"
               >
                 <Plus size={18} /> Add New Product
               </button>
             </div>
-            
+
             <div className="overflow-x-auto text-left">
               <table className="w-full">
                 <thead>
@@ -300,7 +300,7 @@ export default function AdminDashboard() {
                     <tr key={product.id} className="hover:bg-slate-50 dark:hover:bg-dark-800/50 transition-colors group">
                       <td className="py-4 flex items-center gap-4">
                         <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-slate-100">
-                          <Image src={product.image} alt={product.name} className="object-cover" fill={true} style={{objectFit: "cover"}} />
+                          <Image src={product.image} alt={product.name} className="object-cover" fill={true} style={{ objectFit: "cover" }} />
                         </div>
                         <div>
                           <p className="font-bold text-slate-900 dark:text-white text-sm">{product.name}</p>
@@ -369,7 +369,7 @@ export default function AdminDashboard() {
         {activeTab === 'settings' && (
           <div className="bg-white dark:bg-dark-800 p-8 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm text-left max-w-3xl mx-auto mt-8">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-white/5 pb-4">Store Settings</h2>
-            
+
             <div className="space-y-10">
               {/* Payment Settings */}
               <section>
@@ -380,7 +380,7 @@ export default function AdminDashboard() {
                       <p className="font-medium text-slate-900 dark:text-white">Cash on Delivery (COD)</p>
                       <p className="text-sm text-slate-500">Allow customers to pay upon receiving the product.</p>
                     </div>
-                    <button 
+                    <button
                       onClick={() => toggleCOD(!isCODEnabled)}
                       className={`w-12 h-6 rounded-full transition-colors relative ${isCODEnabled ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-600'}`}
                     >
@@ -390,8 +390,8 @@ export default function AdminDashboard() {
                   {isCODEnabled && (
                     <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">COD Additional Fee (৳)</label>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         value={codFee}
                         onChange={(e) => setCodFee(Number(e.target.value))}
                         className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
@@ -405,13 +405,13 @@ export default function AdminDashboard() {
               <section>
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2"><Layout size={20} className="text-primary-500" /> Top Announcement Bar</h3>
                 <div className="space-y-4 bg-slate-50 dark:bg-dark-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                  
+
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <p className="font-medium text-slate-900 dark:text-white">Enable Top Bar</p>
                       <p className="text-sm text-slate-500">Show a notification bar above the navigation menu.</p>
                     </div>
-                    <button 
+                    <button
                       onClick={() => setTopBar({ ...topBar, enabled: !topBar.enabled })}
                       className={`w-12 h-6 rounded-full transition-colors relative ${topBar?.enabled ? 'bg-primary-500' : 'bg-slate-300 dark:bg-slate-600'}`}
                     >
@@ -423,8 +423,8 @@ export default function AdminDashboard() {
                     <>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Message</label>
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           value={topBar.message}
                           onChange={(e) => setTopBar({ ...topBar, message: e.target.value })}
                           className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
@@ -434,8 +434,8 @@ export default function AdminDashboard() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Link Text (Optional)</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={topBar.linkText}
                             onChange={(e) => setTopBar({ ...topBar, linkText: e.target.value })}
                             className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
@@ -444,8 +444,8 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Link URL</label>
-                          <input 
-                            type="text" 
+                          <input
+                            type="text"
                             value={topBar.linkUrl}
                             onChange={(e) => setTopBar({ ...topBar, linkUrl: e.target.value })}
                             className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
@@ -457,14 +457,14 @@ export default function AdminDashboard() {
                         <div>
                           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Background Color</label>
                           <div className="flex gap-2">
-                            <input 
-                              type="color" 
+                            <input
+                              type="color"
                               value={topBar.bgColor}
                               onChange={(e) => setTopBar({ ...topBar, bgColor: e.target.value })}
                               className="h-12 w-16 p-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer"
                             />
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={topBar.bgColor}
                               onChange={(e) => setTopBar({ ...topBar, bgColor: e.target.value })}
                               className="flex-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white font-mono"
@@ -474,14 +474,14 @@ export default function AdminDashboard() {
                         <div>
                           <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Text Color</label>
                           <div className="flex gap-2">
-                            <input 
-                              type="color" 
+                            <input
+                              type="color"
                               value={topBar.textColor}
                               onChange={(e) => setTopBar({ ...topBar, textColor: e.target.value })}
                               className="h-12 w-16 p-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer"
                             />
-                            <input 
-                              type="text" 
+                            <input
+                              type="text"
                               value={topBar.textColor}
                               onChange={(e) => setTopBar({ ...topBar, textColor: e.target.value })}
                               className="flex-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white font-mono"
@@ -500,7 +500,7 @@ export default function AdminDashboard() {
                 <div className="space-y-4 bg-slate-50 dark:bg-dark-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">About Text</label>
-                    <textarea 
+                    <textarea
                       value={footer?.aboutText || ''}
                       onChange={(e) => setFooter({ ...footer, aboutText: e.target.value })}
                       className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white resize-none h-24"
@@ -509,8 +509,8 @@ export default function AdminDashboard() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Phone Number</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={footer?.phone || ''}
                         onChange={(e) => setFooter({ ...footer, phone: e.target.value })}
                         className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
@@ -518,8 +518,8 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Email Address</label>
-                      <input 
-                        type="email" 
+                      <input
+                        type="email"
                         value={footer?.email || ''}
                         onChange={(e) => setFooter({ ...footer, email: e.target.value })}
                         className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
@@ -527,8 +527,8 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Facebook URL</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={footer?.facebookUrl || ''}
                         onChange={(e) => setFooter({ ...footer, facebookUrl: e.target.value })}
                         className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
@@ -536,8 +536,8 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Instagram URL</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         value={footer?.instagramUrl || ''}
                         onChange={(e) => setFooter({ ...footer, instagramUrl: e.target.value })}
                         className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
@@ -570,7 +570,7 @@ export default function AdminDashboard() {
         {activeTab === 'promotions' && (
           <PromoManager />
         )}
-        
+
         {activeTab === 'users' && (
           <UserManager />
         )}
@@ -581,8 +581,9 @@ export default function AdminDashboard() {
             <p className="text-slate-500 dark:text-slate-400">This module is under construction and will be scalable for future feature additions.</p>
           </div>
         )}
-        
+
       </main>
     </div>
   );
 }
+

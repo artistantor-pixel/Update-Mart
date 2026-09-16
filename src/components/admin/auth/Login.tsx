@@ -38,7 +38,8 @@ export default function Login() {
       <div className="w-full max-w-md bg-white dark:bg-dark-800 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
         
         <div className="p-8 pb-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-dark-900/30 text-center">
-          <Image src="/logo.svg" alt="Update Mart" width={180} height={50} className="w-auto h-10 mx-auto dark:brightness-0 dark:invert mb-6" />
+          <Image src="/logo.svg" alt="Update Mart" width={180} height={50} className="w-auto h-10 mx-auto mb-6 transition-all dark:hidden" />
+          <Image src="/logo-dark.svg" alt="Update Mart" width={180} height={50} className="w-auto h-10 mx-auto mb-6 transition-all hidden dark:block" />
           <h1 className="text-xl font-bold text-slate-900 dark:text-white">Admin Access Portal</h1>
           <p className="text-sm text-slate-500 mt-1">Sign in manually with your credentials</p>
         </div>

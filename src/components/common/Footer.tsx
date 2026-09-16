@@ -36,7 +36,7 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-2 flex flex-col items-center md:items-start text-center md:text-left">
             <Link href="/" className="inline-block mb-6 transition-transform hover:scale-105">
-              <Image src="/logo.svg" alt="Update Mart" width={180} height={52} className="w-auto h-12 brightness-0 invert mx-auto md:mx-0" />
+              <Image src="/logo-dark.svg" alt="Update Mart" width={180} height={52} className="w-auto h-12 mx-auto md:mx-0" />
             </Link>
             <p className="text-white/70 text-sm mb-8 max-w-sm leading-relaxed px-4 md:px-0">
               {footer.aboutText}
