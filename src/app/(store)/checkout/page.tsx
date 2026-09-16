@@ -84,13 +84,15 @@ export default function Checkout() {
     setPromoError("");
   };
 
+  const [isOrderPlaced, setIsOrderPlaced] = useState(false);
+
   useEffect(() => {
     document.title = 'Checkout | Update Mart';
     window.scrollTo(0, 0);
-    if (cartItems.length === 0) {
+    if (cartItems.length === 0 && !isOrderPlaced) {
       router.push('/cart');
     }
-  }, [cartItems.length, router]);
+  }, [cartItems.length, router, isOrderPlaced]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -136,6 +138,7 @@ export default function Checkout() {
       ]
     };
 
+    setIsOrderPlaced(true);
     addOrder(newOrder);
     clearCart();
     router.push('/order-complete');
