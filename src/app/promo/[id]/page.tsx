@@ -29,6 +29,7 @@ export default function PromoPage() {
   const [district, setDistrict] = useState('Dhaka');
   const [thana, setThana] = useState('');
   const [address, setAddress] = useState('');
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   useEffect(() => {
     if (products.length === 0) {
@@ -169,7 +170,7 @@ export default function PromoPage() {
               🔥 Limited Time Offer
             </div>
             
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white leading-[1.1]">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white leading-[1.1]">
               {product.name}
             </h1>
             
@@ -183,9 +184,17 @@ export default function PromoPage() {
               )}
             </div>
 
-            <p className="text-lg lg:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0">
-              {product.description || "The ultimate choice for premium quality and style. Order today to get fast delivery and exclusive discounts."}
-            </p>
+            <div className="text-lg lg:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0">
+              <p className={isDescriptionExpanded ? "" : "line-clamp-1"}>
+                {product.description || "The ultimate choice for premium quality and style. Order today to get fast delivery and exclusive discounts."}
+              </p>
+              <button 
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)} 
+                className="text-primary-500 hover:text-primary-600 font-semibold text-sm mt-2 flex items-center gap-1 mx-auto lg:mx-0"
+              >
+                {isDescriptionExpanded ? "Read Less" : "Read More"}
+              </button>
+            </div>
 
             {/* Sibling Variants on Landing Page */}
             {(siblingProducts.length > 0) && (
@@ -450,6 +459,16 @@ export default function PromoPage() {
           </div>
         </form>
       </section>
+
+      {/* Sticky Mobile Order Button */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-dark-900/90 backdrop-blur-md border-t border-slate-200 dark:border-white/10 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+        <button 
+          onClick={scrollToCheckout}
+          className="w-full bg-primary-500 hover:bg-primary-600 text-white text-xl font-black py-4 px-8 rounded-2xl shadow-xl shadow-primary-500/30 transition-all hover:scale-105 flex items-center justify-center gap-2 animate-pulse-slow"
+        >
+          ORDER NOW <ChevronRight size={24} className="animate-bounce-x" />
+        </button>
+      </div>
 
     </div>
   );

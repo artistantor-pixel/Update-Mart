@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { Package } from 'lucide-react';
 
 export default function PromoLayout({
@@ -11,13 +12,8 @@ export default function PromoLayout({
       {/* Minimal Header */}
       <header className="bg-white/80 dark:bg-dark-900/80 backdrop-blur-md border-b border-slate-200 dark:border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-center">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
-              <Package size={20} className="text-white" />
-            </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300">
-              Update Mart
-            </span>
+          <Link href="/" className="flex items-center">
+            <Image src="/logo.svg" alt="Update Mart" width={240} height={69} className="w-auto h-10 lg:h-12 dark:brightness-0 dark:invert transition-all" priority />
           </Link>
         </div>
       </header>
