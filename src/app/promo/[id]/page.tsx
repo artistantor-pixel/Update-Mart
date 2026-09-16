@@ -14,7 +14,7 @@ const BD_DISTRICTS = [
 export default function PromoPage() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
-  const { products } = useProductStore();
+  const { products, fetchProducts, isLoading } = useProductStore();
   const addOrder = useOrderStore(state => state.addOrder);
   
   const product = products.find(p => p.id === id);
@@ -29,6 +29,12 @@ export default function PromoPage() {
   const [district, setDistrict] = useState('Dhaka');
   const [thana, setThana] = useState('');
   const [address, setAddress] = useState('');
+
+  useEffect(() => {
+    if (products.length === 0) {
+      fetchProducts();
+    }
+  }, [products.length, fetchProducts]);
 
   useEffect(() => {
     if (product) {
@@ -49,6 +55,14 @@ export default function PromoPage() {
       setSelectedVariants(initialVariants);
     }
   }, [product]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-dark-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (!product) return <div className="min-h-screen flex items-center justify-center font-bold text-2xl dark:text-white">Offer Not Found</div>;
 
