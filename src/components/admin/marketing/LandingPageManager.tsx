@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useProductStore } from '@/store/productStore';
 import { useLandingPageStore } from '@/store/landingPageStore';
 import { Copy, ExternalLink, Megaphone, CheckCircle2, Save, Trash2 } from 'lucide-react';
@@ -13,6 +13,11 @@ export default function LandingPageManager() {
   const [selectedProductId, setSelectedProductId] = useState<string>('');
   const [campaignName, setCampaignName] = useState<string>('');
   const [copied, setCopied] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const selectedProduct = products.find(p => p.id === selectedProductId);
   
@@ -132,7 +137,11 @@ export default function LandingPageManager() {
       <div className="bg-white dark:bg-dark-800 p-8 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Saved Campaigns</h2>
         
-        {savedPages.length === 0 ? (
+        {!isMounted ? (
+          <div className="text-center py-12 bg-slate-50 dark:bg-dark-900/50 rounded-xl border border-slate-200 dark:border-white/5">
+            <p className="text-slate-500">Loading saved campaigns...</p>
+          </div>
+        ) : savedPages.length === 0 ? (
           <div className="text-center py-12 bg-slate-50 dark:bg-dark-900/50 rounded-xl border border-slate-200 dark:border-white/5">
             <Megaphone size={40} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
             <p className="text-slate-500">No saved campaigns yet. Create one above!</p>
