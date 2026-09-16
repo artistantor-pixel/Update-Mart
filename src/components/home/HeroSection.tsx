@@ -105,7 +105,7 @@ export default function HeroSection() {
             Browse All Products
           </Link>
         </div>
-
+      </div>
     </section>
   );
 }
