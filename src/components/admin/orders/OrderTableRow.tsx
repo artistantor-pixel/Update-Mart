@@ -97,7 +97,13 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
             >
               <Edit size={16} />
             </button>
-            <button className="p-2 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors" title="Print Invoice"><Printer size={16} /></button>
+            <button 
+              onClick={() => window.open(`/admin/print/${order.id}`, '_blank')}
+              className="p-2 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors" 
+              title="Print Invoice"
+            >
+              <Printer size={16} />
+            </button>
             <button className="p-2 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="More"><MoreVertical size={16} /></button>
           </div>
         </td>
@@ -246,7 +252,10 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
                           </p>
                         </div>
                         <div className="flex gap-2">
-                          <button className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-dark-800 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-300 rounded-lg px-3 py-2 text-xs font-medium transition-colors border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1">
+                          <button 
+                            onClick={() => window.open(`/admin/print/${order.id}`, '_blank')}
+                            className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-dark-800 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-300 rounded-lg px-3 py-2 text-xs font-medium transition-colors border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1"
+                          >
                             <Printer size={12} /> Print Slip
                           </button>
                           <button 
