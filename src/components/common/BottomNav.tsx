@@ -23,9 +23,6 @@ export default function BottomNav() {
     { label: 'Profile', icon: User, href: '/profile' },
   ];
 
-  if (pathname.startsWith('/product/')) {
-    return null;
-  }
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden px-4 pb-4 pt-2 pointer-events-none">

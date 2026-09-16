@@ -112,6 +112,10 @@ export default function ProductDetails() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewContent, setReviewContent] = useState('');
   const modalRef = useRef<HTMLDivElement>(null);
+  
+  // Sticky CTA state
+  const [showStickyCta, setShowStickyCta] = useState(false);
+  const inlineCtaRef = useRef<HTMLDivElement>(null);
 
   // State for gallery and variants
   const [activeImage, setActiveImage] = useState(0);
@@ -127,6 +131,26 @@ export default function ProductDetails() {
     window.scrollTo(0, 0);
     if (id) fetchReviewsForProduct(id);
   }, [id, product, fetchReviewsForProduct]);
+
+  // Observer for sticky CTA
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Show sticky when inline is out of view (scrolled past it)
+        if (!entry.isIntersecting && entry.boundingClientRect.top < 0) {
+          setShowStickyCta(true);
+        } else {
+          setShowStickyCta(false);
+        }
+      },
+      { threshold: 0, rootMargin: "-100px 0px 0px 0px" }
+    );
+
+    if (inlineCtaRef.current) {
+      observer.observe(inlineCtaRef.current);
+    }
+    return () => observer.disconnect();
+  }, []);
 
   // Re-fetch after successful submit
   useEffect(() => {
@@ -407,7 +431,8 @@ export default function ProductDetails() {
                 </div>
             </div>
 
-            <div className="hidden sm:flex flex-col sm:flex-row gap-4 mb-8">
+            {/* Inline Action Buttons (Mobile & Desktop) */}
+            <div ref={inlineCtaRef} className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8">
               <button 
                 onClick={handleAddToCart}
                 className="flex-1 bg-primary-500 hover:bg-primary-600 text-white font-medium py-4 px-8 rounded-xl transition-all shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 flex items-center justify-center gap-2"
@@ -420,7 +445,7 @@ export default function ProductDetails() {
               >
                 Buy It Now
               </button>
-              <button className="p-4 bg-slate-100 dark:bg-dark-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition-colors">
+              <button className="hidden sm:flex p-4 bg-slate-100 dark:bg-dark-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition-colors">
                 <Heart size={24} />
               </button>
             </div>
@@ -658,23 +683,21 @@ export default function ProductDetails() {
       </div>
 
       {/* ================= STICKY MOBILE CTA ================= */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-dark-900/80 backdrop-blur-md border-t border-slate-200 dark:border-white/10 sm:hidden z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <button 
-              onClick={handleAddToCart}
-              className="w-full bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 px-4 rounded-xl shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2"
-            >
-              Add to Cart
-            </button>
-          </div>
+      <div className={`fixed left-0 right-0 p-3 sm:hidden z-40 transition-all duration-300 pointer-events-none ${showStickyCta ? 'bottom-[80px] opacity-100 translate-y-0' : 'bottom-0 opacity-0 translate-y-8'}`}>
+        <div className="bg-white/90 dark:bg-dark-900/90 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl p-2 mx-2 flex gap-2 pointer-events-auto">
+          <button 
+            onClick={handleAddToCart}
+            className="flex-1 bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 px-4 rounded-xl shadow-lg shadow-primary-500/20 flex items-center justify-center gap-2 text-sm"
+          >
+            <ShoppingBag size={18} /> Add to Cart
+          </button>
           <button 
             onClick={handleBuyNow}
-            className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium py-3 rounded-xl text-sm"
+            className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-medium py-3 rounded-xl text-sm"
           >
             Buy Now
           </button>
-          <button className="w-12 flex items-center justify-center bg-slate-100 dark:bg-dark-800 text-slate-600 dark:text-slate-300 rounded-xl">
+          <button className="w-12 flex items-center justify-center bg-slate-100 dark:bg-dark-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition-colors">
             <Heart size={20} />
           </button>
         </div>
