@@ -180,9 +180,20 @@ export default function EditOrderModal({ order, isOpen, onClose, onSave }: EditO
             <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
               {items.map((item) => (
                 <div key={item.id} className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 last:border-0 bg-slate-50 dark:bg-dark-800/50">
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-900 dark:text-white text-sm">{item.name}</p>
-                    <p className="text-xs text-slate-500">{item.variant} • ৳{item.price.toFixed(2)}</p>
+                  <div className="flex-1 pr-4">
+                    <p className="font-medium text-slate-900 dark:text-white text-sm mb-1">{item.name}</p>
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="text"
+                        value={item.variant}
+                        onChange={(e) => {
+                          setItems(prev => prev.map(i => i.id === item.id ? { ...i, variant: e.target.value } : i));
+                        }}
+                        className="text-xs bg-white dark:bg-dark-900 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 w-full max-w-[120px] focus:outline-none focus:border-primary-500"
+                        placeholder="Variant/Color"
+                      />
+                      <span className="text-xs text-slate-500 flex-shrink-0">• ৳{item.price.toFixed(2)}</span>
+                    </div>
                   </div>
                   
                   <div className="flex items-center gap-4">

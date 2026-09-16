@@ -112,9 +112,19 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
               {/* Left Side: Items & Shipping (Wider) */}
               <div className="flex-[2] space-y-8">
                 <div className="bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
-                  <h4 className="font-semibold text-slate-900 dark:text-white mb-4 text-sm flex items-center gap-2">
-                    <Package size={18} className="text-primary-500" /> Order Details
-                  </h4>
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-semibold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                      <Package size={18} className="text-primary-500" /> Order Details
+                    </h4>
+                    {onEdit && (
+                      <button 
+                        onClick={() => onEdit(order)}
+                        className="text-[11px] font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-600 hover:text-primary-700 hover:bg-primary-100 dark:hover:bg-primary-900/40 px-2.5 py-1 rounded-md transition-colors flex items-center gap-1.5"
+                      >
+                        <Edit size={12} /> Edit Items
+                      </button>
+                    )}
+                  </div>
                   <div className="space-y-3">
                     {order.items.map((item) => (
                       <div key={item.id} className="flex justify-between items-center text-sm border-b border-slate-100 dark:border-white/5 pb-3 last:border-0 last:pb-0">
@@ -140,9 +150,25 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
                       </div>
                     ))}
                   </div>
-                  <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center font-bold text-slate-900 dark:text-white">
-                    <span>Subtotal</span>
-                    <span>৳ {order.total.toLocaleString()}</span>
+                  <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 space-y-2.5 text-sm">
+                    <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                      <span>Subtotal</span>
+                      <span>৳ {order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-slate-600 dark:text-slate-400">
+                      <span>Shipping Cost</span>
+                      <span>৳ {(order.deliveryCharge ?? Math.max(0, order.total - order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0) + (order.discountAmount || 0))).toLocaleString()}</span>
+                    </div>
+                    {order.discountAmount && order.discountAmount > 0 ? (
+                      <div className="flex justify-between items-center text-green-600 dark:text-green-400">
+                        <span>Discount {order.promoCode ? `(${order.promoCode})` : ''}</span>
+                        <span>- ৳ {order.discountAmount.toLocaleString()}</span>
+                      </div>
+                    ) : null}
+                    <div className="flex justify-between items-center font-bold text-slate-900 dark:text-white pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                      <span>Total</span>
+                      <span>৳ {order.total.toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
                 
