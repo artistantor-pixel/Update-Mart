@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, Edit, FileText, Printer, MoreVertical, Package,
 import { Order, OrderStatus } from './types';
 import { useCourierStore } from '@/store/courierStore';
 import { useOrderStore } from '@/store/orderStore';
+import FraudCheckPopover from './FraudCheckPopover';
 
 interface OrderTableRowProps {
   order: Order;
@@ -17,6 +18,7 @@ interface OrderTableRowProps {
 export default function OrderTableRow({ order, isSelected, onSelect, onStatusChange, onEdit }: OrderTableRowProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isShipping, setIsShipping] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const { couriers } = useCourierStore();
   const { updateOrder } = useOrderStore();
   const activeCouriers = couriers.filter(c => c.isActive);
@@ -65,7 +67,10 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
             </div>
             <div>
               <p className="font-medium text-slate-900 dark:text-white text-sm">{order.customerName}</p>
-              <p className="text-xs text-slate-500 flex items-center gap-1"><Phone size={10} /> {order.customerPhone}</p>
+              <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                <span className="flex items-center gap-1"><Phone size={10} /> {order.customerPhone}</span>
+                <FraudCheckPopover phone={order.customerPhone} />
+              </div>
             </div>
           </div>
         </td>
@@ -304,9 +309,41 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
               {/* Right Side: Timeline */}
               <div className="flex-1">
                 <div className="bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm h-full">
-                  <h4 className="font-semibold text-slate-900 dark:text-white mb-6 text-sm flex items-center gap-2">
-                    <Clock size={18} className="text-primary-500" /> Activity Timeline
-                  </h4>
+                  <div className="flex justify-between items-center mb-6">
+                    <h4 className="font-semibold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                      <Clock size={18} className="text-primary-500" /> Activity Timeline
+                    </h4>
+                    {order.consignmentId && (
+                      <button 
+                        onClick={async () => {
+                          setIsSyncing(true);
+                          try {
+                            const res = await fetch('/api/courier/steadfast/tracking', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ orderId: order.id, consignmentId: order.consignmentId })
+                            });
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || 'Failed');
+                            if (data.isNewStatus) {
+                              onStatusChange(order.id, order.status); // Trigger re-render to fetch new timeline
+                              alert(`Status updated to: ${data.status}`);
+                            } else {
+                              alert(`Status is still: ${data.status}`);
+                            }
+                          } catch (e: any) {
+                            alert(`Error: ${e.message}`);
+                          } finally {
+                            setIsSyncing(false);
+                          }
+                        }}
+                        disabled={isSyncing}
+                        className={`text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors flex items-center gap-1.5 ${isSyncing ? 'bg-slate-100 text-slate-400' : 'bg-primary-50 text-primary-600 hover:bg-primary-100'}`}
+                      >
+                        {isSyncing ? 'Syncing...' : 'Sync Courier'}
+                      </button>
+                    )}
+                  </div>
                   <div className="space-y-6 relative before:absolute before:inset-0 before:ml-2.5 before:-translate-x-px before:h-full before:w-0.5 before:bg-slate-200 dark:before:bg-slate-700">
                     {order.timeline.map((event, index) => (
                       <div key={event.id} className="relative flex gap-4 text-sm z-10">
