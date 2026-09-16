@@ -194,19 +194,29 @@ export default function ProductDetails() {
     .sort(() => 0.5 - Math.random()) // shuffle
     .slice(0, 4);
 
-  const handleAddToCart = () => {
+  const addToCartInternal = () => {
     const variantLabel = Object.entries(selectedVariants)
       .map(([k, v]) => `${k}: ${v}`)
       .join(', ');
+    const finalVariant = [selectedColor ? `Color: ${selectedColor}` : '', variantLabel].filter(Boolean).join(' | ');
     addItem({
       productId: product.id,
       name: product.name,
       price: effectivePrice,
       image: product.image,
       quantity: 1,
-      variant: variantLabel || selectedColor || '',
+      variant: finalVariant,
     });
+  };
+
+  const handleAddToCart = () => {
+    addToCartInternal();
     router.push('/cart');
+  };
+
+  const handleBuyNow = () => {
+    addToCartInternal();
+    router.push('/checkout');
   };
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
@@ -405,20 +415,7 @@ export default function ProductDetails() {
                 <ShoppingBag size={20} /> Add to Cart
               </button>
               <button 
-                onClick={() => {
-                  const variantLabel = Object.entries(selectedVariants)
-                    .map(([k, v]) => `${k}: ${v}`)
-                    .join(', ');
-                  addItem({
-                    productId: product.id,
-                    name: product.name,
-                    price: effectivePrice,
-                    image: product.image,
-                    quantity: 1,
-                    variant: variantLabel || selectedColor || ''
-                  });
-                  router.push('/checkout');
-                }}
+                onClick={handleBuyNow}
                 className="flex-1 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 text-white dark:text-slate-900 font-medium py-4 px-8 rounded-xl transition-colors flex items-center justify-center gap-2"
               >
                 Buy It Now
@@ -672,7 +669,7 @@ export default function ProductDetails() {
             </button>
           </div>
           <button 
-            onClick={() => router.push('/checkout')}
+            onClick={handleBuyNow}
             className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium py-3 rounded-xl text-sm"
           >
             Buy Now
