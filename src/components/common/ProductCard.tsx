@@ -18,7 +18,7 @@ export default function ProductCard({ id, name, price, image, rating, isNew }: P
     <Link href={`/product/${id}`} className="block group flex flex-col h-full bg-white dark:bg-dark-800 rounded-2xl overflow-hidden border border-slate-100 dark:border-white/5 hover:border-primary-500/30 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
       
       {/* Product Image & Badges */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-slate-50 dark:bg-dark-900">
+      <div className="relative aspect-square overflow-hidden bg-slate-50 dark:bg-dark-900">
         {isNew && (
           <span className="absolute top-3 left-3 bg-primary-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
             NEW
