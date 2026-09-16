@@ -18,7 +18,7 @@
 
 @layer utilities {
   .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 dark:bg-dark-800/70 dark:border-white/10;
+    @apply bg-white/85 backdrop-blur-xl border-b border-white/50 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)] dark:bg-dark-900/85 dark:border-white/10 dark:shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
   }
   .animation-delay-2000 {
     animation-delay: 2s;
