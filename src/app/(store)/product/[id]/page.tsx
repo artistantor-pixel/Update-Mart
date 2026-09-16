@@ -100,11 +100,11 @@ const StarPicker = ({ value, onChange }: { value: number; onChange: (v: number) 
 export default function ProductDetails() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
-  const { products } = useProductStore();
+  const { products, isLoading: productsLoading } = useProductStore();
   const addItem = useCartStore(state => state.addItem);
   const { reviews, isLoading: reviewsLoading, isSubmitting, submitSuccess, fetchReviewsForProduct, submitReview, resetSubmitState } = useReviewStore();
 
-  const product = products.find(p => p.id === id) || products[0]; // fallback to first product if not found
+  const product = products.find(p => p.id === id); // no fallback to products[0]
 
   // Review form state
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -120,6 +120,38 @@ export default function ProductDetails() {
   // Map of variant type -> selected value, e.g. { Color: 'Black', Size: 'Large' }
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    if (product) {
+      document.title = `${product.name} | Update Mart`;
+    }
+    window.scrollTo(0, 0);
+    if (id) fetchReviewsForProduct(id);
+  }, [id, product, fetchReviewsForProduct]);
+
+  // Re-fetch after successful submit
+  useEffect(() => {
+    if (submitSuccess && id) {
+      fetchReviewsForProduct(id);
+      setReviewName('');
+      setReviewRating(5);
+      setReviewContent('');
+      setTimeout(() => {
+        setShowReviewModal(false);
+        resetSubmitState();
+      }, 2000);
+    }
+  }, [submitSuccess, id, fetchReviewsForProduct, resetSubmitState]);
+
+  if (productsLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-dark-900 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!product) return <div className="text-center py-40 font-bold text-2xl dark:text-white">Product Not Found</div>;
+
   // Group variants by type
   const variantGroups = (product.variants || []).reduce<Record<string, typeof product.variants>>((acc, v) => {
     if (!v) return acc;
@@ -134,21 +166,6 @@ export default function ProductDetails() {
     const selected = selectedVariants[v.name];
     return selected === v.value;
   });
-
-  const handleAddToCart = () => {
-    const variantLabel = Object.entries(selectedVariants)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join(', ');
-    addItem({
-      productId: product.id,
-      name: product.name,
-      price: effectivePrice,
-      image: product.image,
-      quantity: 1,
-      variant: variantLabel || selectedColor || '',
-    });
-    router.push('/cart');
-  };
 
   // Gallery: use product.images if available, else single image
   const images = product.images?.length
@@ -177,32 +194,27 @@ export default function ProductDetails() {
     .sort(() => 0.5 - Math.random()) // shuffle
     .slice(0, 4);
 
-  useEffect(() => {
-    document.title = `${product?.name || 'Product Details'} | Update Mart`;
-    window.scrollTo(0, 0);
-    if (id) fetchReviewsForProduct(id);
-  }, [id, product, fetchReviewsForProduct]);
-
-  // Re-fetch after successful submit
-  useEffect(() => {
-    if (submitSuccess && id) {
-      fetchReviewsForProduct(id);
-      setReviewName('');
-      setReviewRating(5);
-      setReviewContent('');
-      setTimeout(() => {
-        setShowReviewModal(false);
-        resetSubmitState();
-      }, 2000);
-    }
-  }, [submitSuccess, id, fetchReviewsForProduct, resetSubmitState]);
+  const handleAddToCart = () => {
+    const variantLabel = Object.entries(selectedVariants)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(', ');
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: effectivePrice,
+      image: product.image,
+      quantity: 1,
+      variant: variantLabel || selectedColor || '',
+    });
+    router.push('/cart');
+  };
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reviewName.trim() || !reviewContent.trim()) return;
     await submitReview({
       product_id: id,
-      product_name: product?.name || '',
+      product_name: product.name,
       name: reviewName.trim(),
       rating: reviewRating,
       content: reviewContent.trim(),
