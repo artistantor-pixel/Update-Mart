@@ -52,14 +52,16 @@ export default function Navbar() {
           {/* Mobile Logo */}
           <div className="lg:hidden flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center">
-              <Image src="/mobile-logo.svg" alt="UM" width={32} height={32} className="w-8 h-8 dark:brightness-0 dark:invert transition-all" priority />
+              <Image src="/mobile-logo.svg" alt="UM" width={32} height={32} className="w-8 h-8 transition-all dark:hidden" priority />
+              <Image src="/mobile-logo-dark.svg" alt="UM" width={32} height={32} className="w-8 h-8 transition-all hidden dark:block" priority />
             </Link>
           </div>
 
           {/* Logo (Desktop) */}
           <div className="hidden lg:block">
             <Link href="/" className="flex items-center">
-              <Image src="/logo.svg" alt="Update Mart" width={240} height={69} className="w-auto h-12 lg:h-14 dark:brightness-0 dark:invert transition-all" priority />
+              <Image src="/logo.svg" alt="Update Mart" width={240} height={69} className="w-auto h-12 lg:h-14 transition-all dark:hidden" priority />
+              <Image src="/logo-dark.svg" alt="Update Mart" width={240} height={69} className="w-auto h-12 lg:h-14 transition-all hidden dark:block" priority />
             </Link>
           </div>
 
