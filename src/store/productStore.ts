@@ -119,7 +119,12 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
               materialsAndCare: p.materials_and_care,
               shippingAndReturns: p.shipping_and_returns,
               primaryColor: p.primary_color,
-              variantGroupId: p.variant_group_id
+              variantGroupId: p.variant_group_id,
+              buyingPrice: p.buying_price,
+              salePrice: p.sale_price,
+              metaTitle: p.meta_title,
+              metaDesc: p.meta_desc,
+              videoUrl: p.video_url
             })) as Product[];
             set({ products: formattedProducts });
           }
@@ -158,7 +163,12 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
             tags: product.tags,
             materials_and_care: product.materialsAndCare,
             shipping_and_returns: product.shippingAndReturns,
-            primary_color: product.primaryColor
+            primary_color: product.primaryColor,
+            buying_price: product.buyingPrice,
+            sale_price: product.salePrice,
+            meta_title: product.metaTitle,
+            meta_desc: product.metaDesc,
+            video_url: product.videoUrl
           };
           
           const { error } = await supabase.from('products').insert([dbProduct]);
@@ -184,6 +194,11 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
           if (updates.materialsAndCare !== undefined) dbUpdates.materials_and_care = updates.materialsAndCare;
           if (updates.shippingAndReturns !== undefined) dbUpdates.shipping_and_returns = updates.shippingAndReturns;
           if (updates.primaryColor !== undefined) dbUpdates.primary_color = updates.primaryColor;
+          if (updates.buyingPrice !== undefined) dbUpdates.buying_price = updates.buyingPrice;
+          if (updates.salePrice !== undefined) dbUpdates.sale_price = updates.salePrice;
+          if (updates.metaTitle !== undefined) dbUpdates.meta_title = updates.metaTitle;
+          if (updates.metaDesc !== undefined) dbUpdates.meta_desc = updates.metaDesc;
+          if (updates.videoUrl !== undefined) dbUpdates.video_url = updates.videoUrl;
           
           // Remove camelCase keys from db updates
           delete dbUpdates.regularPrice;
@@ -193,6 +208,11 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
           delete dbUpdates.materialsAndCare;
           delete dbUpdates.shippingAndReturns;
           delete dbUpdates.primaryColor;
+          delete dbUpdates.buyingPrice;
+          delete dbUpdates.salePrice;
+          delete dbUpdates.metaTitle;
+          delete dbUpdates.metaDesc;
+          delete dbUpdates.videoUrl;
           delete dbUpdates.id;
 
           const { error } = await supabase.from('products').update(dbUpdates).eq('id', id);
