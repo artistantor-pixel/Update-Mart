@@ -106,46 +106,6 @@ export default function HeroSection() {
           </Link>
         </div>
 
-        {/* Stats Row — centered with dividers */}
-        <div className="flex items-center justify-center gap-6 sm:gap-10 p-4 px-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-white">10K+</p>
-            <p className="text-[10px] text-white/40 mt-0.5 uppercase tracking-widest">Customers</p>
-          </div>
-          <div className="w-px h-10 bg-white/10" />
-          <div className="text-center">
-            <p className="text-2xl font-bold text-white">500+</p>
-            <p className="text-[10px] text-white/40 mt-0.5 uppercase tracking-widest">Products</p>
-          </div>
-          <div className="w-px h-10 bg-white/10" />
-          <div className="text-center flex flex-col items-center">
-            <div className="flex items-center gap-1.5">
-              <Star size={16} className="text-accent-500 fill-accent-500" />
-              <p className="text-2xl font-bold text-white">4.9</p>
-            </div>
-            <p className="text-[10px] text-white/40 mt-0.5 uppercase tracking-widest">Rating</p>
-          </div>
-        </div>
-      </div>
-
-      {/* ── BOTTOM TRUST BAR ── */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 border-t border-white/10 bg-black/40 backdrop-blur-md">
-        <div className="container mx-auto px-6 lg:px-20">
-          <div className="flex items-center justify-center sm:justify-between py-3.5 gap-6 overflow-x-auto scrollbar-hide flex-wrap">
-            {[
-              { icon: <Truck size={14} />, label: 'Free Shipping over ৳5000' },
-              { icon: <ShieldCheck size={14} />, label: 'Secure Payment' },
-              { icon: <Headphones size={14} />, label: '24/7 Support' },
-              { icon: <Star size={14} className="fill-current" />, label: 'Top Rated Store' },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-2 text-white/55 hover:text-white/90 transition-colors whitespace-nowrap group cursor-default">
-                <span className="text-primary-400 group-hover:text-accent-500 transition-colors">{item.icon}</span>
-                <span className="text-xs font-medium">{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
     </section>
   );
 }
