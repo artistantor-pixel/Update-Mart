@@ -23,8 +23,10 @@ import { useSession, signOut } from 'next-auth/react';
 
 export default function AdminDashboard() {
   const products = useProductStore((state) => state.products);
+  const fetchProducts = useProductStore((state) => state.fetchProducts);
   const deleteProduct = useProductStore((state) => state.deleteProduct);
   const authorizedUsers = useUserStore((state) => state.authorizedUsers);
+  const fetchOrders = useOrderStore((state) => state.fetchOrders);
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'customers' | 'settings' | 'couriers' | 'homepage' | 'marketing' | 'accounting' | 'promotions' | 'users'>('overview');
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<import('@/store/productStore').Product | null>(null);
@@ -32,7 +34,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchSettings();
-  }, [fetchSettings]);
+    fetchProducts();
+    fetchOrders();
+  }, [fetchSettings, fetchProducts, fetchOrders]);
   
   const { data: session, status } = useSession();
 
