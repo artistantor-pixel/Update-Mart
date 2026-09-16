@@ -45,23 +45,23 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 glass ${isScrolled ? 'py-3 shadow-md' : 'py-5 shadow-sm'}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 glass ${isScrolled ? 'py-2 shadow-md' : 'py-3 lg:py-4 shadow-sm'}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           
           {/* Mobile Logo */}
           <div className="lg:hidden flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center">
-              <Image src="/mobile-logo.svg" alt="UM" width={32} height={32} className="w-8 h-8 transition-all dark:hidden" priority />
-              <Image src="/mobile-logo-dark.svg" alt="UM" width={32} height={32} className="w-8 h-8 transition-all hidden dark:block" priority />
+              <Image src="/mobile-logo.svg" alt="UM" width={32} height={32} className="w-7 h-7 transition-all dark:hidden" priority />
+              <Image src="/mobile-logo-dark.svg" alt="UM" width={32} height={32} className="w-7 h-7 transition-all hidden dark:block" priority />
             </Link>
           </div>
 
           {/* Logo (Desktop) */}
           <div className="hidden lg:block">
             <Link href="/" className="flex items-center">
-              <Image src="/logo.svg" alt="Update Mart" width={240} height={69} className="w-auto h-12 lg:h-14 transition-all dark:hidden" priority />
-              <Image src="/logo-dark.svg" alt="Update Mart" width={240} height={69} className="w-auto h-12 lg:h-14 transition-all hidden dark:block" priority />
+              <Image src="/logo.svg" alt="Update Mart" width={240} height={69} className="w-auto h-9 lg:h-10 transition-all dark:hidden" priority />
+              <Image src="/logo-dark.svg" alt="Update Mart" width={240} height={69} className="w-auto h-9 lg:h-10 transition-all hidden dark:block" priority />
             </Link>
           </div>
 
@@ -77,9 +77,9 @@ export default function Navbar() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products..."
-                className="w-full bg-slate-100/80 dark:bg-dark-800/80 border-none rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
+                className="w-full bg-slate-100/60 dark:bg-dark-800/60 border border-slate-200/60 dark:border-dark-700/60 rounded-full pl-10 pr-4 py-1.5 lg:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 hover:bg-slate-100 dark:hover:bg-dark-800 transition-all text-slate-900 dark:text-white shadow-inner"
               />
-              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
             </form>
           </div>
 
@@ -91,9 +91,9 @@ export default function Navbar() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search..."
-                className="w-full bg-slate-100 dark:bg-dark-800 border-none rounded-full pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
+                className="w-full bg-slate-100/80 dark:bg-dark-800/80 border border-slate-200/60 dark:border-dark-700/60 rounded-full pl-9 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/50 text-slate-900 dark:text-white shadow-inner"
               />
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
             </form>
           </div>
 
