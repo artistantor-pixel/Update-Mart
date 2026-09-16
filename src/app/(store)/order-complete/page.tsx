@@ -2,9 +2,15 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, ArrowRight, Package, MapPin } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Package, MapPin, ListOrdered } from 'lucide-react';
+import { useOrderStore } from '@/store/orderStore';
 
 export default function OrderComplete() {
+  const orders = useOrderStore(state => state.orders);
+  // Get the most recently added order based on createdAt
+  const latestOrder = orders.length > 0 
+    ? [...orders].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] 
+    : null;
   
   useEffect(() => {
     document.title = 'Order Confirmed | Update Mart';
@@ -29,26 +35,53 @@ export default function OrderComplete() {
               Thank you for your purchase. We've received your order and are getting it ready for shipment.
             </p>
 
-            <div className="bg-slate-50 dark:bg-dark-900 rounded-2xl p-6 mb-10 text-left border border-slate-100 dark:border-white/5">
-              <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Order Details</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 text-slate-400"><Package size={20} /></div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Order Number</p>
-                    <p className="font-semibold text-slate-900 dark:text-white">#UM-{Math.floor(100000 + Math.random() * 900000)}</p>
+            {latestOrder && (
+              <div className="bg-slate-50 dark:bg-dark-900 rounded-2xl p-6 mb-10 text-left border border-slate-100 dark:border-white/5">
+                <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Order Details</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 text-slate-400"><Package size={20} /></div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Order Number</p>
+                      <p className="font-semibold text-slate-900 dark:text-white">{latestOrder.id}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 text-slate-400"><MapPin size={20} /></div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Shipping to</p>
+                      <p className="font-semibold text-slate-900 dark:text-white">{latestOrder.customerName}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">{latestOrder.address}</p>
+                      {latestOrder.orderNote && (
+                        <p className="text-sm text-slate-500 italic mt-1">Note: {latestOrder.orderNote}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <div className="mt-1 text-slate-400"><MapPin size={20} /></div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Shipping to</p>
-                    <p className="font-semibold text-slate-900 dark:text-white">123 Tech Ave, Suite 4</p>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">San Francisco, CA 94105</p>
+
+                <div className="mt-6 border-t border-slate-200 dark:border-slate-800 pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <ListOrdered size={18} className="text-slate-400" />
+                    <h4 className="font-medium text-slate-900 dark:text-white">Items</h4>
+                  </div>
+                  <div className="space-y-3">
+                    {latestOrder.items.map(item => (
+                      <div key={item.id} className="flex justify-between items-center text-sm">
+                        <div className="flex-1">
+                          <p className="font-medium text-slate-800 dark:text-slate-200">{item.name}</p>
+                          <p className="text-xs text-slate-500">Variant: {item.variant} • Qty: {item.quantity}</p>
+                        </div>
+                        <p className="font-medium text-slate-900 dark:text-white">৳{(item.price * item.quantity).toFixed(2)}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 font-bold text-slate-900 dark:text-white">
+                    <p>Total</p>
+                    <p>৳{latestOrder.total.toFixed(2)}</p>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/products"

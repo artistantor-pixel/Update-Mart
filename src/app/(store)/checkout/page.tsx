@@ -101,7 +101,8 @@ export default function Checkout() {
     const firstName = formData.get('firstName') as string;
     const email = formData.get('email') as string;
     const address = formData.get('address') as string;
-    const fullAddress = `${address}, ${selectedThana}, ${selectedDistrict}, Bangladesh`;
+    const note = formData.get('note') as string;
+    const fullAddress = `${address}, ${selectedThana}, ${selectedDistrict}`;
 
     if (!/^\d{11}$/.test(phone)) {
       setPhoneError("Mobile number must be exactly 11 digits (e.g. 017XXXXXXXX)");
@@ -128,6 +129,7 @@ export default function Checkout() {
       promoCode: appliedPromo ? appliedPromo.code : undefined,
       paymentMethod: paymentMethod === 'cod' ? 'COD' : 'Paid',
       paymentStatus: paymentMethod === 'cod' ? 'Pending' : 'Verified',
+      orderNote: note ? note : undefined,
       createdAt: new Date().toISOString(),
       timeline: [
         { id: `t-${Date.now()}`, status: 'New', timestamp: new Date().toISOString(), note: `Order placed via ${paymentMethod === 'cod' ? 'Cash on Delivery' : 'Credit Card'}.` }
@@ -251,6 +253,16 @@ export default function Checkout() {
                         <ChevronRight size={16} className="rotate-90" />
                       </div>
                     </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <label htmlFor="note" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Order Note <span className="font-normal text-slate-500">(Optional)</span></label>
+                    <textarea 
+                      id="note" 
+                      name="note" 
+                      rows={3} 
+                      className="w-full bg-slate-50/50 dark:bg-dark-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all text-slate-900 dark:text-white hover:border-slate-300 dark:hover:border-slate-600 resize-none" 
+                      placeholder="Special instructions for delivery..." 
+                    ></textarea>
                   </div>
                 </div>
               </section>
