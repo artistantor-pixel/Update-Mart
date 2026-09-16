@@ -68,8 +68,8 @@ export const useOrderStore = create<OrderStore>()((set, get) => ({
             orderNote: dbOrder.order_note,
             isAccountedFor: dbOrder.is_accounted_for,
             createdAt: dbOrder.created_at,
-            items: [], // Would fetch from order_items in a real app, keeping simple for now
-            timeline: [] // Would fetch from order_timelines
+            items: dbOrder.items || [], 
+            timeline: dbOrder.timeline || [] 
           };
           
           if (newColumns[o.status]) {
@@ -111,7 +111,9 @@ export const useOrderStore = create<OrderStore>()((set, get) => ({
         advance_payment: order.advancePayment || 0,
         payment_method: order.paymentMethod,
         payment_status: order.paymentStatus,
-        created_at: order.createdAt
+        created_at: order.createdAt,
+        items: order.items,
+        timeline: order.timeline
       };
       const { error } = await supabase.from('orders').insert([dbOrder]);
       if (error) throw error;
@@ -204,5 +206,28 @@ export const useOrderStore = create<OrderStore>()((set, get) => ({
       });
       return { columns: newColumns };
     });
+
+    try {
+      const dbUpdates: any = {};
+      if (updates.paymentMethod !== undefined) dbUpdates.payment_method = updates.paymentMethod;
+      if (updates.paymentStatus !== undefined) dbUpdates.payment_status = updates.paymentStatus;
+      if (updates.items !== undefined) dbUpdates.items = updates.items;
+      if (updates.timeline !== undefined) dbUpdates.timeline = updates.timeline;
+      if (updates.address !== undefined) dbUpdates.address = updates.address;
+      if (updates.district !== undefined) dbUpdates.district = updates.district;
+      if (updates.thana !== undefined) dbUpdates.thana = updates.thana;
+      if (updates.customerPhone !== undefined) dbUpdates.customer_phone = updates.customerPhone;
+      if (updates.total !== undefined) dbUpdates.total = updates.total;
+      if (updates.deliveryCharge !== undefined) dbUpdates.delivery_charge = updates.deliveryCharge;
+      if (updates.advancePayment !== undefined) dbUpdates.advance_payment = updates.advancePayment;
+      if (updates.discountAmount !== undefined) dbUpdates.discount_amount = updates.discountAmount;
+
+      if (Object.keys(dbUpdates).length > 0) {
+        const { error } = await supabase.from('orders').update(dbUpdates).eq('id', orderId);
+        if (error) throw error;
+      }
+    } catch (err) {
+      console.error("Error updating order in Supabase:", err);
+    }
   }
 }));
