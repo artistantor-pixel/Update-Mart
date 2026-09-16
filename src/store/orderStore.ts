@@ -69,7 +69,9 @@ export const useOrderStore = create<OrderStore>()((set, get) => ({
             isAccountedFor: dbOrder.is_accounted_for,
             createdAt: dbOrder.created_at,
             items: dbOrder.items || [], 
-            timeline: dbOrder.timeline || [] 
+            timeline: dbOrder.timeline || [],
+            consignmentId: dbOrder.consignment_id,
+            courierStatus: dbOrder.courier_status
           };
           
           if (newColumns[o.status]) {

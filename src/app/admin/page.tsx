@@ -19,6 +19,7 @@ import { useOrderStore } from '@/store/orderStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useProductStore } from '@/store/productStore';
 import { useUserStore } from '@/store/userStore';
+import { useCourierStore } from '@/store/courierStore';
 import { useSession, signOut } from 'next-auth/react';
 
 export default function AdminDashboard() {
@@ -31,12 +32,14 @@ export default function AdminDashboard() {
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<import('@/store/productStore').Product | null>(null);
   const { isCODEnabled, toggleCOD, codFee, setCodFee, topBar, setTopBar, footer, setFooter, fetchSettings } = useSettingsStore();
+  const fetchCouriers = useCourierStore((state) => state.fetchCouriers);
 
   useEffect(() => {
     fetchSettings();
     fetchProducts();
     fetchOrders();
-  }, [fetchSettings, fetchProducts, fetchOrders]);
+    fetchCouriers();
+  }, [fetchSettings, fetchProducts, fetchOrders, fetchCouriers]);
 
   const { data: session, status } = useSession();
 

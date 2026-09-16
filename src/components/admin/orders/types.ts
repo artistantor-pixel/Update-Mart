@@ -38,6 +38,8 @@ export interface Order {
   orderNote?: string;
   timeline: OrderTimelineEvent[];
   isAccountedFor?: boolean;
+  consignmentId?: string;
+  courierStatus?: string;
 }
 
 export const initialMockOrders: Record<OrderStatus, Order[]> = {

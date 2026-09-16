@@ -16,6 +16,7 @@ interface OrderTableRowProps {
 
 export default function OrderTableRow({ order, isSelected, onSelect, onStatusChange, onEdit }: OrderTableRowProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isShipping, setIsShipping] = useState(false);
   const { couriers } = useCourierStore();
   const { updateOrder } = useOrderStore();
   const activeCouriers = couriers.filter(c => c.isActive);
@@ -259,10 +260,28 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
                             <Printer size={12} /> Print Slip
                           </button>
                           <button 
-                            onClick={() => onStatusChange(order.id, 'Shipped')}
-                            className="flex-1 bg-green-50 hover:bg-green-100 dark:bg-green-500/10 dark:hover:bg-green-500/20 text-green-600 dark:text-green-400 rounded-lg px-3 py-2 text-xs font-medium transition-colors border border-green-200 dark:border-green-500/20"
+                            onClick={async () => {
+                              setIsShipping(true);
+                              try {
+                                const res = await fetch('/api/courier/steadfast', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ orderId: order.id })
+                                });
+                                const data = await res.json();
+                                if (!res.ok) throw new Error(data.error || 'Failed to send to courier');
+                                alert(`Success! Tracking ID: ${data.consignment_id}`);
+                                onStatusChange(order.id, 'Shipped');
+                              } catch(e: any) {
+                                alert(`Error: ${e.message}`);
+                              } finally {
+                                setIsShipping(false);
+                              }
+                            }}
+                            disabled={isShipping}
+                            className={`flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors border ${isShipping ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-green-50 hover:bg-green-100 dark:bg-green-500/10 dark:hover:bg-green-500/20 text-green-600 dark:text-green-400 border-green-200 dark:border-green-500/20'}`}
                           >
-                            Simulate Ship
+                            {isShipping ? 'Sending...' : 'Send to Courier'}
                           </button>
                         </div>
                       </>
