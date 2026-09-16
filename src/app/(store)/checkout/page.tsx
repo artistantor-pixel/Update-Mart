@@ -104,7 +104,6 @@ export default function Checkout() {
     const email = formData.get('email') as string;
     const address = formData.get('address') as string;
     const note = formData.get('note') as string;
-    const fullAddress = `${address}, ${selectedThana}, ${selectedDistrict}`;
 
     if (!/^\d{11}$/.test(phone)) {
       setPhoneError("Mobile number must be exactly 11 digits (e.g. 017XXXXXXXX)");
@@ -117,7 +116,9 @@ export default function Checkout() {
       customerEmail: email,
       customerPhone: phone,
       customerAvatar: firstName.charAt(0).toUpperCase(),
-      address: fullAddress,
+      address: address,
+      district: selectedDistrict,
+      thana: selectedThana,
       status: 'New',
       items: cartItems.map(item => ({
         id: item.id,

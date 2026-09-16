@@ -124,7 +124,16 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
                           </div>
                           <div>
                             <p className="font-medium text-slate-900 dark:text-white">{item.name}</p>
-                            <p className="text-slate-500 text-xs">Variant: {item.variant} • Qty: {item.quantity}</p>
+                            <div className="text-slate-500 text-xs mt-1 flex flex-wrap gap-2">
+                              {item.variant && item.variant !== 'Default' && (
+                                <span className="inline-flex items-center bg-slate-100 dark:bg-dark-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+                                  Variant: <span className="font-semibold ml-1">{item.variant}</span>
+                                </span>
+                              )}
+                              <span className="inline-flex items-center bg-slate-100 dark:bg-dark-700 px-2 py-0.5 rounded text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+                                Qty: <span className="font-semibold ml-1">{item.quantity}</span>
+                              </span>
+                            </div>
                           </div>
                         </div>
                         <p className="font-semibold text-slate-900 dark:text-white">৳ {(item.price * item.quantity).toLocaleString()}</p>
@@ -138,9 +147,22 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
-                    <h5 className="font-semibold text-slate-900 dark:text-white mb-2 text-sm">Shipping Address</h5>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{order.address}</p>
+                  <div className="bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm flex flex-col gap-4">
+                    <div>
+                      <h5 className="font-semibold text-slate-900 dark:text-white mb-2 text-sm">Shipping Address</h5>
+                      <div className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                        <span className="block font-medium text-slate-800 dark:text-slate-200 mb-0.5">{order.address}</span>
+                        {order.thana && <span className="block">{order.thana}</span>}
+                        {order.district && <span className="block font-medium">{order.district}</span>}
+                      </div>
+                    </div>
+                    
+                    {order.orderNote && (
+                      <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-3 rounded-lg mt-auto">
+                        <h6 className="text-[11px] font-bold text-amber-800 dark:text-amber-400 mb-1 uppercase tracking-wider">Customer Note</h6>
+                        <p className="text-sm text-amber-700 dark:text-amber-300 italic">&quot;{order.orderNote}&quot;</p>
+                      </div>
+                    )}
                   </div>
                   <div className="bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
                     {order.status === 'New' && (

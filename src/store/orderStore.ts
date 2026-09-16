@@ -113,7 +113,8 @@ export const useOrderStore = create<OrderStore>()((set, get) => ({
         payment_status: order.paymentStatus,
         created_at: order.createdAt,
         items: order.items,
-        timeline: order.timeline
+        timeline: order.timeline,
+        order_note: order.orderNote
       };
       const { error } = await supabase.from('orders').insert([dbOrder]);
       if (error) throw error;
