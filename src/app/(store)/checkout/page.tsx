@@ -35,8 +35,7 @@ export default function Checkout() {
 
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const shipping = selectedDistrict === 'Dhaka' ? 60 : 120;
-  const activeCodFee = paymentMethod === 'cod' ? codFee : 0;
-  const total = Math.max(0, subtotal + shipping + activeCodFee - discountAmount);
+  const total = Math.max(0, subtotal + shipping - discountAmount);
   
   // Re-validate promo if subtotal changes (e.g. if they somehow change cart during checkout)
   useEffect(() => {
@@ -277,7 +276,7 @@ export default function Checkout() {
                     <Banknote size={24} className="text-primary-500" />
                   </div>
                   <div className="p-5 bg-white/50 dark:bg-dark-900/30 border-t border-primary-500/20 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                    Pay safely with cash when your order is delivered to your doorstep. An additional delivery fee of <strong>৳{codFee.toFixed(2)}</strong> is applied.
+                    Pay safely with cash when your order is delivered to your doorstep.
                   </div>
                 </div>
               </section>
@@ -371,12 +370,7 @@ export default function Checkout() {
                     <span>-৳{discountAmount.toFixed(2)}</span>
                   </div>
                 )}
-                {paymentMethod === 'cod' && (
-                  <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                    <span>COD Fee</span>
-                    <span className="font-medium text-slate-900 dark:text-white">৳{codFee.toFixed(2)}</span>
-                  </div>
-                )}
+
               </div>
 
               <div className="border-t border-slate-200 dark:border-white/10 pt-6">
