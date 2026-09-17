@@ -93,7 +93,7 @@ export default function Footer() {
             <div className="text-center md:text-left">
               <h3 className="font-bold text-white mb-5 tracking-wider text-sm uppercase opacity-90">Support</h3>
               <ul className="space-y-4">
-                <li><Link href="#" className="inline-block text-sm text-white/70 hover:text-white hover:translate-x-1 transition-all">Track Order</Link></li>
+                <li><Link href="/track-order" className="inline-block text-sm text-white/70 hover:text-white hover:translate-x-1 transition-all">Track Order</Link></li>
                 <li><Link href="#" className="inline-block text-sm text-white/70 hover:text-white hover:translate-x-1 transition-all">Returns Policy</Link></li>
                 <li><Link href="#" className="inline-block text-sm text-white/70 hover:text-white hover:translate-x-1 transition-all">Contact Us</Link></li>
               </ul>
