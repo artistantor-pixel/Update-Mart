@@ -24,7 +24,7 @@ export default function OrderComplete() {
         fpixel.event('Purchase', {
           value: latestOrder.total,
           currency: 'BDT',
-          content_ids: latestOrder.items.map(i => i.productId),
+          content_ids: latestOrder.items.map(i => i.id),
           content_type: 'product',
         });
         sessionStorage.setItem(trackedKey, 'true');
