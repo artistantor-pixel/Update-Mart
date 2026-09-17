@@ -3,11 +3,14 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
 
 import { useCartStore } from '@/store/cartStore';
+import * as fpixel from '@/lib/fpixel';
 
 export default function Cart() {
+  const router = useRouter();
   const { items: cartItems, updateQuantity, removeItem } = useCartStore();
 
   useEffect(() => {
@@ -149,11 +152,18 @@ export default function Cart() {
               <p className="text-xs text-slate-500 mt-2 text-right">BDT, includes VAT if applicable</p>
             </div>
 
-            <Link href="/checkout"
+            <button 
+              onClick={() => {
+                fpixel.event('InitiateCheckout', {
+                  value: total,
+                  currency: 'BDT'
+                });
+                router.push('/checkout');
+              }}
               className="w-full flex items-center justify-center gap-2 bg-primary-500 hover:bg-primary-600 text-white font-medium py-4 px-6 rounded-xl transition-all shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40"
             >
               Proceed to Checkout <ArrowRight size={20} />
-            </Link>
+            </button>
             
             <div className="mt-6 flex justify-center gap-4 text-slate-400 opacity-60">
                {/* Mock Payment Icons using SVGs or text */}

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, ArrowRight, Package, MapPin, ListOrdered } from 'lucide-react';
 import { useOrderStore } from '@/store/orderStore';
+import * as fpixel from '@/lib/fpixel';
 
 export default function OrderComplete() {
   const columns = useOrderStore(state => state.columns);
@@ -16,7 +17,20 @@ export default function OrderComplete() {
   useEffect(() => {
     document.title = 'Order Confirmed | Update Mart';
     window.scrollTo(0, 0);
-  }, []);
+    
+    if (latestOrder) {
+      const trackedKey = `tracked_order_${latestOrder.id}`;
+      if (!sessionStorage.getItem(trackedKey)) {
+        fpixel.event('Purchase', {
+          value: latestOrder.total,
+          currency: 'BDT',
+          content_ids: latestOrder.items.map(i => i.productId),
+          content_type: 'product',
+        });
+        sessionStorage.setItem(trackedKey, 'true');
+      }
+    }
+  }, [latestOrder]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-dark-900 py-20">

@@ -9,6 +9,7 @@ import ProductCard from '@/components/common/ProductCard';
 import { useProductStore } from '@/store/productStore';
 import { useCartStore } from '@/store/cartStore';
 import { useReviewStore } from '@/store/reviewStore';
+import * as fpixel from '@/lib/fpixel';
 
 // Accordion Component
 const Accordion = ({ title, children, defaultOpen = false }: { title: string, children: React.ReactNode, defaultOpen?: boolean }) => {
@@ -127,6 +128,13 @@ export default function ProductDetails() {
   useEffect(() => {
     if (product) {
       document.title = `${product.name} | Update Mart`;
+      fpixel.event('ViewContent', {
+        content_name: product.name,
+        content_ids: [product.id],
+        content_type: 'product',
+        value: product.price,
+        currency: 'BDT'
+      });
     }
     window.scrollTo(0, 0);
     if (id) fetchReviewsForProduct(id);
@@ -224,6 +232,15 @@ export default function ProductDetails() {
       .join(', ');
     const actualColor = selectedColor || product.primaryColor?.name || colors[0]?.name || 'Standard';
     const finalVariant = [actualColor !== 'Standard' ? `${actualColor}` : 'Standard', variantLabel].filter(Boolean).join(' | ');
+    
+    fpixel.event('AddToCart', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: effectivePrice,
+      currency: 'BDT'
+    });
+
     addItem({
       productId: product.id,
       name: product.name,
@@ -241,6 +258,7 @@ export default function ProductDetails() {
 
   const handleBuyNow = () => {
     addToCartInternal();
+    fpixel.event('InitiateCheckout');
     router.push('/checkout');
   };
 
