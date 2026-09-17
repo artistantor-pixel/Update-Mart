@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Shield, Truck, CreditCard, CheckCircle2, Star, ChevronRight } from 'lucide-react';
 import { useProductStore } from '@/store/productStore';
 import { useOrderStore } from '@/store/orderStore';
+import * as fpixel from '@/lib/fpixel';
 
 const BD_DISTRICTS = [
   "Bagerhat", "Bandarban", "Barguna", "Barisal", "Bhola", "Bogra", "Brahmanbaria", "Chandpur", "Chittagong", "Chuadanga", "Comilla", "Cox's Bazar", "Dhaka", "Dinajpur", "Faridpur", "Feni", "Gaibandha", "Gazipur", "Gopalganj", "Habiganj", "Jamalpur", "Jessore", "Jhalokati", "Jhenaidah", "Joypurhat", "Khagrachhari", "Khulna", "Kishoreganj", "Kurigram", "Kushtia", "Lakshmipur", "Lalmonirhat", "Madaripur", "Magura", "Manikganj", "Meherpur", "Moulvibazar", "Munshiganj", "Mymensingh", "Naogaon", "Narail", "Narayanganj", "Narsingdi", "Natore", "Nawabganj", "Netrokona", "Nilphamari", "Noakhali", "Pabna", "Panchagarh", "Patuakhali", "Pirojpur", "Rajbari", "Rajshahi", "Rangamati", "Rangpur", "Satkhira", "Shariatpur", "Sherpur", "Sirajganj", "Sunamganj", "Sylhet", "Tangail", "Thakurgaon"
@@ -40,6 +41,13 @@ export default function PromoPage() {
   useEffect(() => {
     if (product) {
       document.title = `${product.name} | Special Offer`;
+      fpixel.event('ViewContent', {
+        content_name: product.name,
+        content_ids: [product.id],
+        content_type: 'product',
+        value: product.price,
+        currency: 'BDT'
+      });
       // Pre-select first variant of each type
       const initialVariants: Record<string, string> = {};
       if (product.colors && product.colors.length > 0) {
@@ -88,6 +96,7 @@ export default function PromoPage() {
     : [];
 
   const scrollToCheckout = () => {
+    fpixel.event('InitiateCheckout');
     document.getElementById('checkout-form')?.scrollIntoView({ behavior: 'smooth' });
   };
 
