@@ -3,7 +3,6 @@
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
-import * as fpixel from '@/lib/fpixel';
 
 export default function FacebookPixel() {
   const pathname = usePathname();
@@ -14,10 +13,10 @@ export default function FacebookPixel() {
     if (!loaded) return;
     
     // Track pageview on route change
-    fpixel.pageview();
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('track', 'PageView');
+    }
   }, [pathname, searchParams, loaded]);
-
-  if (!fpixel.FB_PIXEL_ID) return null;
 
   return (
     <>
@@ -35,10 +34,20 @@ export default function FacebookPixel() {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '${fpixel.FB_PIXEL_ID}');
+            fbq('init', '1445895464095441');
+            fbq('track', 'PageView');
           `,
         }}
       />
+      <noscript>
+        <img
+          height="1"
+          width="1"
+          style={{ display: 'none' }}
+          src="https://www.facebook.com/tr?id=1445895464095441&ev=PageView&noscript=1"
+          alt=""
+        />
+      </noscript>
     </>
   );
 }
