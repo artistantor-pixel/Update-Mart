@@ -14,6 +14,7 @@ import AccountingManager from '@/components/admin/accounting/AccountingManager';
 import PromoManager from '@/components/admin/promotions/PromoManager';
 import UserManager from '@/components/admin/users/UserManager';
 import DashboardOverview from '@/components/admin/dashboard/DashboardOverview';
+import MetaAdsDashboard from '@/components/admin/marketing/MetaAdsDashboard';
 import Login from '@/components/admin/auth/Login';
 import { useOrderStore } from '@/store/orderStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -28,7 +29,7 @@ export default function AdminDashboard() {
   const deleteProduct = useProductStore((state) => state.deleteProduct);
   const authorizedUsers = useUserStore((state) => state.authorizedUsers);
   const fetchOrders = useOrderStore((state) => state.fetchOrders);
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'customers' | 'settings' | 'couriers' | 'homepage' | 'marketing' | 'accounting' | 'promotions' | 'users'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'customers' | 'settings' | 'couriers' | 'homepage' | 'marketing' | 'meta-ads' | 'accounting' | 'promotions' | 'users'>('overview');
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<import('@/store/productStore').Product | null>(null);
   const { isCODEnabled, toggleCOD, codFee, setCodFee, topBar, setTopBar, footer, setFooter, fetchSettings } = useSettingsStore();
@@ -72,11 +73,11 @@ export default function AdminDashboard() {
     if (role === 'Super Admin') return true;
 
     if (role === 'Manager') {
-      return ['overview', 'orders', 'products', 'variants', 'customers', 'couriers'].includes(tab);
+      return ['overview', 'orders', 'products', 'variants', 'customers', 'couriers', 'meta-ads'].includes(tab);
     }
 
     if (role === 'Editor') {
-      return ['homepage', 'marketing', 'promotions', 'products'].includes(tab);
+      return ['homepage', 'marketing', 'promotions', 'products', 'meta-ads'].includes(tab);
     }
 
     if (role === 'Accountant') {
@@ -211,6 +212,17 @@ export default function AdminDashboard() {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === 'marketing' ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-dark-800 hover:text-primary-500 dark:hover:text-primary-400'}`}
             >
               <Activity size={20} className={activeTab === 'marketing' ? 'text-white' : 'text-slate-400'} /> Marketing
+            </button>
+          )}
+          {hasAccess('meta-ads') && (
+            <button
+              onClick={() => setActiveTab('meta-ads')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'meta-ads' ? 'bg-[#1877F2] text-white shadow-lg shadow-[#1877F2]/20 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" className={`w-5 h-5 ${activeTab === 'meta-ads' ? 'text-white' : 'text-slate-400'}`}>
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Meta Ads
             </button>
           )}
           {hasAccess('promotions') && (
@@ -570,6 +582,10 @@ export default function AdminDashboard() {
           <LandingPageManager />
         )}
 
+        {activeTab === 'meta-ads' && (
+          <MetaAdsDashboard />
+        )}
+
         {activeTab === 'promotions' && (
           <PromoManager />
         )}
@@ -578,7 +594,7 @@ export default function AdminDashboard() {
           <UserManager />
         )}
 
-        {activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'variants' && activeTab !== 'orders' && activeTab !== 'settings' && activeTab !== 'couriers' && activeTab !== 'homepage' && activeTab !== 'marketing' && activeTab !== 'accounting' && activeTab !== 'promotions' && activeTab !== 'users' && (
+        {activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'variants' && activeTab !== 'orders' && activeTab !== 'settings' && activeTab !== 'couriers' && activeTab !== 'homepage' && activeTab !== 'marketing' && activeTab !== 'meta-ads' && activeTab !== 'accounting' && activeTab !== 'promotions' && activeTab !== 'users' && (
           <div className="bg-white dark:bg-dark-800 p-8 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm text-center">
             <h2 className="text-xl font-medium mb-2">{activeTab} Module</h2>
             <p className="text-slate-500 dark:text-slate-400">This module is under construction and will be scalable for future feature additions.</p>
