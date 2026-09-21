@@ -87,7 +87,6 @@ export default function Checkout() {
   };
 
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     document.title = 'Checkout | Update Mart';
@@ -100,11 +99,10 @@ export default function Checkout() {
     }
   }, [cartItems.length, router, isOrderPlaced, total]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    if (cartItems.length === 0 || isSubmitting) return;
-    setIsSubmitting(true);
+    if (cartItems.length === 0) return;
 
     const formData = new FormData(e.currentTarget);
     const firstName = formData.get('firstName') as string;
@@ -147,42 +145,9 @@ export default function Checkout() {
       ]
     };
 
-    try {
-      // Call Courier API
-      const res = await fetch('/api/courier/book', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          invoice: newOrder.id,
-          recipient_name: newOrder.customerName,
-          recipient_phone: newOrder.customerPhone,
-          recipient_address: `${newOrder.address}, ${newOrder.thana}, ${newOrder.district}`,
-          cod_amount: newOrder.total,
-          note: `Items: ${newOrder.items.map(i => i.name).join(', ')}` + (newOrder.orderNote ? ` | Note: ${newOrder.orderNote}` : ''),
-        })
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok && data.tracking_code) {
-        newOrder.timeline.push({
-          id: `t-${Date.now() + 1}`,
-          status: 'Confirmed',
-          timestamp: new Date().toISOString(),
-          note: `Parcel booked with Steadfast Courier. Tracking ID: ${data.tracking_code}`
-        });
-      }
-    } catch (error) {
-      console.error("Failed to book courier automatically:", error);
-      // We still proceed with the order even if courier fails
-    }
-
     setIsOrderPlaced(true);
     addOrder(newOrder);
     clearCart();
-    setIsSubmitting(false);
     router.push('/order-complete');
   };
 
@@ -341,10 +306,9 @@ export default function Checkout() {
               {/* Submit */}
               <button 
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-primary-500 hover:bg-primary-600 disabled:bg-primary-400 disabled:cursor-not-allowed text-white font-medium py-5 px-6 rounded-2xl transition-all shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 text-lg flex items-center justify-center gap-2"
+                className="w-full bg-primary-500 hover:bg-primary-600 text-white font-medium py-5 px-6 rounded-2xl transition-all shadow-lg shadow-primary-500/20 hover:shadow-primary-500/40 text-lg flex items-center justify-center gap-2"
               >
-                {isSubmitting ? 'Processing...' : `Place Order (৳${total.toFixed(2)})`} {!isSubmitting && <Lock size={18} />}
+                Place Order (৳{total.toFixed(2)}) <Lock size={18} />
               </button>
 
             </form>
