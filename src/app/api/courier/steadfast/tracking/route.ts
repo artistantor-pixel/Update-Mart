@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Fetch live tracking from Steadfast
-    const steadfastResponse = await fetch(`https://api.steadfast.com.bd/v1/status_by_cid/${consignmentId}`, {
+    const steadfastResponse = await fetch(`https://portal.packzy.com/api/v1/status_by_cid/${consignmentId}`, {
       method: 'GET',
       headers: {
         'Api-Key': courierData.api_key,

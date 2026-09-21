@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     };
 
     // 4. Call Steadfast API
-    const steadfastResponse = await fetch('https://api.steadfast.com.bd/v1/create_order', {
+    const steadfastResponse = await fetch('https://portal.packzy.com/api/v1/create_order', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
