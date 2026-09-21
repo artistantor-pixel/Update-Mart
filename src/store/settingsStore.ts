@@ -24,8 +24,10 @@ interface SettingsStore {
   codFee: number;
   topBar: TopBarConfig;
   footer: FooterConfig;
+  blockedPhones: string[];
   isLoading: boolean;
   fetchSettings: () => Promise<void>;
+  toggleBlockPhone: (phone: string, block: boolean) => Promise<void>;
   toggleCOD: (enabled: boolean) => Promise<void>;
   setCodFee: (fee: number) => Promise<void>;
   setTopBar: (config: TopBarConfig) => Promise<void>;
@@ -50,7 +52,8 @@ const DEFAULT_SETTINGS = {
     facebookUrl: '#',
     twitterUrl: '#',
     instagramUrl: '#',
-  }
+  },
+  blockedPhones: [],
 };
 
 const SETTINGS_ID = 'general_settings';
@@ -80,25 +83,38 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
 
   toggleCOD: async (enabled) => {
     set({ isCODEnabled: enabled });
+    const { isCODEnabled, codFee, topBar, footer, blockedPhones } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer, blockedPhones } });
+  },
+
+  toggleBlockPhone: async (phone: string, block: boolean) => {
+    const currentList = get().blockedPhones || [];
+    let newList;
+    if (block) {
+      newList = Array.from(new Set([...currentList, phone]));
+    } else {
+      newList = currentList.filter(p => p !== phone);
+    }
+    set({ blockedPhones: newList });
     const { isCODEnabled, codFee, topBar, footer } = get();
-    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer } });
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer, blockedPhones: newList } });
   },
 
   setCodFee: async (fee) => {
     set({ codFee: fee });
-    const { isCODEnabled, codFee, topBar, footer } = get();
-    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer } });
+    const { isCODEnabled, codFee, topBar, footer, blockedPhones } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer, blockedPhones } });
   },
 
   setTopBar: async (config) => {
     set({ topBar: config });
-    const { isCODEnabled, codFee, topBar, footer } = get();
-    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer } });
+    const { isCODEnabled, codFee, topBar, footer, blockedPhones } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer, blockedPhones } });
   },
 
   setFooter: async (config) => {
     set({ footer: config });
-    const { isCODEnabled, codFee, topBar, footer } = get();
-    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer } });
+    const { isCODEnabled, codFee, topBar, footer, blockedPhones } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer, blockedPhones } });
   },
 }));

@@ -20,7 +20,7 @@ const BD_DISTRICTS = Object.keys(BD_DISTRICTS_MAP).sort();
 export default function Checkout() {
   const router = useRouter();
   const addOrder = useOrderStore(state => state.addOrder);
-  const { isCODEnabled, codFee } = useSettingsStore();
+  const { isCODEnabled, codFee, blockedPhones } = useSettingsStore();
   const { items: cartItems, clearCart } = useCartStore();
   const { validatePromo } = usePromoStore();
   
@@ -112,6 +112,12 @@ export default function Checkout() {
 
     if (!/^\d{11}$/.test(phone)) {
       setPhoneError("Mobile number must be exactly 11 digits (e.g. 017XXXXXXXX)");
+      return;
+    }
+    
+    // Check if the phone number is blocked
+    if (blockedPhones && blockedPhones.includes(phone)) {
+      setPhoneError("Sorry, your account has been restricted from placing orders. Please contact support.");
       return;
     }
     

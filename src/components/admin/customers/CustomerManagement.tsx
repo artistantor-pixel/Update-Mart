@@ -3,8 +3,9 @@
 import { useState, useMemo } from 'react';
 import { useOrderStore } from '@/store/orderStore';
 import { useProductStore } from '@/store/productStore';
-import { Search, Filter, Star, TrendingUp, Users as UsersIcon, MapPin, Mail, Phone, Package, Calendar, Award, ChevronDown } from 'lucide-react';
+import { Search, Filter, Star, TrendingUp, Users as UsersIcon, MapPin, Mail, Phone, Package, Calendar, Award, ChevronDown, ShieldAlert, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
+import { useSettingsStore } from '@/store/settingsStore';
 
 interface CustomerData {
   phone: string;
@@ -24,6 +25,7 @@ interface CustomerData {
 export default function CustomerManagement() {
   const { columns } = useOrderStore();
   const { products } = useProductStore();
+  const { blockedPhones, toggleBlockPhone } = useSettingsStore();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -273,6 +275,7 @@ export default function CustomerManagement() {
                 <th className="py-4 px-6">Preferences</th>
                 <th className="py-4 px-6 text-center">Orders</th>
                 <th className="py-4 px-6 text-right">Total Spent</th>
+                <th className="py-4 px-6 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -287,15 +290,17 @@ export default function CustomerManagement() {
                   </td>
                 </tr>
               ) : (
-                filteredCustomers.map((customer) => (
-                  <tr key={customer.phone} className="hover:bg-slate-50 dark:hover:bg-dark-800/50 transition-colors group">
+                filteredCustomers.map((customer) => {
+                  const isBlocked = (blockedPhones || []).includes(customer.phone);
+                  return (
+                  <tr key={customer.phone} className={`hover:bg-slate-50 dark:hover:bg-dark-800/50 transition-colors group ${isBlocked ? 'opacity-50 grayscale' : ''}`}>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center font-bold flex-shrink-0">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0 ${isBlocked ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' : 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'}`}>
                           {customer.avatar}
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900 dark:text-white">{customer.name}</p>
+                          <p className={`font-bold ${isBlocked ? 'text-red-500 line-through' : 'text-slate-900 dark:text-white'}`}>{customer.name} {isBlocked && '(Blocked)'}</p>
                           <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                             <Calendar size={12} /> Last order: {customer.lastOrderDate.toLocaleDateString()}
                           </p>
@@ -349,12 +354,41 @@ export default function CustomerManagement() {
 
                     <td className="py-4 px-6 text-right">
                       <p className="font-bold text-slate-900 dark:text-white">৳ {customer.totalSpent.toLocaleString()}</p>
-                      {customer.totalOrders > 1 && (
+                      {customer.totalOrders > 1 && !isBlocked && (
                         <p className="text-xs text-green-500 font-medium mt-0.5">Repeat V.I.P</p>
                       )}
                     </td>
+
+                    <td className="py-4 px-6 text-center">
+                      {isBlocked ? (
+                        <button 
+                          onClick={() => {
+                            if(confirm(`Are you sure you want to unblock ${customer.name}?`)) {
+                              toggleBlockPhone(customer.phone, false);
+                            }
+                          }}
+                          className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors flex items-center justify-center w-full"
+                          title="Unblock Customer"
+                        >
+                          <ShieldCheck size={18} />
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => {
+                            if(confirm(`Are you sure you want to block ${customer.name}? They will not be able to place new orders.`)) {
+                              toggleBlockPhone(customer.phone, true);
+                            }
+                          }}
+                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors flex items-center justify-center w-full"
+                          title="Block Customer"
+                        >
+                          <ShieldAlert size={18} />
+                        </button>
+                      )}
+                    </td>
                   </tr>
-                ))
+                );
+                })
               )}
             </tbody>
           </table>
