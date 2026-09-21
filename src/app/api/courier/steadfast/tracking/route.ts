@@ -30,7 +30,18 @@ export async function POST(req: Request) {
       }
     });
 
-    const responseData = await steadfastResponse.json();
+    const responseText = await steadfastResponse.text();
+    let responseData;
+    
+    try {
+      responseData = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Steadfast API returned non-JSON:', responseText);
+      return NextResponse.json({ 
+        error: 'Steadfast API Error: ' + responseText, 
+        details: responseText 
+      }, { status: steadfastResponse.status || 500 });
+    }
 
     if (!steadfastResponse.ok || responseData.status !== 200) {
       console.error('Steadfast tracking error:', responseData);
