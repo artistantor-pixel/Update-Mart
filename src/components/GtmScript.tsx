@@ -1,12 +1,14 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import Script from 'next/script';
 
 export default function GtmScript() {
+  const pathname = usePathname();
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
   const serverUrl = process.env.NEXT_PUBLIC_GTM_SERVER_URL || 'https://www.googletagmanager.com';
 
-  if (!gtmId) return null;
+  if (!gtmId || pathname.startsWith('/admin')) return null;
 
   return (
     <>

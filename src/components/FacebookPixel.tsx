@@ -18,6 +18,10 @@ export default function FacebookPixel() {
     }
   }, [pathname, searchParams, loaded]);
 
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <>
       <Script
