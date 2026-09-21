@@ -13,6 +13,7 @@ import VariantMapManager from '@/components/admin/variants/VariantMapManager';
 import AccountingManager from '@/components/admin/accounting/AccountingManager';
 import PromoManager from '@/components/admin/promotions/PromoManager';
 import UserManager from '@/components/admin/users/UserManager';
+import CustomerManagement from '@/components/admin/customers/CustomerManagement';
 import DashboardOverview from '@/components/admin/dashboard/DashboardOverview';
 import MetaAdsDashboard from '@/components/admin/marketing/MetaAdsDashboard';
 import Login from '@/components/admin/auth/Login';
@@ -594,7 +595,11 @@ export default function AdminDashboard() {
           <UserManager />
         )}
 
-        {activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'variants' && activeTab !== 'orders' && activeTab !== 'settings' && activeTab !== 'couriers' && activeTab !== 'homepage' && activeTab !== 'marketing' && activeTab !== 'meta-ads' && activeTab !== 'accounting' && activeTab !== 'promotions' && activeTab !== 'users' && (
+        {activeTab === 'customers' && (
+          <CustomerManagement />
+        )}
+
+        {activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'variants' && activeTab !== 'orders' && activeTab !== 'settings' && activeTab !== 'couriers' && activeTab !== 'homepage' && activeTab !== 'marketing' && activeTab !== 'meta-ads' && activeTab !== 'accounting' && activeTab !== 'promotions' && activeTab !== 'users' && activeTab !== 'customers' && (
           <div className="bg-white dark:bg-dark-800 p-8 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm text-center">
             <h2 className="text-xl font-medium mb-2">{activeTab} Module</h2>
             <p className="text-slate-500 dark:text-slate-400">This module is under construction and will be scalable for future feature additions.</p>
