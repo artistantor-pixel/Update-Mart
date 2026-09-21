@@ -10,6 +10,7 @@ import { useProductStore } from '@/store/productStore';
 import { useCartStore } from '@/store/cartStore';
 import { useReviewStore } from '@/store/reviewStore';
 import * as fpixel from '@/lib/fpixel';
+import * as gtm from '@/lib/gtm';
 
 // Accordion Component
 const Accordion = ({ title, children, defaultOpen = false }: { title: string, children: React.ReactNode, defaultOpen?: boolean }) => {
@@ -135,6 +136,7 @@ export default function ProductDetails() {
         value: product.price,
         currency: 'BDT'
       });
+      gtm.trackViewItem(product);
     }
     window.scrollTo(0, 0);
     if (id) fetchReviewsForProduct(id);
@@ -240,6 +242,7 @@ export default function ProductDetails() {
       value: effectivePrice,
       currency: 'BDT'
     });
+    gtm.trackAddToCart(product, 1, finalVariant);
 
     addItem({
       productId: product.id,

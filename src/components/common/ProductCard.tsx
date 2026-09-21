@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingBag, Star } from 'lucide-react';
+import { useCartStore } from '@/store/cartStore';
+import * as gtm from '@/lib/gtm';
 
 interface ProductCardProps {
   id: string;
@@ -14,6 +16,21 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ id, name, price, image, rating, isNew }: ProductCardProps) {
+  const addItem = useCartStore(state => state.addItem);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    addItem({
+      productId: id,
+      name,
+      price,
+      image,
+      quantity: 1,
+      variant: 'Standard',
+    });
+    gtm.trackAddToCart({ id, name, price, category: 'General', brand: 'Unknown' }, 1, 'Standard');
+  };
+
   return (
     <Link href={`/product/${id}`} className="block group flex flex-col h-full bg-white dark:bg-dark-800 rounded-2xl overflow-hidden border border-slate-100 dark:border-white/5 hover:border-primary-500/30 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
       
@@ -33,7 +50,7 @@ export default function ProductCard({ id, name, price, image, rating, isNew }: P
         {/* Quick Add Overlay */}
         <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button 
-            onClick={(e) => { e.preventDefault(); /* Handle Quick Add */ }}
+            onClick={handleAddToCart}
             className="bg-white text-slate-900 font-medium px-4 py-2 rounded-full flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all hover:bg-slate-50"
           >
             <ShoppingBag size={18} />
@@ -68,7 +85,7 @@ export default function ProductCard({ id, name, price, image, rating, isNew }: P
 
         {/* Action Button */}
         <button 
-          onClick={(e) => { e.preventDefault(); /* Handle Add to Cart */ }}
+          onClick={handleAddToCart}
           className="w-full flex items-center justify-center gap-2 py-3 mt-auto bg-slate-50 dark:bg-dark-700 hover:bg-primary-500 hover:text-white text-slate-900 dark:text-white font-medium rounded-xl transition-colors border border-transparent dark:border-white/5 group-hover:border-primary-500/30"
         >
           <ShoppingBag size={18} />

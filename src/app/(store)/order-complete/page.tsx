@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { CheckCircle2, ArrowRight, Package, MapPin, ListOrdered } from 'lucide-react';
 import { useOrderStore } from '@/store/orderStore';
 import * as fpixel from '@/lib/fpixel';
+import * as gtm from '@/lib/gtm';
 
 export default function OrderComplete() {
   const columns = useOrderStore(state => state.columns);
@@ -27,6 +28,7 @@ export default function OrderComplete() {
           content_ids: latestOrder.items.map(i => i.id),
           content_type: 'product',
         });
+        gtm.trackPurchase(latestOrder, latestOrder.items);
         sessionStorage.setItem(trackedKey, 'true');
       }
     }

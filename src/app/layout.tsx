@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { Providers } from '@/components/Providers'
 import FacebookPixel from '@/components/FacebookPixel'
+import GtmScript from '@/components/GtmScript'
+import GtmNoscript from '@/components/GtmNoscript'
 import { Suspense } from 'react'
 import './globals.css'
 
@@ -20,6 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <Suspense fallback={null}>
+          <GtmScript />
+        </Suspense>
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -33,6 +38,9 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>
+        <Suspense fallback={null}>
+          <GtmNoscript />
+        </Suspense>
         <Suspense fallback={null}>
           <FacebookPixel />
         </Suspense>

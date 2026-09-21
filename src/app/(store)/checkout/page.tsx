@@ -10,6 +10,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { useCartStore } from '@/store/cartStore';
 import { usePromoStore, PromoCode } from '@/store/promoStore';
 import { Order } from '@/components/admin/orders/types';
+import * as gtm from '@/lib/gtm';
 
 import { BD_DISTRICTS_MAP } from '@/lib/data/bd-districts';
 
@@ -91,8 +92,10 @@ export default function Checkout() {
     window.scrollTo(0, 0);
     if (cartItems.length === 0 && !isOrderPlaced) {
       router.push('/cart');
+    } else if (cartItems.length > 0 && !isOrderPlaced) {
+      gtm.trackBeginCheckout(cartItems, total);
     }
-  }, [cartItems.length, router, isOrderPlaced]);
+  }, [cartItems.length, router, isOrderPlaced, total]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
