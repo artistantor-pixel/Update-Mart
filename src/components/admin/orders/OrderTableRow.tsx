@@ -259,10 +259,10 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
                         </div>
                         <div className="flex gap-2">
                           <button 
-                            onClick={() => window.open(`/admin/print/${order.id}`, '_blank')}
+                            onClick={() => window.open(`/admin/print-slip/${order.id}`, '_blank')}
                             className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-dark-800 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-300 rounded-lg px-3 py-2 text-xs font-medium transition-colors border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1"
                           >
-                            <Printer size={12} /> Print Slip
+                            <FileText size={12} /> Print Slip
                           </button>
                           <button 
                             onClick={async () => {
