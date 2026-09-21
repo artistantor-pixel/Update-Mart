@@ -11,6 +11,7 @@ import { useCartStore } from '@/store/cartStore';
 import { usePromoStore, PromoCode } from '@/store/promoStore';
 import { Order } from '@/components/admin/orders/types';
 import * as gtm from '@/lib/gtm';
+import * as fpixel from '@/lib/fpixel';
 
 import { BD_DISTRICTS_MAP } from '@/lib/data/bd-districts';
 
@@ -94,6 +95,7 @@ export default function Checkout() {
       router.push('/cart');
     } else if (cartItems.length > 0 && !isOrderPlaced) {
       gtm.trackBeginCheckout(cartItems, total);
+      fpixel.event('InitiateCheckout');
     }
   }, [cartItems.length, router, isOrderPlaced, total]);
 

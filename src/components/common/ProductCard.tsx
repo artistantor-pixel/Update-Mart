@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ShoppingBag, Star } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import * as gtm from '@/lib/gtm';
+import * as fpixel from '@/lib/fpixel';
 
 interface ProductCardProps {
   id: string;
@@ -27,6 +28,13 @@ export default function ProductCard({ id, name, price, image, rating, isNew }: P
       image,
       quantity: 1,
       variant: 'Standard',
+    });
+    fpixel.event('AddToCart', {
+      content_name: name,
+      content_ids: [id],
+      content_type: 'product',
+      value: price,
+      currency: 'BDT'
     });
     gtm.trackAddToCart({ id, name, price, category: 'General', brand: 'Unknown' }, 1, 'Standard');
   };
