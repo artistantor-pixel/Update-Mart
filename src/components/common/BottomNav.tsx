@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ShoppingBag, Search, ShoppingCart, User } from 'lucide-react';
+import { Home, ShoppingBag, Search, ShoppingCart, Headset } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import { useEffect, useState } from 'react';
 
@@ -20,7 +20,7 @@ export default function BottomNav() {
     { label: 'Home', icon: Home, href: '/' },
     { label: 'Shop', icon: ShoppingBag, href: '/products' },
     { label: 'Cart', icon: ShoppingCart, href: '/cart', badge: cartCount },
-    { label: 'Profile', icon: User, href: '/profile' },
+    { label: 'Support', icon: Headset, href: '/support' },
   ];
 
 
