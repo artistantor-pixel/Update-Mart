@@ -23,7 +23,7 @@ export default function Footer() {
   if (!mounted) return null;
 
   return (
-    <footer className="bg-gradient-to-b from-[#2d368f] to-[#1e2460] border-t border-white/10 pt-16 pb-8 text-white relative overflow-hidden">
+    <footer className="bg-gradient-to-b from-[#2d368f] to-[#1e2460] border-t border-white/10 pt-16 pb-24 lg:pb-8 text-white relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
         <div className="absolute -top-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
