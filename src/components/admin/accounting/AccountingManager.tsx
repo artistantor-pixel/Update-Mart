@@ -7,36 +7,34 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const CATEGORIES = {
-  income: ['Sales Revenue', 'Partner Capital', 'Wholesale', 'Services', 'Refunds', 'Other Income'],
+  income: ['Sales Revenue', 'Wholesale', 'Services', 'Refunds', 'Other Income'],
   expense: ['Cost of Goods Sold (COGS)', 'Marketing & Ads', 'Salaries', 'Logistics & Courier', 'Utilities', 'Office Rent', 'Maintenance', 'Other Expense'],
 };
 
 export default function AccountingManager() {
   const { accounts, transactions, addTransaction, deleteTransaction, addAccount, deleteAccount } = useAccountingStore();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'accounts' | 'transactions'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'partners' | 'accounts' | 'transactions'>('partners');
   
   // Modals State
   const [isTrxModalOpen, setIsTrxModalOpen] = useState(false);
   const [isAccModalOpen, setIsAccModalOpen] = useState(false);
 
   // Add Transaction State
-  const [trxType, setTrxType] = useState<TransactionType>('income');
+  const [trxType, setTrxType] = useState<TransactionType>('transfer');
   const [trxCategory, setTrxCategory] = useState(CATEGORIES.income[0]);
   const [trxAmount, setTrxAmount] = useState('');
   const [trxFeeAmount, setTrxFeeAmount] = useState('');
   const [trxRef, setTrxRef] = useState('');
-  const [trxPartnerName, setTrxPartnerName] = useState('');
   const [trxAccountId, setTrxAccountId] = useState(accounts[0]?.id || '');
-  const [trxFromId, setTrxFromId] = useState(accounts[0]?.id || '');
+  const [trxFromId, setTrxFromId] = useState(accounts.find(a=>a.type==='partner')?.id || accounts[0]?.id || '');
   const [trxToId, setTrxToId] = useState(accounts.length > 1 ? accounts[1]?.id : accounts[0]?.id || '');
 
-  const handleOpenTrxModal = (type: TransactionType = 'income') => {
+  const handleOpenTrxModal = (type: TransactionType = 'transfer') => {
     setTrxType(type);
     if (type !== 'transfer') setTrxCategory(CATEGORIES[type][0]);
     setTrxAmount('');
     setTrxFeeAmount('');
     setTrxRef('');
-    setTrxPartnerName('');
     setIsTrxModalOpen(true);
   };
 
@@ -54,7 +52,6 @@ export default function AccountingManager() {
       amount: Number(trxAmount),
       feeAmount: Number(trxFeeAmount) || 0,
       reference: trxRef.trim(),
-      partnerName: trxCategory === 'Partner Capital' ? trxPartnerName.trim() : undefined,
       category: trxType !== 'transfer' ? trxCategory : undefined,
       accountId: trxType !== 'transfer' ? trxAccountId : undefined,
       fromAccountId: trxType === 'transfer' ? trxFromId : undefined,
@@ -65,7 +62,7 @@ export default function AccountingManager() {
 
   // Add Account State
   const [accName, setAccName] = useState('');
-  const [accType, setAccType] = useState<AccountType>('bank');
+  const [accType, setAccType] = useState<AccountType>('partner');
 
   const handleAccSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,11 +73,13 @@ export default function AccountingManager() {
   };
 
   // Calculations
-  const netWorth = useMemo(() => accounts.reduce((acc, curr) => acc + curr.balance, 0), [accounts]);
+  const businessAccounts = accounts.filter(a => a.type !== 'partner');
+  const partnerAccounts = accounts.filter(a => a.type === 'partner');
+  
+  const netWorth = useMemo(() => businessAccounts.reduce((acc, curr) => acc + curr.balance, 0), [businessAccounts]);
   
   const plData = useMemo(() => {
     let revenue = 0;
-    let capital = 0;
     let cogs = 0;
     let opex = 0;
     let totalFees = 0;
@@ -90,8 +89,7 @@ export default function AccountingManager() {
       totalFees += fee;
       
       if (t.type === 'income') {
-         if (t.category === 'Partner Capital') capital += t.amount;
-         else revenue += t.amount;
+         revenue += t.amount;
       } else if (t.type === 'expense') {
          if (t.category === 'Cost of Goods Sold (COGS)') cogs += (t.amount + fee);
          else opex += (t.amount + fee);
@@ -99,7 +97,7 @@ export default function AccountingManager() {
     });
     
     const netProfit = revenue - cogs - opex;
-    return { revenue, capital, cogs, opex, totalFees, netProfit };
+    return { revenue, cogs, opex, totalFees, netProfit };
   }, [transactions]);
 
   const formatDate = (isoString: string) => {
@@ -108,17 +106,26 @@ export default function AccountingManager() {
     });
   };
 
+  // Partner Stats Calculation
+  const getPartnerStats = (partnerId: string) => {
+    let totalSpent = 0;
+    transactions.forEach(t => {
+      if (t.type === 'expense' && t.accountId === partnerId) {
+        totalSpent += (t.amount + (t.feeAmount || 0));
+      }
+    });
+    return { totalSpent };
+  };
+
   // Download PDF
   const downloadPDF = () => {
     const doc = new jsPDF();
     
-    // Header
     doc.setFontSize(20);
     doc.text('Update Mart - Financial Report', 14, 22);
     doc.setFontSize(10);
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
     
-    // Financial Summary
     doc.setFontSize(14);
     doc.text('Profit & Loss Summary', 14, 45);
     
@@ -131,15 +138,12 @@ export default function AccountingManager() {
         ['Gross Profit', `= ${(plData.revenue - plData.cogs).toLocaleString()}`],
         ['Operating & Marketing Expenses', `- ${plData.opex.toLocaleString()}`],
         ['Total Gateway/Transaction Fees', `${plData.totalFees.toLocaleString()}`],
-        ['Net Profit', `${plData.netProfit > 0 ? '+' : ''} ${plData.netProfit.toLocaleString()}`],
-        ['---', '---'],
-        ['Partner Capital / Investment', `+ ${plData.capital.toLocaleString()}`],
+        ['Net Profit (Lav/Khot)', `${plData.netProfit > 0 ? '+' : ''} ${plData.netProfit.toLocaleString()}`],
       ],
       theme: 'grid',
       headStyles: { fillColor: [41, 128, 185] },
     });
 
-    // Transactions Table
     doc.text('Transaction Ledger (All)', 14, (doc as any).lastAutoTable.finalY + 15);
     
     const tableBody = transactions.map(t => {
@@ -149,7 +153,7 @@ export default function AccountingManager() {
       return [
         formatDate(t.date),
         typeStr,
-        `${catStr}${t.partnerName ? ` - ${t.partnerName}` : ''}`,
+        catStr || '-',
         t.reference || '-',
         `${t.type === 'income' ? '+' : t.type === 'expense' ? '-' : ''}${t.amount.toLocaleString()}${feeStr}`
       ];
@@ -157,7 +161,7 @@ export default function AccountingManager() {
 
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 20,
-      head: [['Date', 'Type', 'Category / Partner', 'Reference', 'Amount (BDT)']],
+      head: [['Date', 'Type', 'Category / Transfer', 'Reference', 'Amount (BDT)']],
       body: tableBody,
       theme: 'striped',
     });
@@ -167,13 +171,12 @@ export default function AccountingManager() {
 
   return (
     <div className="bg-slate-50 dark:bg-dark-900 rounded-2xl min-h-screen pb-12">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 px-1">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <BarChart3 className="text-primary-500" /> Accounting & P&L
+            <Users className="text-primary-500" /> Partners & Accounting
           </h2>
-          <p className="text-slate-500 mt-1">Track business profit, expenses, and partner capital.</p>
+          <p className="text-slate-500 mt-1">Manage partner balances, internal transfers, and P&L.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button 
@@ -183,28 +186,28 @@ export default function AccountingManager() {
             <Download size={16} /> PDF Report
           </button>
           <button 
-            onClick={() => handleOpenTrxModal('income')}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-lg shadow-green-500/20"
+            onClick={() => handleOpenTrxModal('transfer')}
+            className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-lg shadow-primary-500/20"
           >
-            <TrendingUp size={16} /> Income / Capital
+            <ArrowRightLeft size={16} /> Transfer Money
           </button>
           <button 
             onClick={() => handleOpenTrxModal('expense')}
             className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-lg shadow-red-500/20"
           >
-            <TrendingDown size={16} /> Expense
-          </button>
-          <button 
-            onClick={() => handleOpenTrxModal('transfer')}
-            className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 shadow-lg shadow-primary-500/20"
-          >
-            <ArrowRightLeft size={16} /> Transfer
+            <TrendingDown size={16} /> Record Expense
           </button>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex flex-wrap items-center gap-2 mb-8 border-b border-slate-200 dark:border-white/10 pb-2">
+        <button 
+          onClick={() => setActiveTab('partners')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'partners' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
+        >
+          <Users size={18} /> Partner Profiles
+        </button>
         <button 
           onClick={() => setActiveTab('dashboard')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'dashboard' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
@@ -215,48 +218,106 @@ export default function AccountingManager() {
           onClick={() => setActiveTab('accounts')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'accounts' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
         >
-          <Wallet size={18} /> Accounts Balance
+          <Wallet size={18} /> Business Accounts
         </button>
         <button 
           onClick={() => setActiveTab('transactions')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'transactions' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
         >
-          <History size={18} /> All Ledger (Transactions)
+          <History size={18} /> All Ledger
         </button>
       </div>
+
+      {/* ----------------- TAB: PARTNERS ----------------- */}
+      {activeTab === 'partners' && (
+        <div className="animate-in fade-in duration-300">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Partner Profiles</h3>
+            <button 
+              onClick={() => {
+                setAccType('partner');
+                setIsAccModalOpen(true);
+              }}
+              className="bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 hover:border-primary-500 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              <Plus size={16} /> Add Partner
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {partnerAccounts.map(acc => {
+              const stats = getPartnerStats(acc.id);
+              return (
+                <div key={acc.id} className="bg-white dark:bg-dark-800 p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-xl relative group overflow-hidden">
+                  <div className="absolute -right-6 -top-6 bg-primary-500/5 w-32 h-32 rounded-full blur-3xl"></div>
+                  
+                  <div className="flex justify-between items-start mb-6 relative z-10">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 bg-primary-100 dark:bg-primary-500/20 text-primary-600 dark:text-primary-400 rounded-full flex items-center justify-center font-bold text-2xl shadow-inner">
+                        {acc.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-xl">{acc.name}</h4>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Business Partner</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        if(window.confirm(`Remove partner profile ${acc.name}?`)) deleteAccount(acc.id);
+                      }}
+                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 relative z-10">
+                    <div>
+                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
+                        <Wallet size={14}/> Current Balance Held
+                      </p>
+                      <span className={`text-2xl font-black ${acc.balance < 0 ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
+                        ৳{acc.balance.toLocaleString()}
+                      </span>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        {acc.balance < 0 ? 'Invested personal money' : 'Holding business funds'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
+                        <TrendingDown size={14}/> Total Spent by Partner
+                      </p>
+                      <span className="text-2xl font-bold text-slate-700 dark:text-slate-300">
+                        ৳{stats.totalSpent.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ----------------- TAB: DASHBOARD ----------------- */}
       {activeTab === 'dashboard' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Total Revenue */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-dark-800 p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Total Revenue (Sales)</p>
               <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">৳{plData.revenue.toLocaleString()}</h3>
             </div>
-            
-            {/* Total COGS */}
             <div className="bg-white dark:bg-dark-800 p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Total COGS (Product Cost)</p>
               <h3 className="text-2xl font-bold text-red-500">৳{plData.cogs.toLocaleString()}</h3>
             </div>
-            
-            {/* Operating Expenses */}
             <div className="bg-white dark:bg-dark-800 p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Total Expenses (Ads, etc)</p>
               <h3 className="text-2xl font-bold text-orange-500">৳{plData.opex.toLocaleString()}</h3>
               <p className="text-xs text-slate-400 mt-1">Includes ৳{plData.totalFees.toLocaleString()} Gateway Fees</p>
             </div>
-            
-            {/* Partner Capital */}
-            <div className="bg-white dark:bg-dark-800 p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Total Partner Capital</p>
-              <h3 className="text-2xl font-bold text-blue-500">৳{plData.capital.toLocaleString()}</h3>
-            </div>
           </div>
           
-          {/* NET PROFIT BIG CARD */}
           <div className={`p-8 rounded-3xl shadow-xl relative overflow-hidden group ${plData.netProfit >= 0 ? 'bg-gradient-to-br from-green-500 to-emerald-700' : 'bg-gradient-to-br from-red-500 to-rose-700'}`}>
              <div className="relative z-10 flex flex-col md:flex-row justify-between items-center text-white">
                 <div>
@@ -265,13 +326,12 @@ export default function AccountingManager() {
                   <p className="text-white/90">Revenue - COGS - Expenses</p>
                 </div>
                 <div className="mt-6 md:mt-0 p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner">
-                  <div className="text-sm font-medium text-white/90 mb-1 flex items-center gap-1"><Wallet size={16}/> Available Fund Balance</div>
+                  <div className="text-sm font-medium text-white/90 mb-1 flex items-center gap-1"><Wallet size={16}/> Company Bank/bKash Fund</div>
                   <div className="text-3xl font-bold tracking-tight">৳{netWorth.toLocaleString()}</div>
                 </div>
              </div>
              <DollarSign className="absolute -right-10 -bottom-10 text-white/10 w-64 h-64 transform group-hover:scale-110 transition-transform duration-500" />
           </div>
-
         </div>
       )}
 
@@ -279,17 +339,20 @@ export default function AccountingManager() {
       {activeTab === 'accounts' && (
         <div className="animate-in fade-in duration-300">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Chart of Accounts</h3>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Business Ledgers</h3>
             <button 
-              onClick={() => setIsAccModalOpen(true)}
+              onClick={() => {
+                setAccType('bank');
+                setIsAccModalOpen(true);
+              }}
               className="bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 hover:border-primary-500 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
             >
-              <Plus size={16} /> New Account
+              <Plus size={16} /> New Ledger
             </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {accounts.map(acc => (
+            {businessAccounts.map(acc => (
               <div key={acc.id} className="bg-white dark:bg-dark-800 p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm relative group hover:border-primary-500/50 transition-colors">
                 <div className="flex justify-between items-start mb-4">
                   <div className={`p-3 rounded-xl ${acc.type === 'cash' ? 'bg-green-50 text-green-600' : acc.type === 'mfs' ? 'bg-pink-50 text-pink-600' : 'bg-blue-50 text-blue-600'} dark:bg-opacity-10`}>
@@ -350,14 +413,13 @@ export default function AccountingManager() {
                           </span>
                           <span className="text-sm font-bold text-slate-900 dark:text-white">
                             {t.type === 'transfer' ? 'Internal Transfer' : t.category}
-                            {t.partnerName ? ` - ${t.partnerName}` : ''}
                           </span>
                         </div>
                         <div className="text-xs text-slate-500 flex flex-wrap items-center gap-1">
                           {t.type === 'transfer' ? (
                             <>From: <span className="font-medium text-slate-700 dark:text-slate-300">{accounts.find(a=>a.id===t.fromAccountId)?.name}</span> To: <span className="font-medium text-slate-700 dark:text-slate-300">{accounts.find(a=>a.id===t.toAccountId)?.name}</span></>
                           ) : (
-                            <>Account: <span className="font-medium text-slate-700 dark:text-slate-300">{accounts.find(a=>a.id===t.accountId)?.name}</span></>
+                            <>Account/Profile: <span className="font-medium text-slate-700 dark:text-slate-300">{accounts.find(a=>a.id===t.accountId)?.name}</span></>
                           )}
                           {t.reference && <span className="mx-1">•</span>}
                           {t.reference && <span>Ref: {t.reference}</span>}
@@ -409,7 +471,7 @@ export default function AccountingManager() {
             <form onSubmit={handleTrxSubmit} className="p-6 space-y-5">
               
               <div className="grid grid-cols-3 gap-2 bg-slate-100 dark:bg-dark-800 p-1 rounded-xl">
-                {(['income', 'expense', 'transfer'] as const).map(type => (
+                {(['transfer', 'expense', 'income'] as const).map(type => (
                   <button
                     key={type}
                     type="button"
@@ -427,8 +489,11 @@ export default function AccountingManager() {
               {/* Conditional Fields based on Type */}
               {trxType === 'transfer' ? (
                 <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-dark-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <div className="col-span-2">
+                    <p className="text-xs text-slate-500 mb-2 font-medium">Use Transfer for Capital Injection (e.g. From: Partner Profile, To: Company Bank) or internal money movement.</p>
+                  </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">From Account *</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">From Account/Profile *</label>
                     <select 
                       value={trxFromId} 
                       onChange={(e) => setTrxFromId(e.target.value)}
@@ -438,7 +503,7 @@ export default function AccountingManager() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">To Account *</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">To Account/Profile *</label>
                     <select 
                       value={trxToId} 
                       onChange={(e) => setTrxToId(e.target.value)}
@@ -461,7 +526,7 @@ export default function AccountingManager() {
                     </select>
                   </div>
                   <div className="col-span-2 sm:col-span-1">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Account *</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-2">Account / Partner Profile *</label>
                     <select 
                       value={trxAccountId} 
                       onChange={(e) => setTrxAccountId(e.target.value)}
@@ -473,22 +538,7 @@ export default function AccountingManager() {
                 </div>
               )}
 
-              {trxCategory === 'Partner Capital' && (
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Partner Name *</label>
-                  <input 
-                    type="text"
-                    required
-                    value={trxPartnerName}
-                    onChange={(e) => setTrxPartnerName(e.target.value)}
-                    placeholder="e.g. Rakib"
-                    className="w-full bg-slate-50 dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
-                  />
-                </div>
-              )}
-
               <div className="grid grid-cols-2 gap-4">
-                {/* Amount */}
                 <div className={trxType === 'transfer' ? 'col-span-2' : 'col-span-2 sm:col-span-1'}>
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                     {trxType === 'expense' ? 'Main Expense Amount *' : 'Amount *'}
@@ -507,7 +557,6 @@ export default function AccountingManager() {
                   </div>
                 </div>
 
-                {/* Gateway Fee (Only for Income/Expense) */}
                 {trxType !== 'transfer' && (
                   <div className="col-span-2 sm:col-span-1">
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex justify-between">
@@ -530,7 +579,6 @@ export default function AccountingManager() {
                 )}
               </div>
 
-              {/* Reference */}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 flex justify-between">
                   <span>Reference / Note</span>
@@ -540,7 +588,7 @@ export default function AccountingManager() {
                   type="text"
                   value={trxRef}
                   onChange={(e) => setTrxRef(e.target.value)}
-                  placeholder="e.g. FB Marketing or Bkash Charge Note"
+                  placeholder="e.g. FB Marketing or Money taken by Rakib"
                   className="w-full bg-slate-50 dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
                 />
               </div>
@@ -563,14 +611,14 @@ export default function AccountingManager() {
         </div>
       )}
 
-      {/* ----------------- MODAL: ADD ACCOUNT ----------------- */}
+      {/* ----------------- MODAL: ADD ACCOUNT/PARTNER ----------------- */}
       {isAccModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsAccModalOpen(false)} />
           
           <div className="bg-white dark:bg-dark-900 rounded-3xl shadow-2xl w-full max-w-sm relative z-10 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-white/10">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Create Account</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Create {accType === 'partner' ? 'Partner Profile' : 'Account'}</h3>
               <button onClick={() => setIsAccModalOpen(false)} className="text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors">
                 <X size={24} />
               </button>
@@ -578,33 +626,35 @@ export default function AccountingManager() {
             
             <form onSubmit={handleAccSubmit} className="p-6 space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Account Name</label>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Name</label>
                 <input 
                   type="text" 
                   value={accName}
                   onChange={(e) => setAccName(e.target.value)}
-                  placeholder="e.g. Dutch Bangla Bank"
+                  placeholder={accType === 'partner' ? 'e.g. Rakib' : 'e.g. Dutch Bangla Bank'}
                   required
                   className="w-full bg-slate-50 dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Account Type</label>
-                <select 
-                  value={accType} 
-                  onChange={(e) => setAccType(e.target.value as AccountType)}
-                  className="w-full bg-slate-50 dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
-                >
-                  <option value="bank">Bank Account</option>
-                  <option value="mfs">Mobile Financial Service (MFS)</option>
-                  <option value="cash">Cash / Drawer</option>
-                </select>
-              </div>
+              {accType !== 'partner' && (
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Account Type</label>
+                  <select 
+                    value={accType} 
+                    onChange={(e) => setAccType(e.target.value as AccountType)}
+                    className="w-full bg-slate-50 dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white"
+                  >
+                    <option value="bank">Bank Account</option>
+                    <option value="mfs">Mobile Financial Service (MFS)</option>
+                    <option value="cash">Cash / Drawer</option>
+                  </select>
+                </div>
+              )}
 
               <div className="pt-2">
                 <button type="submit" className="w-full py-4 bg-slate-900 dark:bg-white hover:bg-slate-800 dark:hover:bg-slate-100 text-white dark:text-slate-900 rounded-xl font-bold shadow-xl transition-all">
-                  Create Ledger
+                  Create {accType === 'partner' ? 'Profile' : 'Ledger'}
                 </button>
               </div>
             </form>

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type AccountType = 'cash' | 'bank' | 'mfs';
+export type AccountType = 'cash' | 'bank' | 'mfs' | 'partner';
 
 export interface Account {
   id: string;
@@ -47,10 +47,11 @@ interface AccountingState {
 }
 
 const DEFAULT_ACCOUNTS: Account[] = [
+  { id: 'acc-partner-1', name: 'Partner 1 (You)', type: 'partner', balance: 0 },
+  { id: 'acc-partner-2', name: 'Partner 2 (Friend)', type: 'partner', balance: 0 },
   { id: 'acc-cash', name: 'Cash in Hand', type: 'cash', balance: 0 },
   { id: 'acc-bkash', name: 'bKash Merchant', type: 'mfs', balance: 0 },
   { id: 'acc-bank', name: 'City Bank', type: 'bank', balance: 0 },
-  { id: 'acc-nagad', name: 'Nagad Personal', type: 'mfs', balance: 0 },
 ];
 
 export const useAccountingStore = create<AccountingState>()(
