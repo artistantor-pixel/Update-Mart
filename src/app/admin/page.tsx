@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, TrendingUp, DollarSign, Package, Plus, Edit2, Trash2, Truck, Layout, Activity, Layers, Wallet, Ticket, Shield } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, TrendingUp, DollarSign, Package, Plus, Edit2, Trash2, Truck, Layout, Activity, Layers, Wallet, Ticket, Shield, MessageSquare } from 'lucide-react';
 import AddProductForm from '@/components/admin/AddProductForm';
 import OrderManagement from '@/components/admin/orders/OrderManagement';
 import HomepageEditor from '@/components/admin/homepage/HomepageEditor';
@@ -14,6 +14,7 @@ import AccountingManager from '@/components/admin/accounting/AccountingManager';
 import PromoManager from '@/components/admin/promotions/PromoManager';
 import UserManager from '@/components/admin/users/UserManager';
 import CustomerManagement from '@/components/admin/customers/CustomerManagement';
+import SupportManagement from '@/components/admin/support/SupportManagement';
 import DashboardOverview from '@/components/admin/dashboard/DashboardOverview';
 import MetaAdsDashboard from '@/components/admin/marketing/MetaAdsDashboard';
 import Login from '@/components/admin/auth/Login';
@@ -30,7 +31,7 @@ export default function AdminDashboard() {
   const deleteProduct = useProductStore((state) => state.deleteProduct);
   const authorizedUsers = useUserStore((state) => state.authorizedUsers);
   const fetchOrders = useOrderStore((state) => state.fetchOrders);
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'customers' | 'settings' | 'couriers' | 'homepage' | 'marketing' | 'meta-ads' | 'accounting' | 'promotions' | 'users'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'customers' | 'support' | 'settings' | 'couriers' | 'homepage' | 'marketing' | 'meta-ads' | 'accounting' | 'promotions' | 'users'>('overview');
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<import('@/store/productStore').Product | null>(null);
   const { isCODEnabled, toggleCOD, codFee, setCodFee, topBar, setTopBar, footer, setFooter, fetchSettings } = useSettingsStore();
@@ -74,7 +75,7 @@ export default function AdminDashboard() {
     if (role === 'Super Admin') return true;
 
     if (role === 'Manager') {
-      return ['overview', 'orders', 'products', 'variants', 'customers', 'couriers', 'meta-ads'].includes(tab);
+      return ['overview', 'orders', 'products', 'variants', 'customers', 'support', 'couriers', 'meta-ads'].includes(tab);
     }
 
     if (role === 'Editor') {
@@ -205,6 +206,14 @@ export default function AdminDashboard() {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'customers' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
               <Users size={20} /> Customers
+            </button>
+          )}
+          {hasAccess('customers') && (
+            <button
+              onClick={() => setActiveTab('support')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'support' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
+            >
+              <MessageSquare size={20} /> Support Tickets
             </button>
           )}
           {hasAccess('marketing') && (
@@ -599,7 +608,11 @@ export default function AdminDashboard() {
           <CustomerManagement />
         )}
 
-        {activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'variants' && activeTab !== 'orders' && activeTab !== 'settings' && activeTab !== 'couriers' && activeTab !== 'homepage' && activeTab !== 'marketing' && activeTab !== 'meta-ads' && activeTab !== 'accounting' && activeTab !== 'promotions' && activeTab !== 'users' && activeTab !== 'customers' && (
+        {activeTab === 'support' && (
+          <SupportManagement />
+        )}
+
+        {activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'variants' && activeTab !== 'orders' && activeTab !== 'settings' && activeTab !== 'couriers' && activeTab !== 'homepage' && activeTab !== 'marketing' && activeTab !== 'meta-ads' && activeTab !== 'accounting' && activeTab !== 'promotions' && activeTab !== 'users' && activeTab !== 'customers' && activeTab !== 'support' && (
           <div className="bg-white dark:bg-dark-800 p-8 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm text-center">
             <h2 className="text-xl font-medium mb-2">{activeTab} Module</h2>
             <p className="text-slate-500 dark:text-slate-400">This module is under construction and will be scalable for future feature additions.</p>
