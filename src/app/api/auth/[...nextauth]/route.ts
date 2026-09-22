@@ -17,8 +17,22 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
+          // We need a service_role token to bypass RLS when fetching users
+          let adminSupabase = supabase;
+          if (process.env.SUPABASE_JWT_SECRET) {
+            const serviceToken = jwt.sign(
+              { role: 'service_role' },
+              process.env.SUPABASE_JWT_SECRET
+            );
+            adminSupabase = require('@supabase/supabase-js').createClient(
+              process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+              process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+              { global: { headers: { Authorization: `Bearer ${serviceToken}` } } }
+            );
+          }
+
           // Check if the user exists in our admin_users table
-          const { data: adminUser, error } = await supabase
+          const { data: adminUser, error } = await adminSupabase
             .from('admin_users')
             .select('*')
             .eq('email', credentials.email)
@@ -45,7 +59,7 @@ export const authOptions: NextAuthOptions = {
               const hashedPassword = await bcrypt.hash(credentials.password, salt);
               
               // Update database with new hashed password
-              await supabase
+              await adminSupabase
                 .from('admin_users')
                 .update({ password: hashedPassword })
                 .eq('id', adminUser.id);
@@ -75,8 +89,18 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        // We verified them in authorize, fetch role if needed
-        const { data: adminUser } = await supabase
+        // We need a service_role token to bypass RLS when fetching role
+        let adminSupabase = supabase;
+        if (process.env.SUPABASE_JWT_SECRET) {
+          const serviceToken = jwt.sign({ role: 'service_role' }, process.env.SUPABASE_JWT_SECRET);
+          adminSupabase = require('@supabase/supabase-js').createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+            { global: { headers: { Authorization: `Bearer ${serviceToken}` } } }
+          );
+        }
+
+        const { data: adminUser } = await adminSupabase
           .from('admin_users')
           .select('role')
           .eq('email', user.email)
