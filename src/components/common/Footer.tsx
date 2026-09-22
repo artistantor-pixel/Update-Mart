@@ -95,7 +95,7 @@ export default function Footer() {
               <ul className="space-y-4">
                 <li><Link href="/track-order" className="inline-block text-sm text-white/70 hover:text-white hover:translate-x-1 transition-all">Track Order</Link></li>
                 <li><Link href="#" className="inline-block text-sm text-white/70 hover:text-white hover:translate-x-1 transition-all">Returns Policy</Link></li>
-                <li><Link href="#" className="inline-block text-sm text-white/70 hover:text-white hover:translate-x-1 transition-all">Contact Us</Link></li>
+                <li><Link href="/support" className="inline-block text-sm text-white/70 hover:text-white hover:translate-x-1 transition-all">Contact Us</Link></li>
               </ul>
             </div>
           </div>

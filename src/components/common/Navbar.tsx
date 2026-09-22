@@ -69,6 +69,7 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-8">
             <Link href="/" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-primary-500 transition-colors">Home</Link>
             <Link href="/products" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-primary-500 transition-colors">Shop</Link>
+            <Link href="/support" className="text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-primary-500 transition-colors">Support</Link>
             
             {/* Desktop Search */}
             <form onSubmit={handleSearch} className="relative w-64 xl:w-80">
