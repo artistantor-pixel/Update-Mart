@@ -24,8 +24,11 @@ import { useProductStore } from '@/store/productStore';
 import { useUserStore } from '@/store/userStore';
 import { useCourierStore } from '@/store/courierStore';
 import { useSession, signOut } from 'next-auth/react';
+import { setSupabaseToken } from '@/lib/supabase';
 
 export default function AdminDashboard() {
+  const { data: session, status } = useSession();
+  
   const products = useProductStore((state) => state.products);
   const fetchProducts = useProductStore((state) => state.fetchProducts);
   const deleteProduct = useProductStore((state) => state.deleteProduct);
@@ -38,13 +41,16 @@ export default function AdminDashboard() {
   const fetchCouriers = useCourierStore((state) => state.fetchCouriers);
 
   useEffect(() => {
-    fetchSettings();
-    fetchProducts();
-    fetchOrders();
-    fetchCouriers();
-  }, [fetchSettings, fetchProducts, fetchOrders, fetchCouriers]);
-
-  const { data: session, status } = useSession();
+    if (session?.supabaseToken) {
+      setSupabaseToken(session.supabaseToken);
+      fetchSettings();
+      fetchProducts();
+      fetchOrders();
+      fetchCouriers();
+    } else if (status === 'unauthenticated') {
+      setSupabaseToken(null);
+    }
+  }, [session, status, fetchSettings, fetchProducts, fetchOrders, fetchCouriers]);
 
   const handleDeleteProduct = (id: string, name: string) => {
     // Bypassing window.confirm in case it's suppressed by the browser

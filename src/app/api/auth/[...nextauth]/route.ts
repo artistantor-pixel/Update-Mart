@@ -1,6 +1,7 @@
 import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { supabase } from "@/lib/supabase";
+import jwt from "jsonwebtoken";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -82,12 +83,25 @@ export const authOptions: NextAuthOptions = {
           .single();
           
         token.role = adminUser?.role || 'admin';
+        
+        // Generate Supabase JWT
+        if (process.env.SUPABASE_JWT_SECRET) {
+          const payload = {
+            aud: 'authenticated',
+            exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hours
+            sub: user.id,
+            email: user.email,
+            role: 'authenticated',
+          };
+          token.supabaseToken = jwt.sign(payload, process.env.SUPABASE_JWT_SECRET);
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).role = token.role;
+        (session as any).supabaseToken = token.supabaseToken;
       }
       return session;
     },
