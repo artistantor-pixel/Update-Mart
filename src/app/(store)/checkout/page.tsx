@@ -152,9 +152,35 @@ export default function Checkout() {
     };
 
     setIsOrderPlaced(true);
-    addOrder(newOrder);
-    clearCart();
-    router.push('/order-complete');
+
+    fetch('/api/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newOrder),
+    })
+    .then(async (res) => {
+      if (!res.ok) {
+        if (res.status === 429) {
+          alert("You are placing orders too quickly. Please wait a few minutes before trying again.");
+        } else {
+          alert("Failed to place order. Please try again.");
+        }
+        setIsOrderPlaced(false);
+        return;
+      }
+      
+      // Update local store for optimistic UI if needed (not strictly necessary for buyer)
+      addOrder(newOrder);
+      clearCart();
+      router.push('/order-complete');
+    })
+    .catch((err) => {
+      console.error("Checkout error:", err);
+      alert("An error occurred. Please check your internet connection and try again.");
+      setIsOrderPlaced(false);
+    });
   };
 
   return (

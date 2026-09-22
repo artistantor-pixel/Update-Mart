@@ -39,20 +39,35 @@ export default function SupportPage() {
     setSubmitStatus('idle');
 
     const formData = new FormData(e.currentTarget);
-    const result = await createTicket({
+    const ticketData = {
       customer_name: formData.get('name') as string,
       customer_phone: formData.get('phone') as string,
       order_id: (formData.get('order_id') as string) || undefined,
       subject: formData.get('subject') as string,
       message: formData.get('message') as string,
-    });
+    };
 
-    setIsSubmitting(false);
-    if (result.success) {
-      setSubmitStatus('success');
-      (e.target as HTMLFormElement).reset();
-    } else {
+    try {
+      const res = await fetch('/api/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ticketData),
+      });
+
+      if (!res.ok) {
+        if (res.status === 429) {
+          alert("You are submitting tickets too quickly. Please wait a few minutes before trying again.");
+        }
+        setSubmitStatus('error');
+      } else {
+        setSubmitStatus('success');
+        (e.target as HTMLFormElement).reset();
+      }
+    } catch (err) {
+      console.error("Ticket submission error:", err);
       setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
