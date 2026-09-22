@@ -6,8 +6,8 @@ export async function POST(request: Request) {
   try {
     // 1. Check Rate Limit
     const ip = request.headers.get('x-forwarded-for') || 'unknown';
-    // Allow max 3 requests per 10 minutes (600,000 ms)
-    const limitResult = rateLimit(ip, 3, 10 * 60 * 1000);
+    // Allow max 3 requests per 2 minutes (120,000 ms)
+    const limitResult = rateLimit(ip, 3, 2 * 60 * 1000);
     
     if (!limitResult.success) {
       return NextResponse.json(
