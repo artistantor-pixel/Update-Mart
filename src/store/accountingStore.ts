@@ -22,6 +22,8 @@ export interface Transaction {
   // For Income / Expense
   accountId?: string; 
   category?: string;
+  feeAmount?: number; // Transaction fee (e.g. bKash cash out charge)
+  partnerName?: string; // For Capital/Investment tracking
 
   // For Transfer
   fromAccountId?: string;
@@ -81,12 +83,14 @@ export const useAccountingStore = create<AccountingState>()(
         let updatedAccounts = [...state.accounts];
         
         if (data.type === 'income' && data.accountId) {
+          const totalAmount = data.amount - (data.feeAmount || 0);
           updatedAccounts = updatedAccounts.map(a => 
-            a.id === data.accountId ? { ...a, balance: a.balance + data.amount } : a
+            a.id === data.accountId ? { ...a, balance: a.balance + totalAmount } : a
           );
         } else if (data.type === 'expense' && data.accountId) {
+          const totalDeduction = data.amount + (data.feeAmount || 0);
           updatedAccounts = updatedAccounts.map(a => 
-            a.id === data.accountId ? { ...a, balance: a.balance - data.amount } : a
+            a.id === data.accountId ? { ...a, balance: a.balance - totalDeduction } : a
           );
         } else if (data.type === 'transfer' && data.fromAccountId && data.toAccountId) {
           updatedAccounts = updatedAccounts.map(a => {
@@ -110,12 +114,14 @@ export const useAccountingStore = create<AccountingState>()(
         let updatedAccounts = [...state.accounts];
         
         if (trx.type === 'income' && trx.accountId) {
+          const totalAmount = trx.amount - (trx.feeAmount || 0);
           updatedAccounts = updatedAccounts.map(a => 
-            a.id === trx.accountId ? { ...a, balance: a.balance - trx.amount } : a
+            a.id === trx.accountId ? { ...a, balance: a.balance - totalAmount } : a
           );
         } else if (trx.type === 'expense' && trx.accountId) {
+          const totalDeduction = trx.amount + (trx.feeAmount || 0);
           updatedAccounts = updatedAccounts.map(a => 
-            a.id === trx.accountId ? { ...a, balance: a.balance + trx.amount } : a
+            a.id === trx.accountId ? { ...a, balance: a.balance + totalDeduction } : a
           );
         } else if (trx.type === 'transfer' && trx.fromAccountId && trx.toAccountId) {
           updatedAccounts = updatedAccounts.map(a => {
