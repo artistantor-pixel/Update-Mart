@@ -44,6 +44,9 @@ interface AccountingState {
   // Transaction Actions
   addTransaction: (transaction: Omit<Transaction, 'id' | 'voucherNo' | 'date'>) => void;
   deleteTransaction: (id: string) => void;
+
+  // System Actions
+  resetData: () => void;
 }
 
 const DEFAULT_ACCOUNTS: Account[] = [
@@ -137,6 +140,11 @@ export const useAccountingStore = create<AccountingState>()(
           accounts: updatedAccounts,
         };
       }),
+
+      resetData: () => set(() => ({
+        accounts: DEFAULT_ACCOUNTS,
+        transactions: [],
+      })),
     }),
     {
       name: 'accounting-storage-v2', // Change name to prevent conflicts with previous simpler state

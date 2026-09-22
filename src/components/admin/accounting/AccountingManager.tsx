@@ -12,7 +12,7 @@ const CATEGORIES = {
 };
 
 export default function AccountingManager() {
-  const { accounts, transactions, addTransaction, deleteTransaction, addAccount, deleteAccount } = useAccountingStore();
+  const { accounts, transactions, addTransaction, deleteTransaction, addAccount, deleteAccount, resetData } = useAccountingStore();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'partners' | 'accounts' | 'transactions'>('partners');
   
   // Modals State
@@ -179,6 +179,16 @@ export default function AccountingManager() {
           <p className="text-slate-500 mt-1">Manage partner balances, internal transfers, and P&L.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button 
+            onClick={() => {
+              if (window.confirm("Are you sure you want to RESET all accounting data? This action cannot be undone.")) {
+                resetData();
+              }
+            }}
+            className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 mr-2"
+          >
+            <Trash2 size={16} /> Reset All Data
+          </button>
           <button 
             onClick={downloadPDF}
             className="bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 hover:border-primary-500 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 mr-2"
