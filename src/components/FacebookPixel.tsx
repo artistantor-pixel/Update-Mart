@@ -18,7 +18,7 @@ export default function FacebookPixel() {
     }
   }, [pathname, searchParams, loaded]);
 
-  if (pathname.startsWith('/admin')) {
+  if (!pathname || pathname.startsWith('/admin')) {
     return null;
   }
 
