@@ -41,8 +41,8 @@ export default function AdminDashboard() {
   const fetchCouriers = useCourierStore((state) => state.fetchCouriers);
 
   useEffect(() => {
-    if (session?.supabaseToken) {
-      setSupabaseToken(session.supabaseToken);
+    if ((session as any)?.supabaseToken) {
+      setSupabaseToken((session as any).supabaseToken);
       fetchSettings();
       fetchProducts();
       fetchOrders();
