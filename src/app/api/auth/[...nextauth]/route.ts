@@ -28,9 +28,32 @@ export const authOptions: NextAuthOptions = {
             return null; // Reject the sign in
           }
           
-          // Verify password (plain text check based on standard manual setups)
-          // If you hash passwords in your DB in the future, you will need to update this check.
-          if (adminUser.password !== credentials.password) {
+          // Verify password
+          let isValid = false;
+
+          if (adminUser.password && (adminUser.password.startsWith('$2a$') || adminUser.password.startsWith('$2b$'))) {
+            // It's a hashed password
+            const bcrypt = require('bcryptjs');
+            isValid = await bcrypt.compare(credentials.password, adminUser.password);
+          } else {
+            // It's a plain text password. Check it, and if valid, auto-migrate to hash!
+            if (adminUser.password === credentials.password) {
+              isValid = true;
+              const bcrypt = require('bcryptjs');
+              const salt = await bcrypt.genSalt(10);
+              const hashedPassword = await bcrypt.hash(credentials.password, salt);
+              
+              // Update database with new hashed password
+              await supabase
+                .from('admin_users')
+                .update({ password: hashedPassword })
+                .eq('id', adminUser.id);
+              
+              console.log(`Auto-migrated password to bcrypt hash for ${credentials.email}`);
+            }
+          }
+
+          if (!isValid) {
              console.log(`Access denied for ${credentials.email} - wrong password.`);
              return null;
           }
