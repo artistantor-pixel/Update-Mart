@@ -13,10 +13,16 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     fetch: (url, options = {}) => {
       if (currentToken) {
-        options.headers = {
-          ...options.headers,
-          Authorization: `Bearer ${currentToken}`,
-        };
+        if (options.headers instanceof Headers) {
+          options.headers.set('Authorization', `Bearer ${currentToken}`);
+        } else if (Array.isArray(options.headers)) {
+          options.headers.push(['Authorization', `Bearer ${currentToken}`]);
+        } else {
+          options.headers = {
+            ...options.headers,
+            Authorization: `Bearer ${currentToken}`,
+          };
+        }
       }
       return fetch(url, options);
     },
