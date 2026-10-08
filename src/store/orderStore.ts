@@ -194,9 +194,9 @@ export const useOrderStore = create<OrderStore>()((set, get) => ({
             const updatedOrder = { ...order, ...updates };
             if (updates.items) {
               const subtotal = updates.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-              const shipping = subtotal > 0 ? 15.00 : 0;
-              const codFee = order.paymentMethod === 'COD' ? 5.00 : 0; 
-              updatedOrder.total = subtotal + shipping + codFee;
+              const shipping = order.deliveryCharge || 0;
+              const discount = order.discountAmount || 0;
+              updatedOrder.total = Math.max(0, subtotal + shipping - discount);
             }
             updatedOrder.timeline = [
               { id: `t-${Date.now()}`, status: order.status, timestamp: new Date().toISOString(), note: 'Order details updated by admin' },
