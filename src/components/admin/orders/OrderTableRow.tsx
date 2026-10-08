@@ -271,10 +271,22 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
                                 const res = await fetch('/api/courier/steadfast', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ orderId: order.id })
+                                  body: JSON.stringify({ orderId: order.id, orderData: order })
                                 });
                                 const data = await res.json();
                                 if (!res.ok) throw new Error(data.error || 'Failed to send to courier');
+                                
+                                // Update DB from frontend since frontend has the Auth Token to bypass RLS
+                                await updateOrder(order.id, {
+                                  status: 'Shipped',
+                                  consignmentId: data.consignment_id,
+                                  courierStatus: 'pending',
+                                  timeline: [
+                                    { id: `t-${Date.now()}`, status: 'Shipped', timestamp: new Date().toISOString(), note: `Sent to Steadfast (Tracking: ${data.consignment_id})` },
+                                    ...order.timeline
+                                  ]
+                                });
+                                
                                 alert(`Success! Tracking ID: ${data.consignment_id}`);
                                 onStatusChange(order.id, 'Shipped');
                               } catch(e: any) {

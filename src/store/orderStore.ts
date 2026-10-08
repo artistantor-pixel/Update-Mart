@@ -224,6 +224,9 @@ export const useOrderStore = create<OrderStore>()((set, get) => ({
       if (updates.deliveryCharge !== undefined) dbUpdates.delivery_charge = updates.deliveryCharge;
       if (updates.advancePayment !== undefined) dbUpdates.advance_payment = updates.advancePayment;
       if (updates.discountAmount !== undefined) dbUpdates.discount_amount = updates.discountAmount;
+      if (updates.assignedCourierId !== undefined) dbUpdates.assigned_courier_id = updates.assignedCourierId;
+      if (updates.consignmentId !== undefined) dbUpdates.consignment_id = updates.consignmentId;
+      if (updates.courierStatus !== undefined) dbUpdates.courier_status = updates.courierStatus;
 
       if (Object.keys(dbUpdates).length > 0) {
         const { error } = await supabase.from('orders').update(dbUpdates).eq('id', orderId);

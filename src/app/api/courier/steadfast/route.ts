@@ -4,23 +4,14 @@ import { supabase } from '@/lib/supabase';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { orderId } = body;
+    const { orderId, orderData } = body;
 
-    if (!orderId) {
-      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+    if (!orderId || !orderData) {
+      return NextResponse.json({ error: 'Order ID and order data are required' }, { status: 400 });
     }
 
-    // 1. Fetch Order Details from Supabase
-    const { data: orderData, error: orderError } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', orderId)
-      .single();
-
-    if (orderError || !orderData) {
-      console.error('Order fetch error:', orderError);
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
+    // Skip fetching from Supabase because Server API Route anon key is blocked by RLS for orders.
+    // Instead, we use the order data passed securely from the authenticated frontend.
 
     // 2. Fetch Steadfast API Credentials
     const { data: courierData, error: courierError } = await supabase
@@ -80,33 +71,8 @@ export async function POST(req: Request) {
       }, { status: 500 });
     }
 
-    // 5. Update Order in Supabase with Consignment ID and Status
+    // 5. Return Success (Frontend will update DB to avoid RLS issues)
     const consignmentId = responseData.consignment?.consignment_id || responseData.consignment?.tracking_code;
-    
-    // Create timeline event
-    const timelineEvent = {
-        id: `t-${Date.now()}`,
-        status: 'Shipped',
-        timestamp: new Date().toISOString(),
-        note: `Sent to Steadfast (Tracking: ${consignmentId})`
-    };
-
-    const newTimeline = [timelineEvent, ...(orderData.timeline || [])];
-
-    const { error: updateError } = await supabase
-      .from('orders')
-      .update({
-        status: 'Shipped',
-        consignment_id: consignmentId,
-        courier_status: 'pending',
-        timeline: newTimeline
-      })
-      .eq('id', orderId);
-
-    if (updateError) {
-      console.error('Failed to save consignment ID to DB:', updateError);
-      // We don't fail the request here since the courier order was successful, but we should log it
-    }
 
     return NextResponse.json({ 
       success: true, 

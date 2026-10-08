@@ -8,6 +8,8 @@ export default function FacebookPixel() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [loaded, setLoaded] = useState(false);
+  
+  const pixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID || '1445895464095441';
 
   useEffect(() => {
     if (!loaded) return;
@@ -38,7 +40,7 @@ export default function FacebookPixel() {
             t.src=v;s=b.getElementsByTagName(e)[0];
             s.parentNode.insertBefore(t,s)}(window, document,'script',
             'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '1445895464095441');
+            fbq('init', '${pixelId}');
             fbq('track', 'PageView');
           `,
         }}
@@ -48,7 +50,7 @@ export default function FacebookPixel() {
           height="1"
           width="1"
           style={{ display: 'none' }}
-          src="https://www.facebook.com/tr?id=1445895464095441&ev=PageView&noscript=1"
+          src={`https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`}
           alt=""
         />
       </noscript>
