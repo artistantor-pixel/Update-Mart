@@ -26,17 +26,17 @@ export async function POST(req: Request) {
     }
 
     // 3. Prepare Steadfast Payload
-    const codAmount = orderData.payment_method === 'COD' 
-        ? orderData.total - (orderData.advance_payment || 0) 
+    const codAmount = orderData.paymentMethod === 'COD' 
+        ? orderData.total - (orderData.advancePayment || 0) 
         : 0;
 
     const payload = {
       invoice: orderData.id,
-      recipient_name: orderData.customer_name,
-      recipient_phone: orderData.customer_phone,
-      recipient_address: `${orderData.address}, ${orderData.thana ? orderData.thana + ', ' : ''}${orderData.district}`,
+      recipient_name: orderData.customerName || 'Unknown',
+      recipient_phone: orderData.customerPhone || '01000000000',
+      recipient_address: `${orderData.address || ''}, ${orderData.thana ? orderData.thana + ', ' : ''}${orderData.district || ''}`,
       cod_amount: codAmount,
-      note: orderData.order_note || 'Update Mart Order'
+      note: orderData.orderNote || 'Update Mart Order'
     };
 
     // 4. Call Steadfast API
