@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { orderId, consignmentId } = body;
+    const { orderId, consignmentId, courierStatus } = body;
 
     if (!orderId || !consignmentId) {
       return NextResponse.json({ error: 'Order ID and Consignment ID are required' }, { status: 400 });
@@ -54,49 +54,8 @@ export async function POST(req: Request) {
     // Steadfast typically returns the status string, like 'delivered', 'pending', 'in_transit'
     const deliveryStatus = responseData.delivery_status || 'Unknown';
     
-    // 3. Update Order in Supabase
-    // Fetch the current order to get existing timeline
-    const { data: orderData, error: orderError } = await supabase
-      .from('orders')
-      .select('timeline, courier_status')
-      .eq('id', orderId)
-      .single();
-
-    if (orderError) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
-
-    // If the status hasn't changed, we don't necessarily need to add a new timeline event, but let's add one if forced or if it changed.
-    const isNewStatus = orderData.courier_status !== deliveryStatus;
-
-    if (isNewStatus) {
-      const timelineEvent = {
-          id: `t-sf-${Date.now()}`,
-          status: 'Shipped', // Keep main status as Shipped or update to Delivered based on logic
-          timestamp: new Date().toISOString(),
-          note: `Courier Status Update: ${deliveryStatus}`
-      };
-
-      const newTimeline = [timelineEvent, ...(orderData.timeline || [])];
-      
-      let newOrderStatus = undefined;
-      if (deliveryStatus.toLowerCase() === 'delivered') newOrderStatus = 'Delivered';
-      if (deliveryStatus.toLowerCase().includes('return')) newOrderStatus = 'Return';
-
-      const updatePayload: any = {
-        courier_status: deliveryStatus,
-        timeline: newTimeline
-      };
-
-      if (newOrderStatus) {
-        updatePayload.status = newOrderStatus;
-      }
-
-      await supabase
-        .from('orders')
-        .update(updatePayload)
-        .eq('id', orderId);
-    }
+    // Check if status changed
+    const isNewStatus = courierStatus !== deliveryStatus;
 
     return NextResponse.json({ 
       success: true, 

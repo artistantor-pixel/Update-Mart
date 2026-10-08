@@ -333,13 +333,33 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
                             const res = await fetch('/api/courier/steadfast/tracking', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ orderId: order.id, consignmentId: order.consignmentId })
+                              body: JSON.stringify({ 
+                                orderId: order.id, 
+                                consignmentId: order.consignmentId,
+                                courierStatus: order.courierStatus
+                              })
                             });
                             const data = await res.json();
                             if (!res.ok) throw new Error(data.error || 'Failed');
+                            
                             if (data.isNewStatus) {
-                              onStatusChange(order.id, order.status); // Trigger re-render to fetch new timeline
-                              alert(`Status updated to: ${data.status}`);
+                              const newDeliveryStatus = data.status;
+                              let newOrderStatus = order.status;
+                              
+                              if (newDeliveryStatus.toLowerCase() === 'delivered') newOrderStatus = 'Delivered';
+                              if (newDeliveryStatus.toLowerCase().includes('return')) newOrderStatus = 'Return';
+
+                              await updateOrder(order.id, {
+                                status: newOrderStatus,
+                                courierStatus: newDeliveryStatus,
+                                timeline: [
+                                  { id: `t-sf-${Date.now()}`, status: newOrderStatus, timestamp: new Date().toISOString(), note: `Courier Status Update: ${newDeliveryStatus}` },
+                                  ...order.timeline
+                                ]
+                              });
+                              
+                              onStatusChange(order.id, newOrderStatus); // Trigger re-render to fetch new timeline
+                              alert(`Status updated to: ${newDeliveryStatus}`);
                             } else {
                               alert(`Status is still: ${data.status}`);
                             }
