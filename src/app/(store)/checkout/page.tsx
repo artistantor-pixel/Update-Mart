@@ -9,6 +9,7 @@ import { useOrderStore } from '@/store/orderStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useCartStore } from '@/store/cartStore';
 import { usePromoStore, PromoCode } from '@/store/promoStore';
+import { useCourierStore } from '@/store/courierStore';
 import { Order } from '@/components/admin/orders/types';
 import * as gtm from '@/lib/gtm';
 import * as fpixel from '@/lib/fpixel';
@@ -23,6 +24,13 @@ export default function Checkout() {
   const { isCODEnabled, codFee, blockedPhones } = useSettingsStore();
   const { items: cartItems, clearCart } = useCartStore();
   const { validatePromo } = usePromoStore();
+  const { couriers, fetchCouriers } = useCourierStore();
+
+  useEffect(() => {
+    if (couriers.length === 0) {
+      fetchCouriers();
+    }
+  }, [couriers.length, fetchCouriers]);
   
   const [selectedDistrict, setSelectedDistrict] = useState("Dhaka");
   const [selectedThana, setSelectedThana] = useState("");
@@ -36,7 +44,10 @@ export default function Checkout() {
   const [promoError, setPromoError] = useState("");
 
   const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-  const shipping = selectedDistrict === 'Dhaka' ? 60 : 120;
+  
+  const activeCourier = couriers.find(c => c.isActive) || { deliveryChargeInsideDhaka: 60, deliveryChargeOutsideDhaka: 120 };
+  const shipping = selectedDistrict === 'Dhaka' ? activeCourier.deliveryChargeInsideDhaka : activeCourier.deliveryChargeOutsideDhaka;
+  
   const total = Math.max(0, subtotal + shipping - discountAmount);
   
   // Re-validate promo if subtotal changes (e.g. if they somehow change cart during checkout)
