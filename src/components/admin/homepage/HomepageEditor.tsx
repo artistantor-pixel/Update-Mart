@@ -68,7 +68,7 @@ export default function HomepageEditor() {
       formData.append('file', file);
       formData.append('upload_preset', 'Update Mart');
 
-      const response = await fetch('https://api.cloudinary.com/v1_1/ulfibakr/image/upload', {
+      const response = await fetch('https://api.cloudinary.com/v1_1/uiflbakr/image/upload', {
         method: 'POST',
         body: formData,
       });
