@@ -28,13 +28,7 @@ export default function Home() {
     fetchProducts();
   }, [fetchSettings, fetchProducts]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[90vh] flex items-center justify-center bg-slate-50 dark:bg-dark-900">
-        <div className="w-12 h-12 border-4 border-slate-200 border-t-primary-500 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="flex flex-col">

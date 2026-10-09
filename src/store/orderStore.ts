@@ -35,7 +35,7 @@ export const useOrderStore = create<OrderStore>()((set, get) => ({
   fetchOrders: async () => {
     set({ isLoading: true });
     try {
-      const { data, error } = await supabase.from('orders').select('*');
+      const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
       if (error) throw error;
       
       if (data) {

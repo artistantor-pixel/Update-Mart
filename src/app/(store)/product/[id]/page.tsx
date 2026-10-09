@@ -102,7 +102,7 @@ const StarPicker = ({ value, onChange }: { value: number; onChange: (v: number) 
 export default function ProductDetails() {
   const { id } = useParams() as { id: string };
   const router = useRouter();
-  const { products, isLoading: productsLoading } = useProductStore();
+  const { products, fetchProducts, isLoading: productsLoading } = useProductStore();
   const addItem = useCartStore(state => state.addItem);
   const { reviews, isLoading: reviewsLoading, isSubmitting, submitSuccess, fetchReviewsForProduct, submitReview, resetSubmitState } = useReviewStore();
 
@@ -141,6 +141,13 @@ export default function ProductDetails() {
     window.scrollTo(0, 0);
     if (id) fetchReviewsForProduct(id);
   }, [id, product, fetchReviewsForProduct]);
+
+  // Fetch products on hard refresh if store is empty
+  useEffect(() => {
+    if (products.length === 0) {
+      fetchProducts();
+    }
+  }, [products.length, fetchProducts]);
 
   // Observer for sticky CTA
   useEffect(() => {
