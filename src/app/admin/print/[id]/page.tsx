@@ -22,13 +22,33 @@ export default function PrintInvoice() {
   }, [fetchOrders, fetchSettings]);
 
   useEffect(() => {
-    if (!storeIsLoading) {
-      const allOrders = Object.values(columns).flat();
-      const found = allOrders.find((o: Order) => o.id === id);
-      setOrder(found || null);
+    // If store is still loading initially, do not give up immediately
+    if (storeIsLoading) return;
+
+    const allOrders = Object.values(columns).flat();
+    const cleanId = decodeURIComponent(id).trim();
+    const found = allOrders.find((o: Order) => o.id.trim() === cleanId);
+    
+    if (found) {
+      setOrder(found);
       setIsLoading(false);
+    } else {
+      // If store is empty, it might still be fetching (since isLoading starts as false)
+      // Only show Not Found if we actually have some orders and it's not there, 
+      // or if we've waited a bit.
+      if (allOrders.length > 0) {
+        setIsLoading(false);
+      }
     }
   }, [columns, storeIsLoading, id]);
+
+  // Fallback timeout to stop loading if it's genuinely empty
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (order) {
