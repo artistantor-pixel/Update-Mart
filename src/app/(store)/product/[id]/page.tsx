@@ -11,6 +11,7 @@ import { useCartStore } from '@/store/cartStore';
 import { useReviewStore } from '@/store/reviewStore';
 import * as fpixel from '@/lib/fpixel';
 import * as gtm from '@/lib/gtm';
+import { useHomepageStore } from '@/store/homepageStore';
 
 // Accordion Component
 const Accordion = ({ title, children, defaultOpen = false }: { title: string, children: React.ReactNode, defaultOpen?: boolean }) => {
@@ -105,6 +106,8 @@ export default function ProductDetails() {
   const { products, fetchProducts, isLoading: productsLoading } = useProductStore();
   const addItem = useCartStore(state => state.addItem);
   const { reviews, isLoading: reviewsLoading, isSubmitting, submitSuccess, fetchReviewsForProduct, submitReview, resetSubmitState } = useReviewStore();
+  const { content } = useHomepageStore();
+  const showTrustBadges = content.visibility?.productTrustBadges !== false;
 
   const product = products.find(p => p.id === id); // no fallback to products[0]
 
@@ -495,20 +498,22 @@ export default function ProductDetails() {
             </div>
 
             {/* Trust Badges */}
-            <div className="grid grid-cols-3 gap-2 mb-10 border-y border-slate-200 dark:border-white/10 py-6">
-              <div className="flex flex-col items-center text-center gap-2">
-                <Shield size={24} className="text-slate-400" />
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">2 Year<br/>Warranty</span>
+            {showTrustBadges && (
+              <div className="grid grid-cols-3 gap-2 mb-10 border-y border-slate-200 dark:border-white/10 py-6">
+                <div className="flex flex-col items-center text-center gap-2">
+                  <Shield size={24} className="text-slate-400" />
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400">2 Year<br/>Warranty</span>
+                </div>
+                <div className="flex flex-col items-center text-center gap-2 border-x border-slate-200 dark:border-white/10">
+                  <RefreshCcw size={24} className="text-slate-400" />
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400">30-Day<br/>Returns</span>
+                </div>
+                <div className="flex flex-col items-center text-center gap-2">
+                  <CreditCard size={24} className="text-slate-400" />
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Secure<br/>Payment</span>
+                </div>
               </div>
-              <div className="flex flex-col items-center text-center gap-2 border-x border-slate-200 dark:border-white/10">
-                <RefreshCcw size={24} className="text-slate-400" />
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">30-Day<br/>Returns</span>
-              </div>
-              <div className="flex flex-col items-center text-center gap-2">
-                <CreditCard size={24} className="text-slate-400" />
-                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">Secure<br/>Payment</span>
-              </div>
-            </div>
+            )}
 
             {/* Functional Specs (Accordions) */}
             <div className="mb-4">

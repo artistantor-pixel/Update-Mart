@@ -55,6 +55,7 @@ export interface HomepageContent {
     trending: boolean;
     testimonials: boolean;
     newsletter: boolean;
+    productTrustBadges?: boolean;
   };
 }
 
@@ -133,6 +134,7 @@ const DEFAULT_CONTENT: HomepageContent = {
     trending: true,
     testimonials: true,
     newsletter: true,
+    productTrustBadges: true,
   }
 };
 

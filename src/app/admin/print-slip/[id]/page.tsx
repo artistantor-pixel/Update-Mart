@@ -101,23 +101,6 @@ export default function PrintSlip() {
           <p className="text-[10px]">Dhaka, Bangladesh</p>
         </div>
 
-        {/* Consignment / Barcode */}
-        <div className="text-center mb-4 border-b-2 border-black pb-3 border-dashed">
-          <p className="text-[10px] font-bold uppercase mb-1">Consignment ID</p>
-          {order.consignmentId ? (
-            <div className="flex flex-col items-center justify-center">
-              {/* Using TEC-IT barcode generator API */}
-              <img 
-                src={`https://barcode.tec-it.com/barcode.ashx?data=${order.consignmentId}&code=Code128&translate-esc=true`} 
-                alt="Barcode" 
-                className="max-w-full h-12 object-contain"
-              />
-              <p className="font-bold text-sm mt-1">{order.consignmentId}</p>
-            </div>
-          ) : (
-            <p className="font-bold text-sm">NOT ASSIGNED</p>
-          )}
-        </div>
 
         {/* Invoice Info */}
         <div className="mb-4 text-[11px]">
@@ -196,6 +179,21 @@ export default function PrintSlip() {
             <span>Tk {order.total.toLocaleString()}</span>
           </div>
         </div>
+
+        {/* Consignment / Barcode (Large at Bottom) */}
+        {order.consignmentId && (
+          <div className="text-center mb-4 border-t-2 border-black pt-4 border-dashed mt-6">
+            <p className="text-sm font-bold uppercase mb-2">Courier Consignment</p>
+            <div className="flex flex-col items-center justify-center">
+              <img 
+                src={`https://barcode.tec-it.com/barcode.ashx?data=${order.consignmentId}&code=Code128&translate-esc=true`} 
+                alt="Barcode" 
+                className="max-w-full h-16 object-contain mb-2"
+              />
+              <p className="font-black text-2xl tracking-widest">{order.consignmentId}</p>
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="text-center text-[10px] border-t-2 border-black border-dashed pt-4 mb-4">

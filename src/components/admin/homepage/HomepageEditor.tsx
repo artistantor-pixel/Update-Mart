@@ -383,7 +383,8 @@ export default function HomepageEditor() {
                   { key: 'category', label: 'Category Showcase', desc: 'List of product categories' },
                   { key: 'trending', label: 'Trending Products', desc: 'Grid of popular products' },
                   { key: 'testimonials', label: 'Testimonials', desc: 'Customer reviews slider' },
-                  { key: 'newsletter', label: 'Newsletter Section', desc: 'Email subscription form' }
+                  { key: 'newsletter', label: 'Newsletter Section', desc: 'Email subscription form' },
+                  { key: 'productTrustBadges', label: 'Product Trust Badges', desc: 'Warranty & Returns badges on single product pages' }
                 ].map((section) => {
                   // Fallback to true if visibility state is not yet initialized for this key
                   const isVisible = content.visibility ? (content.visibility as any)[section.key] !== false : true;
