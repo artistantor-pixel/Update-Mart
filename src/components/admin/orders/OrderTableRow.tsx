@@ -306,12 +306,22 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
 
                     {order.status !== 'New' && order.status !== 'Processing' && order.status !== 'Assigned Courier' && (
                       <>
-                        <h5 className="font-semibold text-slate-900 dark:text-white mb-2 text-sm flex items-center gap-2">
+                        <h5 className="font-semibold text-slate-900 dark:text-white mb-3 text-sm flex items-center gap-2">
                           <Truck size={16} className="text-primary-500" /> Courier Info
                         </h5>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
-                          {order.assignedCourierId ? couriers.find(c => c.id === order.assignedCourierId)?.name : 'Not assigned'}
-                        </p>
+                        <div className="p-3 bg-slate-50 dark:bg-dark-800 rounded-lg border border-slate-200 dark:border-slate-700 mb-3">
+                          <p className="text-sm font-medium text-slate-900 dark:text-white flex items-center justify-between">
+                            <span>{order.assignedCourierId ? couriers.find(c => c.id === order.assignedCourierId)?.name : 'Not assigned'}</span>
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => window.open(`/admin/print-slip/${order.id}`, '_blank')}
+                            className="flex-1 bg-slate-100 hover:bg-slate-200 dark:bg-dark-800 dark:hover:bg-dark-700 text-slate-700 dark:text-slate-300 rounded-lg px-3 py-2 text-xs font-medium transition-colors border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1"
+                          >
+                            <FileText size={12} /> Print Slip
+                          </button>
+                        </div>
                       </>
                     )}
                   </div>
