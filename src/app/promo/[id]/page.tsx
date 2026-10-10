@@ -165,17 +165,8 @@ export default function PromoPage() {
         <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
           
           {/* Product Image */}
-          <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl border-8 border-white dark:border-dark-700 w-full max-w-md mx-auto lg:mx-0">
-            <Image src={product.image} alt={product.name} fill className="object-cover" priority />
-            {product.regularPrice && (
-              <div className="absolute top-6 right-6 bg-red-500 text-white font-black px-6 py-3 rounded-full shadow-2xl transform rotate-3">
-                SAVE ৳{(product.regularPrice - basePrice).toFixed(0)}
-              </div>
-            )}
-            <div className="absolute bottom-6 left-6 right-6 bg-white/90 dark:bg-dark-900/90 backdrop-blur-md rounded-2xl p-4 flex items-center justify-center gap-3 shadow-lg">
-              <Star size={24} className="fill-accent-500 text-accent-500" />
-              <span className="font-bold text-slate-900 dark:text-white">4.9/5 Average Rating</span>
-            </div>
+          <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl border-8 border-slate-100 dark:border-dark-700 w-full max-w-md mx-auto lg:mx-0 bg-white dark:bg-dark-800">
+            <Image src={product.image} alt={product.name} fill className="object-contain p-4" priority />
           </div>
 
           {/* Product Details & CTA */}
@@ -212,16 +203,22 @@ export default function PromoPage() {
               </div>
             </div>
 
-            <div className="text-lg lg:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0">
-              <p className={isDescriptionExpanded ? "" : "line-clamp-1"}>
-                {product.description || "The ultimate choice for premium quality and style. Order today to get fast delivery and exclusive discounts."}
-              </p>
-              <button 
-                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)} 
-                className="text-primary-500 hover:text-primary-600 font-semibold text-sm mt-2 flex items-center gap-1 mx-auto lg:mx-0"
-              >
-                {isDescriptionExpanded ? "Read Less" : "Read More"}
-              </button>
+            {/* Feature Description Accordion */}
+            <div className="max-w-xl mx-auto lg:mx-0 mt-6 bg-white dark:bg-dark-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+              <details className="group" open>
+                <summary className="flex justify-between items-center font-bold cursor-pointer list-none p-5 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-dark-700 transition-colors">
+                  <span className="flex items-center gap-2">
+                    <Star size={20} className="text-primary-500" /> 
+                    Product Description
+                  </span>
+                  <span className="transition group-open:rotate-180 text-slate-400">
+                    <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                  </span>
+                </summary>
+                <div className="text-slate-600 dark:text-slate-400 mt-2 p-5 pt-0 group-open:animate-fade-in text-base md:text-lg leading-relaxed border-t border-slate-100 dark:border-slate-700">
+                  {product.description || "The ultimate choice for premium quality and style. Order today to get fast delivery and exclusive discounts."}
+                </div>
+              </details>
             </div>
 
 
@@ -263,25 +260,74 @@ export default function PromoPage() {
         </div>
       </section>
 
-      {/* Features/Specs Section */}
+      {/* Features/Specs Dropdown Section */}
       {product.specs && product.specs.length > 0 && (
-        <section className="py-16 max-w-5xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-10">Why Choose {product.name}?</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <section className="py-16 max-w-3xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-10">Features & Specifications</h2>
+          <div className="space-y-4">
             {product.specs.map((spec, idx) => (
-              <div key={idx} className="bg-white dark:bg-dark-800 p-6 rounded-2xl border border-slate-200 dark:border-white/5 flex items-start gap-4">
-                <div className="p-3 bg-primary-50 dark:bg-primary-500/10 text-primary-500 rounded-xl">
-                  <CheckCircle2 size={24} />
+              <details key={idx} className="group bg-white dark:bg-dark-800 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
+                <summary className="flex justify-between items-center font-bold cursor-pointer list-none p-5 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-dark-700 transition-colors">
+                  <span className="flex items-center gap-3">
+                    <CheckCircle2 size={24} className="text-primary-500" />
+                    {spec.key}
+                  </span>
+                  <span className="transition group-open:rotate-180 text-slate-400">
+                    <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                  </span>
+                </summary>
+                <div className="text-slate-600 dark:text-slate-400 p-5 pt-0 pl-14 group-open:animate-fade-in border-t border-slate-100 dark:border-slate-700 mt-2">
+                  {spec.value}
                 </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 dark:text-white text-lg">{spec.key}</h4>
-                  <p className="text-slate-600 dark:text-slate-400 mt-1">{spec.value}</p>
-                </div>
-              </div>
+              </details>
             ))}
           </div>
         </section>
       )}
+
+      {/* FAQ Section */}
+      <section className="py-16 bg-white dark:bg-dark-800 border-y border-slate-200 dark:border-white/5">
+        <div className="max-w-3xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-10">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            <details className="group bg-slate-50 dark:bg-dark-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <summary className="flex justify-between items-center font-bold cursor-pointer list-none p-5 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-dark-700 transition-colors">
+                <span>When will I receive my product?</span>
+                <span className="transition group-open:rotate-180 text-slate-400">
+                  <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                </span>
+              </summary>
+              <div className="text-slate-600 dark:text-slate-400 p-5 pt-0 group-open:animate-fade-in">
+                Inside Dhaka, delivery takes 24-48 hours. Outside Dhaka, it takes 2-4 working days via our trusted courier partners.
+              </div>
+            </details>
+            
+            <details className="group bg-slate-50 dark:bg-dark-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <summary className="flex justify-between items-center font-bold cursor-pointer list-none p-5 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-dark-700 transition-colors">
+                <span>Is there any warranty?</span>
+                <span className="transition group-open:rotate-180 text-slate-400">
+                  <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                </span>
+              </summary>
+              <div className="text-slate-600 dark:text-slate-400 p-5 pt-0 group-open:animate-fade-in">
+                Yes, we provide a 7-day replacement guarantee for any manufacturing defects. Your satisfaction is our priority.
+              </div>
+            </details>
+
+            <details className="group bg-slate-50 dark:bg-dark-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <summary className="flex justify-between items-center font-bold cursor-pointer list-none p-5 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-dark-700 transition-colors">
+                <span>Do I need to pay in advance?</span>
+                <span className="transition group-open:rotate-180 text-slate-400">
+                  <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
+                </span>
+              </summary>
+              <div className="text-slate-600 dark:text-slate-400 p-5 pt-0 group-open:animate-fade-in">
+                No advance payment is required! You can pay the full amount in cash to the delivery man after receiving the product.
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
 
       {/* Inline Checkout Form */}
       <section id="checkout-form" className="py-20 max-w-6xl mx-auto px-4">
