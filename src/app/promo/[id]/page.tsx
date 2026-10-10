@@ -179,16 +179,16 @@ export default function PromoPage() {
               🔥 Limited Time Offer
             </div>
             
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white leading-[1.1]">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 dark:text-white leading-[1.2]">
               {product.name}
             </h1>
             
-            <div className="flex items-center justify-center lg:justify-start gap-4">
-              <span className="text-5xl lg:text-6xl font-black text-primary-500">৳{basePrice.toFixed(0)}</span>
+            <div className="flex items-center justify-center lg:justify-start gap-3 sm:gap-4">
+              <span className="text-4xl sm:text-5xl lg:text-6xl font-black text-primary-500">৳{basePrice.toFixed(0)}</span>
               {regularPrice > basePrice && (
                 <div className="flex flex-col items-start">
-                  <span className="text-2xl text-slate-400 line-through font-bold">৳{regularPrice.toFixed(0)}</span>
-                  <span className="text-sm font-semibold text-green-500 uppercase">In Stock</span>
+                  <span className="text-xl sm:text-2xl text-slate-400 line-through font-bold">৳{regularPrice.toFixed(0)}</span>
+                  <span className="text-xs sm:text-sm font-semibold text-green-500 uppercase">In Stock</span>
                 </div>
               )}
             </div>
@@ -232,12 +232,12 @@ export default function PromoPage() {
               </div>
             )}
 
-            <div className="pt-2">
+            <div className="pt-2 pb-4 lg:pb-0">
               <button 
                 onClick={scrollToCheckout}
-                className="w-full sm:w-auto bg-primary-500 hover:bg-primary-600 text-white text-2xl font-black py-6 px-12 rounded-3xl shadow-2xl shadow-primary-500/40 transition-all hover:scale-105 flex items-center justify-center gap-4 animate-pulse-slow"
+                className="w-full sm:w-auto bg-primary-500 hover:bg-primary-600 text-white text-xl sm:text-2xl font-black py-4 sm:py-6 px-8 sm:px-12 rounded-2xl sm:rounded-3xl shadow-2xl shadow-primary-500/40 transition-all hover:scale-105 flex items-center justify-center gap-2 sm:gap-4 animate-pulse-slow"
               >
-                ORDER NOW <ChevronRight size={28} className="animate-bounce-x" />
+                ORDER NOW <ChevronRight size={24} className="animate-bounce-x sm:w-7 sm:h-7" />
               </button>
             </div>
 
@@ -406,9 +406,9 @@ export default function PromoPage() {
           </div>
 
           {/* Right Side: Order Summary */}
-          <div className="lg:w-2/5 bg-slate-50 dark:bg-dark-900/50 p-8 lg:p-12 border-l border-slate-200 dark:border-white/10 flex flex-col justify-between">
+          <div className="lg:w-2/5 bg-slate-50 dark:bg-dark-900/50 p-6 sm:p-8 lg:p-12 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-white/10 flex flex-col justify-between">
             <div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-8">Order Summary</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 sm:mb-8">Order Summary</h3>
               
               <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-200 dark:border-slate-700">
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm">

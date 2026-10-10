@@ -53,13 +53,13 @@ export default function CampaignHubPage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-32 w-[800px] h-[400px] bg-primary-500/10 dark:bg-primary-500/20 rounded-full blur-3xl pointer-events-none"></div>
         
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-bold rounded-full text-sm uppercase tracking-wider mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-bold rounded-full text-xs sm:text-sm uppercase tracking-wider mb-4 sm:mb-6">
             🔥 Exclusive Offer
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white leading-[1.2] tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white leading-[1.2] tracking-tight">
             Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-purple-600">Perfect Style</span>
           </h1>
-          <p className="mt-6 text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">
+          <p className="mt-4 sm:mt-6 text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium px-2">
             Select your favorite color below to view details and complete your order. Limited stock available!
           </p>
         </div>
