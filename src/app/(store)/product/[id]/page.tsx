@@ -519,7 +519,11 @@ export default function ProductDetails() {
             <div className="mb-4">
               <Accordion title="Product Details" defaultOpen={true}>
                 {product.description ? (
-                  <p className="mb-4">{product.description}</p>
+                  <ul className="list-disc pl-5 mb-4 space-y-1">
+                    {product.description.split('\n').filter(line => line.trim()).map((line, idx) => (
+                      <li key={idx}>{line.trim()}</li>
+                    ))}
+                  </ul>
                 ) : (
                   <p className="mb-4 text-slate-500">No product description provided.</p>
                 )}

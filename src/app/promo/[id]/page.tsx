@@ -211,7 +211,15 @@ export default function PromoPage() {
                   </span>
                 </summary>
                 <div className="text-slate-600 dark:text-slate-400 mt-2 p-5 pt-0 group-open:animate-fade-in text-base md:text-lg leading-relaxed border-t border-slate-100 dark:border-slate-700">
-                  {product.description || "The ultimate choice for premium quality and style. Order today to get fast delivery and exclusive discounts."}
+                  <ul className="list-disc pl-5 space-y-2">
+                    {(product.description || "The ultimate choice for premium quality and style.\nOrder today to get fast delivery.\nExclusive discounts available.")
+                      .split('\n')
+                      .filter(line => line.trim())
+                      .map((line, idx) => (
+                        <li key={idx}>{line.trim()}</li>
+                      ))
+                    }
+                  </ul>
                 </div>
               </details>
             </div>
