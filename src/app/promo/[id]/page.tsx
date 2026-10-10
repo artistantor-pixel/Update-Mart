@@ -285,49 +285,7 @@ export default function PromoPage() {
         </section>
       )}
 
-      {/* FAQ Section */}
-      <section className="py-16 bg-white dark:bg-dark-800 border-y border-slate-200 dark:border-white/5">
-        <div className="max-w-3xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-white mb-10">Frequently Asked Questions</h2>
-          <div className="space-y-4">
-            <details className="group bg-slate-50 dark:bg-dark-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <summary className="flex justify-between items-center font-bold cursor-pointer list-none p-5 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-dark-700 transition-colors">
-                <span>When will I receive my product?</span>
-                <span className="transition group-open:rotate-180 text-slate-400">
-                  <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
-                </span>
-              </summary>
-              <div className="text-slate-600 dark:text-slate-400 p-5 pt-0 group-open:animate-fade-in">
-                Inside Dhaka, delivery takes 24-48 hours. Outside Dhaka, it takes 2-4 working days via our trusted courier partners.
-              </div>
-            </details>
-            
-            <details className="group bg-slate-50 dark:bg-dark-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <summary className="flex justify-between items-center font-bold cursor-pointer list-none p-5 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-dark-700 transition-colors">
-                <span>Is there any warranty?</span>
-                <span className="transition group-open:rotate-180 text-slate-400">
-                  <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
-                </span>
-              </summary>
-              <div className="text-slate-600 dark:text-slate-400 p-5 pt-0 group-open:animate-fade-in">
-                Yes, we provide a 7-day replacement guarantee for any manufacturing defects. Your satisfaction is our priority.
-              </div>
-            </details>
 
-            <details className="group bg-slate-50 dark:bg-dark-900 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <summary className="flex justify-between items-center font-bold cursor-pointer list-none p-5 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-dark-700 transition-colors">
-                <span>Do I need to pay in advance?</span>
-                <span className="transition group-open:rotate-180 text-slate-400">
-                  <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
-                </span>
-              </summary>
-              <div className="text-slate-600 dark:text-slate-400 p-5 pt-0 group-open:animate-fade-in">
-                No advance payment is required! You can pay the full amount in cash to the delivery man after receiving the product.
-              </div>
-            </details>
-          </div>
-        </div>
-      </section>
 
       {/* Inline Checkout Form */}
       <section id="checkout-form" className="py-20 max-w-6xl mx-auto px-4">
