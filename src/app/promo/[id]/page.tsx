@@ -150,8 +150,13 @@ export default function PromoPage() {
   };
 
   return (
-    <div className="bg-slate-50 dark:bg-dark-900 pb-20">
+    <div className="bg-slate-50 dark:bg-dark-900 pb-20 lg:pb-0">
       
+      {/* Top Urgency Banner */}
+      <div className="bg-gradient-to-r from-red-600 to-rose-600 text-white py-2 px-4 text-center text-sm sm:text-base font-bold flex items-center justify-center gap-2 animate-pulse-slow">
+        <span className="text-xl">🔥</span> FLASH SALE: 50% OFF Ends Today! Free Delivery in Bangladesh!
+      </div>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-white dark:bg-dark-800 border-b border-slate-200 dark:border-white/5 pt-12 pb-20">
         {/* Decorative Background */}
@@ -188,9 +193,23 @@ export default function PromoPage() {
               {regularPrice > basePrice && (
                 <div className="flex flex-col items-start">
                   <span className="text-xl sm:text-2xl text-slate-400 line-through font-bold">৳{regularPrice.toFixed(0)}</span>
-                  <span className="text-xs sm:text-sm font-semibold text-green-500 uppercase">In Stock</span>
+                  <span className="text-xs sm:text-sm font-bold text-red-500 uppercase bg-red-100 dark:bg-red-500/20 px-2 py-0.5 rounded animate-pulse">Save ৳{(regularPrice - basePrice).toFixed(0)}</span>
                 </div>
               )}
+            </div>
+
+            {/* Scarcity Bar */}
+            <div className="max-w-md mx-auto lg:mx-0 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 p-4 rounded-2xl">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-bold text-red-600 dark:text-red-400 text-sm flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> 
+                  High Demand
+                </span>
+                <span className="font-bold text-slate-700 dark:text-slate-300 text-sm">Only 14 items left!</span>
+              </div>
+              <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                <div className="bg-gradient-to-r from-red-500 to-rose-600 w-[15%] h-full rounded-full"></div>
+              </div>
             </div>
 
             <div className="text-lg lg:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0">
@@ -207,13 +226,22 @@ export default function PromoPage() {
 
 
 
-            <div className="pt-2 pb-4 lg:pb-0">
+            <div className="pt-4 pb-4 lg:pb-0 flex flex-col items-center lg:items-start gap-3">
               <button 
                 onClick={scrollToCheckout}
-                className="w-full sm:w-auto bg-primary-500 hover:bg-primary-600 text-white text-xl sm:text-2xl font-black py-4 sm:py-6 px-8 sm:px-12 rounded-2xl sm:rounded-3xl shadow-2xl shadow-primary-500/40 transition-all hover:scale-105 flex items-center justify-center gap-2 sm:gap-4 animate-pulse-slow"
+                className="w-full sm:w-auto bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white text-2xl sm:text-3xl font-black py-5 sm:py-6 px-8 sm:px-14 rounded-2xl sm:rounded-[2rem] shadow-2xl shadow-primary-500/40 transition-all hover:scale-105 flex flex-col items-center justify-center gap-1 animate-pulse-slow border-b-4 border-primary-700"
               >
-                ORDER NOW <ChevronRight size={24} className="animate-bounce-x sm:w-7 sm:h-7" />
+                <div className="flex items-center gap-2">
+                  ORDER NOW <ChevronRight size={32} className="animate-bounce-x" />
+                </div>
+                <span className="text-sm sm:text-base font-semibold text-primary-100 opacity-90 tracking-wide uppercase">Cash on Delivery Available</span>
               </button>
+              
+              <div className="flex items-center justify-center lg:justify-start gap-4 text-sm font-semibold text-slate-600 dark:text-slate-400 mt-2">
+                <span className="flex items-center gap-1"><Shield size={16} className="text-green-500"/> 100% Safe</span>
+                <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-blue-500"/> Verified</span>
+                <span className="flex items-center gap-1"><Star size={16} className="text-yellow-500"/> Top Rated</span>
+              </div>
             </div>
 
             {/* Trust Highlights */}
@@ -392,12 +420,15 @@ export default function PromoPage() {
       </section>
 
       {/* Sticky Mobile Order Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-dark-900/90 backdrop-blur-md border-t border-slate-200 dark:border-white/10 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-white/95 dark:bg-dark-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] pb-safe">
         <button 
           onClick={scrollToCheckout}
-          className="w-full bg-primary-500 hover:bg-primary-600 text-white text-xl font-black py-4 px-8 rounded-2xl shadow-xl shadow-primary-500/30 transition-all hover:scale-105 flex items-center justify-center gap-2 animate-pulse-slow"
+          className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white text-xl font-black py-4 px-8 rounded-2xl shadow-2xl shadow-primary-500/40 active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5 border-b-4 border-primary-700"
         >
-          ORDER NOW <ChevronRight size={24} className="animate-bounce-x" />
+          <div className="flex items-center gap-2">
+            ORDER NOW <ChevronRight size={24} className="animate-bounce-x" />
+          </div>
+          <span className="text-[10px] sm:text-xs font-semibold text-primary-100 uppercase tracking-widest">Pay Cash on Delivery</span>
         </button>
       </div>
 
