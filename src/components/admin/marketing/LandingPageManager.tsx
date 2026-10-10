@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useProductStore } from '@/store/productStore';
 import { useLandingPageStore } from '@/store/landingPageStore';
-import { Copy, ExternalLink, Megaphone, CheckCircle2, Save, Trash2 } from 'lucide-react';
+import { Copy, ExternalLink, Megaphone, CheckCircle2, Save, Trash2, Layers } from 'lucide-react';
 import Image from 'next/image';
 
 export default function LandingPageManager() {
@@ -11,6 +11,7 @@ export default function LandingPageManager() {
   const { savedPages, saveLandingPage, deleteLandingPage } = useLandingPageStore();
   
   const [selectedProductId, setSelectedProductId] = useState<string>('');
+  const [selectedGroupId, setSelectedGroupId] = useState<string>('');
   const [campaignName, setCampaignName] = useState<string>('');
   const [copied, setCopied] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
@@ -24,6 +25,10 @@ export default function LandingPageManager() {
   // Base URL for the landing page link
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const promoUrl = selectedProductId ? `${baseUrl}/promo/${selectedProductId}` : '';
+  const hubUrl = selectedGroupId ? `${baseUrl}/campaign/${selectedGroupId}` : '';
+  
+  // Extract unique variant groups for the Hub Generator
+  const variantGroups = Array.from(new Set(products.map(p => p.variantGroupId).filter(Boolean))) as string[];
 
   const handleCopy = (url: string, id: string) => {
     navigator.clipboard.writeText(url);
@@ -125,6 +130,73 @@ export default function LandingPageManager() {
                     >
                       <Save size={16} /> Save
                     </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Hub Page Generator Section */}
+      <div className="bg-white dark:bg-dark-800 p-8 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100 dark:border-white/5">
+          <div className="p-3 bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 rounded-xl">
+            <Layers size={28} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Campaign Hub Pages</h2>
+            <p className="text-sm text-slate-500 mt-1">Generate a Hub page link for a variant group. This page will display all colors/variants for the customer to choose from.</p>
+          </div>
+        </div>
+
+        <div className="max-w-2xl">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Select a Variant Group</label>
+          <select 
+            value={selectedGroupId} 
+            onChange={(e) => setSelectedGroupId(e.target.value)}
+            className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 dark:text-white mb-8"
+          >
+            <option value="">-- Select Variant Group --</option>
+            {variantGroups.map(groupId => {
+              const groupProducts = products.filter(p => p.variantGroupId === groupId);
+              const name = groupProducts[0]?.name || groupId;
+              return (
+                <option key={groupId} value={groupId}>Group: {groupId} ({groupProducts.length} variants) - e.g. {name}</option>
+              );
+            })}
+          </select>
+
+          {selectedGroupId && (
+            <div className="bg-slate-50 dark:bg-dark-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-bottom-4">
+              <h3 className="font-bold text-slate-900 dark:text-white mb-4">Generated Hub Page</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">Hub URL (Boost this link)</label>
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="text" 
+                      readOnly 
+                      value={hubUrl} 
+                      className="flex-1 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-900 dark:text-white focus:outline-none"
+                    />
+                    <button 
+                      onClick={() => handleCopy(hubUrl, 'hub')}
+                      className="p-2.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-colors"
+                      title="Copy Link"
+                    >
+                      {copied === 'hub' ? <CheckCircle2 size={18} className="text-green-500" /> : <Copy size={18} />}
+                    </button>
+                    <a 
+                      href={hubUrl} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="p-2.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg transition-colors shadow-lg shadow-indigo-500/20"
+                      title="Preview Page"
+                    >
+                      <ExternalLink size={18} />
+                    </a>
                   </div>
                 </div>
               </div>
