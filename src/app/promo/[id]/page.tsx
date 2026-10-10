@@ -198,6 +198,57 @@ export default function PromoPage() {
               </div>
             </div>
 
+            {/* Colors & Variants Selector */}
+            <div className="space-y-4">
+              {product.colors && product.colors.length > 0 && (
+                <div className="max-w-md mx-auto lg:mx-0">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">Color: {selectedVariants['Color']}</h3>
+                  <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+                    {product.colors.map(color => (
+                      <button
+                        key={color.name}
+                        type="button"
+                        onClick={() => setSelectedVariants({ ...selectedVariants, 'Color': color.name })}
+                        className={`w-12 h-12 rounded-full border-2 transition-all flex items-center justify-center ${
+                          selectedVariants['Color'] === color.name
+                            ? 'border-primary-500 scale-110 shadow-lg'
+                            : 'border-transparent shadow-sm hover:scale-105'
+                        }`}
+                        style={{ backgroundColor: color.hex }}
+                        title={color.name}
+                      >
+                        {selectedVariants['Color'] === color.name && (
+                          <CheckCircle2 size={24} className={['#ffffff', '#fff'].includes(color.hex.toLowerCase()) ? "text-slate-800" : "text-white"} />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {Object.entries(variantGroups).map(([groupName, variants]) => (
+                <div key={groupName} className="max-w-md mx-auto lg:mx-0">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">{groupName}: {selectedVariants[groupName]}</h3>
+                  <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+                    {variants.map(v => (
+                      <button
+                        key={v.value}
+                        type="button"
+                        onClick={() => setSelectedVariants({ ...selectedVariants, [groupName]: v.value })}
+                        className={`px-5 py-2.5 rounded-xl border-2 font-bold transition-all ${
+                          selectedVariants[groupName] === v.value
+                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400'
+                            : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-primary-200'
+                        }`}
+                      >
+                        {v.value}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
             {/* Feature Description Accordion */}
             <div className="max-w-xl mx-auto lg:mx-0 mt-6 bg-white dark:bg-dark-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
               <details className="group" open>
