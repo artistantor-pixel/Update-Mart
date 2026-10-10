@@ -152,25 +152,20 @@ export default function PromoPage() {
   return (
     <div className="bg-slate-50 dark:bg-dark-900 pb-20 lg:pb-0">
       
-      {/* Top Urgency Banner */}
-      <div className="bg-gradient-to-r from-red-600 to-rose-600 text-white py-2 px-4 text-center text-sm sm:text-base font-bold flex items-center justify-center gap-2 animate-pulse-slow">
-        <span className="text-xl">🔥</span> FLASH SALE: 50% OFF Ends Today! Free Delivery in Bangladesh!
-      </div>
-
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-white dark:bg-dark-800 border-b border-slate-200 dark:border-white/5 pt-12 pb-20">
         {/* Decorative Background */}
         <div className="absolute top-0 right-0 -mr-32 -mt-32 w-[600px] h-[600px] bg-primary-500/5 dark:bg-primary-500/10 rounded-full blur-3xl"></div>
         
-        <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+        <div className="max-w-6xl mx-auto px-0 lg:px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
           
           {/* Product Image */}
-          <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden shadow-2xl border-8 border-slate-100 dark:border-dark-700 w-full max-w-md mx-auto lg:mx-0 bg-white dark:bg-dark-800">
-            <Image src={product.image} alt={product.name} fill className="object-contain p-4" priority />
+          <div className="relative aspect-square sm:aspect-[4/5] overflow-hidden lg:rounded-[2rem] lg:shadow-2xl lg:border-8 lg:border-slate-100 dark:lg:border-dark-700 w-full max-w-md mx-auto lg:mx-0 bg-transparent lg:bg-white dark:lg:bg-dark-800">
+            <Image src={product.image} alt={product.name} fill className="object-contain p-0 lg:p-4" priority />
           </div>
 
           {/* Product Details & CTA */}
-          <div className="space-y-8 text-center lg:text-left">
+          <div className="space-y-8 text-center lg:text-left px-4 lg:px-0">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-bold rounded-full text-sm uppercase tracking-wider">
               🔥 Limited Time Offer
             </div>
@@ -233,28 +228,6 @@ export default function PromoPage() {
                 </div>
                 <span className="text-sm sm:text-base font-semibold text-primary-100 opacity-90 tracking-wide uppercase">Cash on Delivery Available</span>
               </button>
-              
-              <div className="flex items-center justify-center lg:justify-start gap-4 text-sm font-semibold text-slate-600 dark:text-slate-400 mt-2">
-                <span className="flex items-center gap-1"><Shield size={16} className="text-green-500"/> 100% Safe</span>
-                <span className="flex items-center gap-1"><CheckCircle2 size={16} className="text-blue-500"/> Verified</span>
-                <span className="flex items-center gap-1"><Star size={16} className="text-yellow-500"/> Top Rated</span>
-              </div>
-            </div>
-
-            {/* Trust Highlights */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-8 border-t border-slate-100 dark:border-white/5">
-              <div className="flex flex-col items-center lg:items-start gap-2 text-slate-700 dark:text-slate-300">
-                <div className="w-12 h-12 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-1"><Truck size={24} /></div>
-                <span className="font-bold text-sm">Cash on Delivery</span>
-              </div>
-              <div className="flex flex-col items-center lg:items-start gap-2 text-slate-700 dark:text-slate-300">
-                <div className="w-12 h-12 bg-green-50 dark:bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-1"><Shield size={24} /></div>
-                <span className="font-bold text-sm">{product.warranty || "Premium Quality"}</span>
-              </div>
-              <div className="flex flex-col items-center lg:items-start gap-2 text-slate-700 dark:text-slate-300">
-                <div className="w-12 h-12 bg-purple-50 dark:bg-purple-500/10 text-purple-500 rounded-full flex items-center justify-center mb-1"><CheckCircle2 size={24} /></div>
-                <span className="font-bold text-sm">Satisfaction Guaranteed</span>
-              </div>
             </div>
           </div>
         </div>
