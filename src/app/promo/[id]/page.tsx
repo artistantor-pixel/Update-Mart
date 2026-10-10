@@ -205,32 +205,7 @@ export default function PromoPage() {
               </button>
             </div>
 
-            {/* Sibling Variants on Landing Page */}
-            {(siblingProducts.length > 0) && (
-              <div className="mb-2 text-left">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Available Colors: <span className="font-normal text-slate-600 dark:text-slate-400">{product.primaryColor?.name || 'Standard'}</span></h3>
-                </div>
-                <div className="flex gap-3 flex-wrap justify-center lg:justify-start">
-                  {siblingProducts.map(sibling => (
-                    <button
-                      key={sibling.id}
-                      type="button"
-                      onClick={() => {
-                        router.push(`/promo/${sibling.id}`);
-                      }}
-                      className={`w-12 h-12 rounded-full p-1 border-2 transition-colors ${sibling.id === product.id ? 'border-primary-500' : 'border-transparent hover:border-slate-300 dark:hover:border-slate-700'}`}
-                      aria-label={`Select ${sibling.primaryColor?.name || sibling.name}`}
-                      title={sibling.primaryColor?.name || sibling.name}
-                    >
-                      <div className="w-full h-full rounded-full shadow-inner flex items-center justify-center text-xs font-medium bg-slate-100 dark:bg-dark-800 text-slate-600 dark:text-slate-400 overflow-hidden relative" style={sibling.primaryColor ? { backgroundColor: sibling.primaryColor.hex } : {}}>
-                        {!sibling.primaryColor && sibling.name.charAt(0)}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             <div className="pt-2 pb-4 lg:pb-0">
               <button 
@@ -292,74 +267,21 @@ export default function PromoPage() {
           {/* Left Side: Order Form */}
           <div className="p-5 sm:p-8 lg:p-12 lg:w-3/5 space-y-8 sm:space-y-10">
             
-            {/* Variant Selectors */}
-            {(product.colors?.length || Object.keys(variantGroups).length > 0) && (
-              <div className="space-y-4 sm:space-y-5">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-full shrink-0 bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-sm">1</span> 
-                  Select Options
-                </h3>
-                
-                {product.colors && product.colors.length > 0 && (
-                  <div className="pl-0 sm:pl-11 mt-3 sm:mt-0">
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Color</label>
-                    <div className="flex flex-wrap gap-3">
-                      {product.colors.map(color => (
-                        <button
-                          type="button"
-                          key={color.name}
-                          onClick={() => setSelectedVariants(prev => ({ ...prev, Color: color.name }))}
-                          className={`px-5 py-3 rounded-xl text-sm font-bold border-2 flex items-center gap-3 transition-all ${
-                            selectedVariants['Color'] === color.name
-                              ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 shadow-md shadow-primary-500/10'
-                              : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300'
-                          }`}
-                        >
-                          <div className="w-5 h-5 rounded-full border border-slate-200 shadow-inner" style={{ backgroundColor: color.hex }} />
-                          {color.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
 
-                {Object.entries(variantGroups).map(([typeName, typeVariants]) => (
-                  <div key={typeName} className="pl-0 sm:pl-11 mt-3 sm:mt-0">
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">{typeName}</label>
-                    <div className="flex flex-wrap gap-3">
-                      {(typeVariants || []).map(v => (
-                        <button
-                          type="button"
-                          key={v.value}
-                          onClick={() => setSelectedVariants(prev => ({ ...prev, [typeName]: v.value }))}
-                          className={`px-5 py-3 rounded-xl text-sm font-bold border-2 transition-all ${
-                            selectedVariants[typeName] === v.value
-                              ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 shadow-md shadow-primary-500/10'
-                              : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300'
-                          }`}
-                        >
-                          {v.value}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
 
             {/* Delivery Info */}
             <div className="space-y-4 sm:space-y-5">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                <span className="w-8 h-8 rounded-full shrink-0 bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-sm">{(product.colors?.length || Object.keys(variantGroups).length > 0) ? '2' : '1'}</span> 
+                <span className="w-8 h-8 rounded-full shrink-0 bg-primary-500 text-white flex items-center justify-center text-sm shadow-md shadow-primary-500/30">1</span> 
                 Delivery Details
               </h3>
               
               <div className="pl-0 sm:pl-11 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mt-3 sm:mt-0">
-                <div className="md:col-span-2">
+                <div className="md:col-span-1">
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Full Name *</label>
                   <input required type="text" value={firstName} onChange={e => setFirstName(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white transition-shadow" placeholder="e.g. Rahul Islam" />
                 </div>
-                <div className="md:col-span-2">
+                <div className="md:col-span-1">
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mobile Number *</label>
                   <input 
                     required 
@@ -458,8 +380,8 @@ export default function PromoPage() {
                 </p>
               </div>
 
-              <button type="submit" className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 font-black text-xl py-5 rounded-2xl transition-all shadow-xl hover:shadow-2xl hover:-translate-y-1 flex justify-center items-center gap-3">
-                CONFIRM ORDER <ChevronRight size={24} />
+              <button type="submit" className="w-full bg-primary-500 hover:bg-primary-600 text-white font-black text-xl sm:text-2xl py-5 rounded-2xl transition-all shadow-xl shadow-primary-500/30 hover:shadow-2xl hover:-translate-y-1 flex justify-center items-center gap-3 animate-pulse-slow">
+                CONFIRM ORDER <ChevronRight size={28} className="animate-bounce-x" />
               </button>
               <div className="flex justify-center gap-2 items-center text-sm text-slate-500 mt-6 font-medium">
                 <Shield size={16} /> 100% Safe & Secure Checkout
