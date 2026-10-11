@@ -2,23 +2,27 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function FacebookPixel() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [loaded, setLoaded] = useState(false);
+  const isFirstRender = useRef(true);
   
   const pixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID || '1445895464095441';
 
   useEffect(() => {
-    if (!loaded) return;
+    // Skip on initial render because inline fbq script already fires initial PageView
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     
-    // Track pageview on route change
+    // Track pageview on SPA route changes
     if (typeof window !== 'undefined' && (window as any).fbq) {
       (window as any).fbq('track', 'PageView');
     }
-  }, [pathname, searchParams, loaded]);
+  }, [pathname, searchParams]);
 
   if (!pathname || pathname.startsWith('/admin')) {
     return null;
@@ -28,8 +32,7 @@ export default function FacebookPixel() {
     <>
       <Script
         id="fb-pixel"
-        strategy="lazyOnload"
-        onLoad={() => setLoaded(true)}
+        strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
             !function(f,b,e,v,n,t,s)
@@ -57,3 +60,4 @@ export default function FacebookPixel() {
     </>
   );
 }
+

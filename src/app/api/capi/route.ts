@@ -1,17 +1,64 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID || '1445895464095441';
 const ACCESS_TOKEN = process.env.FB_CAPI_ACCESS_TOKEN;
 
+// Helper function to hash values using SHA256 according to Meta standard
+const hashValue = (val?: string | null): string | undefined => {
+  if (!val) return undefined;
+  const cleaned = val.trim().toLowerCase();
+  if (!cleaned) return undefined;
+  return crypto.createHash('sha256').update(cleaned).digest('hex');
+};
+
+// Format Bangladesh phone numbers to E.164 without '+' or leading 0, with country code (880...)
+const hashPhone = (phone?: string | null): string | undefined => {
+  if (!phone) return undefined;
+  let digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('01')) {
+    digits = '88' + digits;
+  } else if (digits.startsWith('880')) {
+    // already has country code
+  }
+  return crypto.createHash('sha256').update(digits).digest('hex');
+};
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { eventName, eventID, eventData, eventUrl } = body;
+    const { eventName, eventID, eventData, eventUrl, userData = {} } = body;
 
     if (!ACCESS_TOKEN) {
       console.warn('FB_CAPI_ACCESS_TOKEN is missing in environment variables.');
-      // Return 200 anyway so we don't block the frontend, but log the warning
       return NextResponse.json({ success: false, message: 'Missing Access Token' });
+    }
+
+    // Extract client IP address properly
+    const forwardedHeader = req.headers.get('x-forwarded-for');
+    const clientIp = forwardedHeader ? forwardedHeader.split(',')[0].trim() : (req.headers.get('x-real-ip') || undefined);
+    const userAgent = req.headers.get('user-agent') || undefined;
+
+    // Build Meta CAPI compliant user_data object
+    const metaUserData: Record<string, any> = {
+      client_ip_address: clientIp,
+      client_user_agent: userAgent,
+    };
+
+    if (userData.fbp) {
+      metaUserData.fbp = userData.fbp;
+    }
+    if (userData.fbc) {
+      metaUserData.fbc = userData.fbc;
+    }
+    if (userData.phone) {
+      metaUserData.ph = hashPhone(userData.phone);
+    }
+    if (userData.email) {
+      metaUserData.em = hashValue(userData.email);
+    }
+    if (userData.name) {
+      metaUserData.fn = hashValue(userData.name);
     }
 
     const payload = {
@@ -22,14 +69,10 @@ export async function POST(req: Request) {
           action_source: 'website',
           event_id: eventID,
           event_source_url: eventUrl,
-          user_data: {
-            client_ip_address: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || undefined,
-            client_user_agent: req.headers.get('user-agent') || undefined,
-          },
+          user_data: metaUserData,
           custom_data: eventData || {},
         },
       ],
-      // test_event_code: process.env.FB_TEST_EVENT_CODE // Testing-er jonno uncomment korte paren
     };
 
     // Facebook Graph API te data pathano
@@ -53,3 +96,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
   }
 }
+

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { Shield, Truck, CreditCard, CheckCircle2, Star, ChevronRight, ChevronLeft, ChevronDown, ZoomIn, ZoomOut, X } from 'lucide-react';
 import { useProductStore, ProductVariant } from '@/store/productStore';
 import { useOrderStore } from '@/store/orderStore';
+import { useCourierStore } from '@/store/courierStore';
 import * as fpixel from '@/lib/fpixel';
 
 const BD_DISTRICTS = [
@@ -33,6 +34,20 @@ export default function PromoPage() {
   const [firstName, setFirstName] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  // Courier & Delivery Charges
+  const { couriers, fetchCouriers } = useCourierStore();
+
+  useEffect(() => {
+    if (couriers.length === 0) {
+      fetchCouriers();
+    }
+  }, [couriers.length, fetchCouriers]);
+
+  const activeCourier = couriers.find(c => c.isActive) || { deliveryChargeInsideDhaka: 80, deliveryChargeOutsideDhaka: 130 };
+  const insideDhakaFee = activeCourier.deliveryChargeInsideDhaka ?? 80;
+  const outsideDhakaFee = activeCourier.deliveryChargeOutsideDhaka ?? 130;
+
+  const [deliveryZone, setDeliveryZone] = useState<'inside' | 'outside'>('inside');
   const [district, setDistrict] = useState('Dhaka');
   const [thana, setThana] = useState('');
   const [address, setAddress] = useState('');
@@ -77,7 +92,10 @@ export default function PromoPage() {
       const sAddr = sessionStorage.getItem('pm_address');
       if (sName) setFirstName(sName);
       if (sPhone) setPhone(sPhone);
-      if (sDist) setDistrict(sDist);
+      if (sDist) {
+        setDistrict(sDist);
+        setDeliveryZone(sDist === 'Dhaka' ? 'inside' : 'outside');
+      }
       if (sThana) setThana(sThana);
       if (sAddr) setAddress(sAddr);
     } catch {}
@@ -97,8 +115,24 @@ export default function PromoPage() {
     }
     try { sessionStorage.setItem('pm_phone', digitsOnly); } catch {}
   };
+  const handleZoneChange = (zone: 'inside' | 'outside') => {
+    setDeliveryZone(zone);
+    if (zone === 'inside') {
+      setDistrict('Dhaka');
+      try { sessionStorage.setItem('pm_district', 'Dhaka'); } catch {}
+    } else if (district === 'Dhaka') {
+      setDistrict('Chittagong');
+      try { sessionStorage.setItem('pm_district', 'Chittagong'); } catch {}
+    }
+  };
+
   const updateDistrict = (val: string) => {
     setDistrict(val);
+    if (val === 'Dhaka') {
+      setDeliveryZone('inside');
+    } else {
+      setDeliveryZone('outside');
+    }
     try { sessionStorage.setItem('pm_district', val); } catch {}
   };
   const updateThana = (val: string) => {
@@ -204,7 +238,7 @@ export default function PromoPage() {
   const basePrice = selectedVariantObj?.price ? Number(selectedVariantObj.price) : product.price;
   const regularPrice = product.regularPrice || (product.price * 1.33);
   
-  const shippingFee = district === 'Dhaka' ? 60 : 120;
+  const shippingFee = deliveryZone === 'inside' ? insideDhakaFee : outsideDhakaFee;
   const totalAmount = (basePrice * quantity) + shippingFee;
 
   const scrollToCheckout = () => {
@@ -263,8 +297,28 @@ export default function PromoPage() {
     };
 
     addOrder(newOrder);
+
+    // Track Purchase immediately on order submission (Browser Pixel + Server CAPI with customer data)
+    try {
+      sessionStorage.setItem(`tracked_order_${newOrder.id}`, 'true');
+      fpixel.event('Purchase', {
+        value: totalAmount,
+        currency: 'BDT',
+        content_ids: [product.id],
+        content_name: product.name,
+        content_type: 'product',
+        num_items: quantity,
+      }, {
+        phone: phone,
+        name: firstName,
+      });
+    } catch (err) {
+      console.error('Error firing promo purchase event:', err);
+    }
+
     router.push('/order-complete');
   };
+
 
 
   return (
@@ -481,6 +535,68 @@ export default function PromoPage() {
                   />
                   {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
                 </div>
+                {/* ডেলিভারি এলাকা নির্বাচন (Delivery Area) */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                    ডেলিভারি এরিয়া সিলেক্ট করুন *
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div 
+                      onClick={() => handleZoneChange('inside')}
+                      className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        deliveryZone === 'inside'
+                          ? 'border-primary-500 bg-primary-50/60 dark:bg-primary-500/10 shadow-sm ring-1 ring-primary-500/30'
+                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-900 hover:border-slate-300 dark:hover:border-slate-600'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input 
+                          type="radio" 
+                          id="zone-inside"
+                          name="deliveryZone" 
+                          checked={deliveryZone === 'inside'} 
+                          onChange={() => handleZoneChange('inside')} 
+                          className="w-4 h-4 text-primary-600 focus:ring-primary-500 cursor-pointer" 
+                        />
+                        <label htmlFor="zone-inside" className="cursor-pointer">
+                          <span className="font-bold text-sm text-slate-900 dark:text-white block">ঢাকার ভিতরে</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">হোম ডেলিভারি</span>
+                        </label>
+                      </div>
+                      <span className="font-black text-base text-primary-600 dark:text-primary-400">
+                        ৳{insideDhakaFee}
+                      </span>
+                    </div>
+
+                    <div 
+                      onClick={() => handleZoneChange('outside')}
+                      className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        deliveryZone === 'outside'
+                          ? 'border-primary-500 bg-primary-50/60 dark:bg-primary-500/10 shadow-sm ring-1 ring-primary-500/30'
+                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-dark-900 hover:border-slate-300 dark:hover:border-slate-600'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <input 
+                          type="radio" 
+                          id="zone-outside"
+                          name="deliveryZone" 
+                          checked={deliveryZone === 'outside'} 
+                          onChange={() => handleZoneChange('outside')} 
+                          className="w-4 h-4 text-primary-600 focus:ring-primary-500 cursor-pointer" 
+                        />
+                        <label htmlFor="zone-outside" className="cursor-pointer">
+                          <span className="font-bold text-sm text-slate-900 dark:text-white block">ঢাকার বাইরে</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">সারা বাংলাদেশ</span>
+                        </label>
+                      </div>
+                      <span className="font-black text-base text-primary-600 dark:text-primary-400">
+                        ৳{outsideDhakaFee}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="md:col-span-1">
                   <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">জেলা *</label>
                   <div className="relative">
@@ -552,8 +668,8 @@ export default function PromoPage() {
                 </div>
                 
                 <div className="flex justify-between font-medium pb-4 border-b border-slate-200 dark:border-slate-700">
-                  <span>Delivery ({district})</span>
-                  <span>৳{shippingFee}</span>
+                  <span>ডেলিভারি চার্জ ({deliveryZone === 'inside' ? 'ঢাকার ভিতরে' : `ঢাকার বাইরে - ${district}`})</span>
+                  <span className="font-bold text-slate-900 dark:text-white">৳{shippingFee}</span>
                 </div>
                 
                 <div className="flex justify-between items-center pt-2">
