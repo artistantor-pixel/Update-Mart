@@ -184,6 +184,26 @@ export default function Checkout() {
       
       // Update local store for optimistic UI if needed (not strictly necessary for buyer)
       addOrder(newOrder);
+
+      // Track Purchase immediately upon order confirmation
+      try {
+        sessionStorage.setItem('last_placed_order', JSON.stringify(newOrder));
+        sessionStorage.setItem(`tracked_order_${newOrder.id}`, 'true');
+        await fpixel.event('Purchase', {
+          value: total,
+          currency: 'BDT',
+          content_ids: newOrder.items.map(i => i.id),
+          content_type: 'product',
+          num_items: newOrder.items.reduce((sum, item) => sum + item.quantity, 0),
+        }, {
+          phone: phone,
+          name: firstName,
+          email: email,
+        });
+      } catch (err) {
+        console.error('Error firing checkout purchase event:', err);
+      }
+
       clearCart();
       router.push('/order-complete');
     })
@@ -193,6 +213,7 @@ export default function Checkout() {
       setIsOrderPlaced(false);
     });
   };
+
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-dark-900 py-12">

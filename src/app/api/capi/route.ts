@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
-const PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID || '1445895464095441';
+const rawPixelId = process.env.NEXT_PUBLIC_FB_PIXEL_ID;
+const PIXEL_ID = (rawPixelId && rawPixelId.length >= 15 && rawPixelId !== '123456789012345') ? rawPixelId : '1445895464095441';
 const ACCESS_TOKEN = process.env.FB_CAPI_ACCESS_TOKEN;
 
 // Helper function to hash values using SHA256 according to Meta standard

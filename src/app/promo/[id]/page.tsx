@@ -246,7 +246,7 @@ export default function PromoPage() {
     document.getElementById('checkout-form')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!/^\d{11}$/.test(phone)) {
@@ -300,8 +300,9 @@ export default function PromoPage() {
 
     // Track Purchase immediately on order submission (Browser Pixel + Server CAPI with customer data)
     try {
+      sessionStorage.setItem('last_placed_order', JSON.stringify(newOrder));
       sessionStorage.setItem(`tracked_order_${newOrder.id}`, 'true');
-      fpixel.event('Purchase', {
+      await fpixel.event('Purchase', {
         value: totalAmount,
         currency: 'BDT',
         content_ids: [product.id],
@@ -318,6 +319,7 @@ export default function PromoPage() {
 
     router.push('/order-complete');
   };
+
 
 
 

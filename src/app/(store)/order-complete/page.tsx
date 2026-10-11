@@ -12,27 +12,39 @@ export default function OrderComplete() {
   // Get the most recently added order based on createdAt
   const allOrders = Object.values(columns).flat();
   const latestOrder = allOrders.length > 0 
-    ? allOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] 
-    : null;
+  // Try to recover order from sessionStorage if latestOrder is missing
+  let activeOrder = latestOrder;
+  if (!activeOrder && typeof window !== 'undefined') {
+    try {
+      const saved = sessionStorage.getItem('last_placed_order');
+      if (saved) activeOrder = JSON.parse(saved);
+    } catch {}
+  }
   
   useEffect(() => {
     document.title = 'Order Confirmed | Update Mart';
     window.scrollTo(0, 0);
     
-    if (latestOrder) {
-      const trackedKey = `tracked_order_${latestOrder.id}`;
+    if (activeOrder) {
+      const trackedKey = `tracked_order_${activeOrder.id}`;
       if (!sessionStorage.getItem(trackedKey)) {
-        fpixel.event('Purchase', {
-          value: latestOrder.total,
-          currency: 'BDT',
-          content_ids: latestOrder.items.map(i => i.id),
-          content_type: 'product',
-        });
-        gtm.trackPurchase(latestOrder, latestOrder.items);
         sessionStorage.setItem(trackedKey, 'true');
+        fpixel.event('Purchase', {
+          value: activeOrder.total,
+          currency: 'BDT',
+          content_ids: (activeOrder.items || []).map((i: any) => i.id),
+          content_type: 'product',
+          num_items: (activeOrder.items || []).reduce((sum: number, i: any) => sum + (i.quantity || 1), 0),
+        }, {
+          phone: activeOrder.customerPhone,
+          name: activeOrder.customerName,
+          email: activeOrder.customerEmail,
+        });
+        gtm.trackPurchase(activeOrder, activeOrder.items || []);
       }
     }
-  }, [latestOrder]);
+  }, [activeOrder]);
+
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-dark-900 py-20">
