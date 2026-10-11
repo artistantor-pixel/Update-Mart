@@ -119,7 +119,7 @@ export default function OrderTableRow({ order, isSelected, onSelect, onStatusCha
       {isExpanded && (
         <tr>
           <td colSpan={6} className="p-0 border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-dark-800/30">
-            <div className="p-6 md:p-8 flex flex-col md:flex-row gap-8 md:gap-12">
+            <div className="p-4 sm:p-6 md:p-8 flex flex-col lg:flex-row gap-6 md:gap-8">
               
               {/* Left Side: Items & Shipping (Wider) */}
               <div className="flex-[2] space-y-8">

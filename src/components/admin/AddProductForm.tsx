@@ -295,7 +295,7 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
             {images.length > 0 && (
               <div className="space-y-3 mb-6">
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Gallery ({images.length} images — click to set main)</label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                   {images.map((img, index) => (
                     <div key={index} className="relative aspect-square rounded-xl overflow-hidden border-2 group transition-colors" style={{ borderColor: mainImageIndex === index ? 'rgb(99,102,241)' : 'transparent' }}>
                       {img.startsWith('data:') ? (
@@ -304,9 +304,9 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
                       ) : (
                         <Image src={img} alt={`img ${index}`} fill className="object-cover" />
                       )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <button onClick={() => setMainImageIndex(index)} className="p-1.5 bg-primary-500 text-white rounded-full" title="Set as main"><CheckCircle2 size={14} /></button>
-                        <button onClick={() => { setImages(images.filter((_, i) => i !== index)); if (mainImageIndex >= images.length - 1) setMainImageIndex(0); }} className="p-1.5 bg-red-500 text-white rounded-full" title="Remove"><X size={14} /></button>
+                      <div className="absolute inset-0 bg-black/40 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <button onClick={() => setMainImageIndex(index)} className="p-1.5 bg-primary-500 text-white rounded-full shadow-sm" title="Set as main"><CheckCircle2 size={14} /></button>
+                        <button onClick={() => { setImages(images.filter((_, i) => i !== index)); if (mainImageIndex >= images.length - 1) setMainImageIndex(0); }} className="p-1.5 bg-red-500 text-white rounded-full shadow-sm" title="Remove"><X size={14} /></button>
                       </div>
                       {mainImageIndex === index && (
                         <span className="absolute top-2 left-2 bg-primary-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">MAIN</span>
@@ -324,24 +324,27 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
           </div>
 
           {/* Section 3: Primary Color */}
-          <div className="bg-white dark:bg-dark-800 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+          <div className="bg-white dark:bg-dark-800 p-4 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100 dark:border-white/5">
               <div className="p-2 bg-pink-50 dark:bg-pink-500/10 text-pink-500 rounded-lg"><Palette size={20} /></div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">Primary Color</h2>
             </div>
             <p className="text-sm text-slate-500 mb-4">Select the specific color of this product. You can link different color variants together later in the Variant Map tab.</p>
-            <div className="flex items-center gap-4 bg-slate-50 dark:bg-dark-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-              <div className="relative flex-shrink-0">
-                <div className="w-12 h-12 rounded-lg border-2 border-slate-200 dark:border-slate-600 overflow-hidden shadow-sm">
-                  <div className="w-full h-full" style={{ backgroundColor: primaryColorHex }} />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-slate-50 dark:bg-dark-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="relative flex-shrink-0">
+                  <div className="w-12 h-12 rounded-lg border-2 border-slate-200 dark:border-slate-600 overflow-hidden shadow-sm">
+                    <div className="w-full h-full" style={{ backgroundColor: primaryColorHex }} />
+                  </div>
+                  <input type="color" value={primaryColorHex} onChange={e => setPrimaryColorHex(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" title="Pick color" />
                 </div>
-                <input type="color" value={primaryColorHex} onChange={e => setPrimaryColorHex(e.target.value)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" title="Pick color" />
+                <span className="text-xs text-slate-400 sm:hidden">Tap square to pick color</span>
               </div>
               <div className="flex-1 space-y-1">
                 <label className="block text-xs font-medium text-slate-500">Color Name</label>
                 <input type="text" placeholder="e.g. Space Grey" value={primaryColorName} onChange={e => setPrimaryColorName(e.target.value)} className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white" />
               </div>
-              <div className="w-32 space-y-1">
+              <div className="w-full sm:w-32 space-y-1">
                 <label className="block text-xs font-medium text-slate-500">HEX Code</label>
                 <input type="text" placeholder="#000000" value={primaryColorHex} onChange={e => setPrimaryColorHex(e.target.value)} className="w-full bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white" />
               </div>
@@ -349,7 +352,7 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
           </div>
 
           {/* Section 4: Variants */}
-          <div className="bg-white dark:bg-dark-800 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+          <div className="bg-white dark:bg-dark-800 p-4 sm:p-8 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100 dark:border-white/5">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-orange-50 dark:bg-orange-500/10 text-orange-500 rounded-lg"><Layers size={20} /></div>
@@ -364,8 +367,8 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
             ) : (
               <div className="space-y-4">
                 {variants.map((v, i) => (
-                  <div key={i} className="flex flex-wrap sm:flex-nowrap gap-3 items-start bg-slate-50 dark:bg-dark-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 relative group">
-                    <button onClick={() => removeVariant(i)} className="absolute -top-2 -right-2 bg-red-100 text-red-500 hover:bg-red-500 hover:text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-sm"><X size={14} /></button>
+                  <div key={i} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-start bg-slate-50 dark:bg-dark-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 relative group">
+                    <button onClick={() => removeVariant(i)} className="absolute -top-2 -right-2 bg-red-100 text-red-500 hover:bg-red-500 hover:text-white p-1 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all shadow-sm"><X size={14} /></button>
                     <select value={v.name} onChange={e => updateVariant(i, 'name', e.target.value)} className="w-full sm:w-1/4 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white">
                       <option>Color</option><option>Size</option><option>Material</option>
                     </select>

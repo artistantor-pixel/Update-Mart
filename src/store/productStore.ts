@@ -109,6 +109,13 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
           if (error) throw error;
           
           if (data) {
+            const safeParse = (val: any) => {
+              if (typeof val === 'string') {
+                try { return JSON.parse(val); } catch { return val; }
+              }
+              return val;
+            };
+
             // Map db snake_case to camelCase where needed
             const formattedProducts = data.map(p => ({
               ...p,
@@ -118,19 +125,25 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
               isLive: p.is_live,
               materialsAndCare: p.materials_and_care,
               shippingAndReturns: p.shipping_and_returns,
-              primaryColor: p.primary_color,
+              primaryColor: safeParse(p.primary_color),
               variantGroupId: p.variant_group_id,
               buyingPrice: p.buying_price,
               salePrice: p.sale_price,
               metaTitle: p.meta_title,
               metaDesc: p.meta_desc,
-              videoUrl: p.video_url
+              videoUrl: p.video_url,
+              colors: safeParse(p.colors),
+              variants: safeParse(p.variants),
+              specs: safeParse(p.specs),
+              images: safeParse(p.images),
             })) as Product[];
             set({ products: formattedProducts });
           }
         } catch (error) {
           console.error('Error fetching products from Supabase:', error);
-          // Fallback to local data if Supabase fails (e.g. not configured yet)
+          if (get().products.length === 0) {
+            set({ products: INITIAL_PRODUCTS });
+          }
         } finally {
           set({ isLoading: false });
         }

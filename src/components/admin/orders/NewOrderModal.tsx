@@ -126,23 +126,23 @@ export default function NewOrderModal({ isOpen, onClose, onSave }: NewOrderModal
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-2 sm:p-4">
       <div className="bg-white dark:bg-dark-900 rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[95vh]">
         
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-dark-800">
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-dark-800">
           <div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Create New Order</h2>
-            <p className="text-sm text-slate-500">Manually add a custom order into the system.</p>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">Create New Order</h2>
+            <p className="text-xs sm:text-sm text-slate-500">Manually add a custom order into the system.</p>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-2 bg-white dark:bg-dark-700 rounded-full shadow-sm">
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             
             {/* Left Column: Form Details */}
             <div className="lg:col-span-2 space-y-8">
@@ -404,14 +404,14 @@ export default function NewOrderModal({ isOpen, onClose, onSave }: NewOrderModal
         <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-dark-800">
           <button 
             onClick={onClose}
-            className="px-6 py-2.5 font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+            className="flex-1 sm:flex-none justify-center px-6 py-2.5 font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors text-center"
           >
             Cancel
           </button>
           <button 
             onClick={handleSave}
             disabled={items.length === 0 || !customerName || !customerPhone}
-            className="px-6 py-2.5 font-medium text-sm bg-primary-600 text-white hover:bg-primary-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="flex-1 sm:flex-none justify-center px-6 py-2.5 font-medium text-sm bg-primary-600 text-white hover:bg-primary-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-center"
           >
             <Plus size={16} /> Create Order
           </button>

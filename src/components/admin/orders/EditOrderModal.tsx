@@ -83,19 +83,19 @@ export default function EditOrderModal({ order, isOpen, onClose, onSave }: EditO
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-dark-900 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-2 sm:p-4">
+      <div className="bg-white dark:bg-dark-900 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-slate-700">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">Edit Order: {order.id}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
-            <X size={24} />
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white truncate pr-2">Edit Order: {order.id}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1">
+            <X size={20} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-8">
+        <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6 sm:space-y-8">
           
           {/* Customer Info */}
           <div>
@@ -242,14 +242,14 @@ export default function EditOrderModal({ order, isOpen, onClose, onSave }: EditO
         <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-dark-800/50">
           <button 
             onClick={onClose}
-            className="px-4 py-2 font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+            className="flex-1 sm:flex-none px-4 py-2.5 font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors text-center"
           >
             Cancel
           </button>
           <button 
             onClick={handleSave}
             disabled={items.length === 0}
-            className="px-4 py-2 font-medium text-sm bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 sm:flex-none px-5 py-2.5 font-medium text-sm bg-primary-600 text-white hover:bg-primary-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-center"
           >
             Save Changes
           </button>

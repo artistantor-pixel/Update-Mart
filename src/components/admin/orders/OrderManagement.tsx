@@ -103,13 +103,13 @@ export default function OrderManagement() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Orders</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">Manage and track customer orders efficiently.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors font-medium text-sm shadow-sm">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <button className="flex-1 sm:flex-none justify-center flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors font-medium text-sm shadow-sm">
             <Download size={16} /> Export
           </button>
           <button 
             onClick={() => setIsNewOrderModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors font-medium text-sm shadow-sm"
+            className="flex-1 sm:flex-none justify-center flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white hover:bg-primary-700 rounded-xl transition-colors font-medium text-sm shadow-sm"
           >
             <Plus size={16} /> New Order
           </button>
@@ -163,7 +163,7 @@ export default function OrderManagement() {
 
         {/* Bulk Actions (Appears only when items selected) */}
         {selectedOrders.size > 0 && (
-          <div className="bg-primary-50 dark:bg-primary-900/20 px-6 py-3 flex items-center justify-between border-b border-primary-100 dark:border-primary-900/30">
+          <div className="bg-primary-50 dark:bg-primary-900/20 px-4 sm:px-6 py-3 flex items-center justify-between border-b border-primary-100 dark:border-primary-900/30">
             <span className="text-sm font-medium text-primary-700 dark:text-primary-400">{selectedOrders.size} order(s) selected</span>
             <div className="flex gap-2">
               <button className="px-3 py-1.5 bg-white border border-primary-200 text-primary-700 rounded-lg text-sm font-medium hover:bg-primary-50 transition-colors">Update Status</button>
@@ -174,7 +174,7 @@ export default function OrderManagement() {
 
         {/* Spacious Table */}
         <div className="flex-1 overflow-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left min-w-[760px]">
             <thead className="bg-white dark:bg-dark-800 sticky top-0 z-10">
               <tr className="border-b border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold">
                 <th className="py-4 pl-6 pr-4 w-12">

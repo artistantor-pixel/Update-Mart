@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Shield, Truck, CreditCard, CheckCircle2, Star, ChevronRight } from 'lucide-react';
-import { useProductStore } from '@/store/productStore';
+import { useProductStore, ProductVariant } from '@/store/productStore';
 import { useOrderStore } from '@/store/orderStore';
 import * as fpixel from '@/lib/fpixel';
 
@@ -18,7 +18,13 @@ export default function PromoPage() {
   const { products, fetchProducts, isLoading } = useProductStore();
   const addOrder = useOrderStore(state => state.addOrder);
   
-  const product = products.find(p => p.id === id);
+  const [activeId, setActiveId] = useState(id);
+
+  useEffect(() => {
+    if (id) setActiveId(id);
+  }, [id]);
+
+  const product = products.find(p => p.id === activeId) || products.find(p => p.id === id);
 
   const [quantity, setQuantity] = useState(1);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
@@ -32,11 +38,97 @@ export default function PromoPage() {
   const [address, setAddress] = useState('');
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
+  // Restore form state if saved in sessionStorage
+  useEffect(() => {
+    try {
+      const sName = sessionStorage.getItem('pm_name');
+      const sPhone = sessionStorage.getItem('pm_phone');
+      const sDist = sessionStorage.getItem('pm_district');
+      const sThana = sessionStorage.getItem('pm_thana');
+      const sAddr = sessionStorage.getItem('pm_address');
+      if (sName) setFirstName(sName);
+      if (sPhone) setPhone(sPhone);
+      if (sDist) setDistrict(sDist);
+      if (sThana) setThana(sThana);
+      if (sAddr) setAddress(sAddr);
+    } catch {}
+  }, []);
+
+  const updateFirstName = (val: string) => {
+    setFirstName(val);
+    try { sessionStorage.setItem('pm_name', val); } catch {}
+  };
+  const updatePhone = (val: string) => {
+    const digitsOnly = val.replace(/\D/g, '');
+    setPhone(digitsOnly);
+    if (digitsOnly.length !== 11 && digitsOnly.length > 0) {
+      setPhoneError("Mobile number must be exactly 11 digits.");
+    } else {
+      setPhoneError("");
+    }
+    try { sessionStorage.setItem('pm_phone', digitsOnly); } catch {}
+  };
+  const updateDistrict = (val: string) => {
+    setDistrict(val);
+    try { sessionStorage.setItem('pm_district', val); } catch {}
+  };
+  const updateThana = (val: string) => {
+    setThana(val);
+    try { sessionStorage.setItem('pm_thana', val); } catch {}
+  };
+  const updateAddress = (val: string) => {
+    setAddress(val);
+    try { sessionStorage.setItem('pm_address', val); } catch {}
+  };
+
   useEffect(() => {
     if (products.length === 0) {
       fetchProducts();
     }
   }, [products.length, fetchProducts]);
+
+  // Find sibling products in the same variant group
+  const siblingProducts = product?.variantGroupId 
+    ? products.filter(p => p.variantGroupId === product.variantGroupId)
+    : [];
+
+  const rawVariants = Array.isArray(product?.variants) ? product.variants : [];
+  const variantGroups = rawVariants.reduce<Record<string, ProductVariant[]>>((acc, v) => {
+    if (!v || !v.name) return acc;
+    if (!acc[v.name]) acc[v.name] = [];
+    acc[v.name]!.push(v);
+    return acc;
+  }, {});
+
+  const colorGroupKey = Object.keys(variantGroups).find(k => 
+    ['color', 'colour', 'colors', 'edition', 'variant', 'রঙ'].includes(k.trim().toLowerCase())
+  );
+  const dynamicColorVariants = colorGroupKey ? variantGroups[colorGroupKey] : null;
+
+  // Selected Color Name
+  const selectedColorName = 
+    siblingProducts.length > 1
+      ? (product?.primaryColor?.name || product?.name || '')
+      : (product?.colors && product.colors.length > 0)
+      ? (selectedVariants['Color'] || product.colors[0]?.name || '')
+      : dynamicColorVariants && dynamicColorVariants.length > 0
+      ? (selectedVariants[colorGroupKey!] || dynamicColorVariants[0]?.value || '')
+      : (product?.primaryColor?.name || '');
+
+  // Active color dot hex
+  const activeColorHex = 
+    siblingProducts.length > 1
+      ? (product?.primaryColor?.hex || '#1e293b')
+      : (product?.colors && product.colors.length > 0)
+      ? (product.colors.find(c => c.name === (selectedVariants['Color'] || product.colors?.[0]?.name))?.hex || '#1e293b')
+      : (product?.primaryColor?.hex || '#1e293b');
+
+  const handleSelectSibling = (siblingId: string) => {
+    setActiveId(siblingId);
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', `/promo/${siblingId}`);
+    }
+  };
 
   useEffect(() => {
     if (product) {
@@ -48,52 +140,43 @@ export default function PromoPage() {
         value: product.price,
         currency: 'BDT'
       });
-      // Pre-select first variant of each type
+
       const initialVariants: Record<string, string> = {};
       if (product.colors && product.colors.length > 0) {
         initialVariants['Color'] = product.colors[0].name;
+      } else if (dynamicColorVariants && dynamicColorVariants.length > 0) {
+        initialVariants[colorGroupKey!] = dynamicColorVariants[0].value;
+        initialVariants['Color'] = dynamicColorVariants[0].value;
+      } else if (product.primaryColor?.name) {
+        initialVariants['Color'] = product.primaryColor.name;
       }
-      const groups = (product.variants || []).reduce<Record<string, any[]>>((acc, v) => {
-        if (!acc[v.name]) acc[v.name] = [];
-        acc[v.name].push(v);
-        return acc;
-      }, {});
-      Object.entries(groups).forEach(([k, vals]) => {
-        if (vals.length > 0) initialVariants[k] = vals[0].value;
+
+      Object.entries(variantGroups).forEach(([k, vals]) => {
+        if (vals && vals.length > 0 && vals[0]?.value) {
+          initialVariants[k] = vals[0].value;
+        }
       });
       setSelectedVariants(initialVariants);
     }
-  }, [product]);
+  }, [product?.id]);
 
-  if (isLoading) {
+  if (isLoading || (products.length === 0 && !product)) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-dark-900 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-10 h-10 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!product) return <div className="min-h-screen flex items-center justify-center font-bold text-2xl dark:text-white">Offer Not Found</div>;
 
-  const variantGroups = (product.variants || []).reduce<Record<string, typeof product.variants>>((acc, v) => {
-    if (!v) return acc;
-    if (!acc[v.name]) acc[v.name] = [];
-    acc[v.name]!.push(v);
-    return acc;
-  }, {});
-
-  const selectedVariantObj = (product.variants || []).find(v => v.value === selectedVariants[v.name]);
+  const selectedVariantObj = rawVariants.find(v => v && v.value === selectedVariants[v.name]);
   
   const basePrice = selectedVariantObj?.price ? Number(selectedVariantObj.price) : product.price;
   const regularPrice = product.regularPrice || (product.price * 1.33);
   
   const shippingFee = district === 'Dhaka' ? 60 : 120;
   const totalAmount = (basePrice * quantity) + shippingFee;
-
-  // Find sibling products in the same variant group
-  const siblingProducts = product.variantGroupId 
-    ? products.filter(p => p.variantGroupId === product.variantGroupId)
-    : [];
 
   const scrollToCheckout = () => {
     fpixel.event('InitiateCheckout');
@@ -107,11 +190,16 @@ export default function PromoPage() {
       setPhoneError("Mobile number must be exactly 11 digits (e.g. 017XXXXXXXX)");
       return;
     }
-    
-    const variantLabel = Object.entries(selectedVariants)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join(', ');
 
+    const variantList = Object.entries(selectedVariants)
+      .filter(([k]) => !['color', 'colour', 'colors', 'edition', 'variant', 'রঙ'].includes(k.trim().toLowerCase()))
+      .map(([k, v]) => `${k}: ${v}`);
+
+    if (selectedColorName) {
+      variantList.unshift(`Color: ${selectedColorName}`);
+    }
+
+    const variantLabel = variantList.join(', ') || 'Default';
     const fullAddress = thana ? `${address}, ${thana}` : address;
 
     const newOrder = {
@@ -128,7 +216,7 @@ export default function PromoPage() {
         name: product.name,
         price: basePrice,
         quantity,
-        variant: variantLabel || 'Default',
+        variant: variantLabel,
       }],
       total: totalAmount,
       deliveryCharge: shippingFee,
@@ -147,6 +235,181 @@ export default function PromoPage() {
 
     addOrder(newOrder);
     router.push('/order-complete');
+  };
+
+  const renderVariantSelector = (isCheckout = false) => {
+    const hasAnyVariants = 
+      siblingProducts.length > 1 || 
+      (product.colors && product.colors.length > 0) || 
+      (dynamicColorVariants && dynamicColorVariants.length > 0) || 
+      product.primaryColor || 
+      Object.keys(variantGroups).length > 0;
+
+    if (!hasAnyVariants) return null;
+
+    return (
+      <div className={`space-y-4 ${isCheckout ? 'w-full' : 'max-w-md mx-auto lg:mx-0'}`}>
+        {/* Sibling Products Color Swatches */}
+        {siblingProducts.length > 1 ? (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span>Color:</span>
+                <span className="text-primary-600 dark:text-primary-400 font-extrabold">{product.primaryColor?.name || product.name}</span>
+              </h3>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-dark-700 text-slate-600 dark:text-slate-400">
+                {siblingProducts.length} Colors Available
+              </span>
+            </div>
+            <div className={`flex flex-wrap gap-2.5 ${isCheckout ? 'justify-start' : 'justify-center lg:justify-start'}`}>
+              {siblingProducts.map(sibling => {
+                const isCurrent = sibling.id === product.id;
+                const colorHex = sibling.primaryColor?.hex || '#1e293b';
+                const colorName = sibling.primaryColor?.name || sibling.name;
+                return (
+                  <button
+                    key={sibling.id}
+                    type="button"
+                    onClick={() => handleSelectSibling(sibling.id)}
+                    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer ${
+                      isCurrent
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 shadow-md ring-2 ring-primary-500/20 scale-[1.02]'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary-300 bg-white dark:bg-dark-800'
+                    }`}
+                  >
+                    <span 
+                      className="w-5 h-5 rounded-full border border-black/15 shadow-inner flex-shrink-0"
+                      style={{ backgroundColor: colorHex }}
+                    />
+                    <span>{colorName}</span>
+                    {isCurrent && <CheckCircle2 size={16} className="text-primary-500 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (product.colors && product.colors.length > 0) ? (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span>Color:</span>
+                <span className="text-primary-600 dark:text-primary-400 font-extrabold">{selectedVariants['Color'] || product.colors[0]?.name}</span>
+              </h3>
+            </div>
+            <div className={`flex flex-wrap gap-2.5 ${isCheckout ? 'justify-start' : 'justify-center lg:justify-start'}`}>
+              {product.colors.map(color => {
+                const isSelected = (selectedVariants['Color'] || product.colors?.[0]?.name) === color.name;
+                return (
+                  <button
+                    key={color.name}
+                    type="button"
+                    onClick={() => setSelectedVariants(prev => ({ ...prev, 'Color': color.name }))}
+                    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer ${
+                      isSelected
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 shadow-md ring-2 ring-primary-500/20 scale-[1.02]'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary-300 bg-white dark:bg-dark-800'
+                    }`}
+                  >
+                    <span 
+                      className="w-5 h-5 rounded-full border border-black/15 shadow-inner flex-shrink-0"
+                      style={{ backgroundColor: color.hex }}
+                    />
+                    <span>{color.name}</span>
+                    {isSelected && <CheckCircle2 size={16} className="text-primary-500 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : dynamicColorVariants && dynamicColorVariants.length > 0 ? (
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <span>Color:</span>
+                <span className="text-primary-600 dark:text-primary-400 font-extrabold">{selectedVariants[colorGroupKey!] || dynamicColorVariants[0]?.value}</span>
+              </h3>
+            </div>
+            <div className={`flex flex-wrap gap-2.5 ${isCheckout ? 'justify-start' : 'justify-center lg:justify-start'}`}>
+              {dynamicColorVariants.map(v => {
+                const isSelected = (selectedVariants[colorGroupKey!] || dynamicColorVariants[0]?.value) === v.value;
+                const hasCustomPrice = !!v.price && Number(v.price) > 0;
+                return (
+                  <button
+                    key={v.value}
+                    type="button"
+                    onClick={() => setSelectedVariants(prev => ({ ...prev, [colorGroupKey!]: v.value, 'Color': v.value }))}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer ${
+                      isSelected
+                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 shadow-md ring-2 ring-primary-500/20 scale-[1.02]'
+                        : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary-200 bg-white dark:bg-dark-800'
+                    }`}
+                  >
+                    <span>{v.value}</span>
+                    {hasCustomPrice && (
+                      <span className={`text-xs ${isSelected ? 'text-primary-500' : 'text-slate-400'}`}>
+                        (+৳{Number(v.price).toFixed(0)})
+                      </span>
+                    )}
+                    {isSelected && <CheckCircle2 size={16} className="text-primary-500 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : product.primaryColor ? (
+          <div className={isCheckout ? 'text-left' : 'text-center lg:text-left'}>
+            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider flex items-center gap-1.5">
+              <span>Color:</span>
+              <span className="text-primary-600 dark:text-primary-400 font-extrabold">{product.primaryColor.name}</span>
+            </h3>
+            <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl border-2 border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 font-bold">
+              <span 
+                className="w-5 h-5 rounded-full border border-black/15 shadow-inner flex-shrink-0"
+                style={{ backgroundColor: product.primaryColor.hex }}
+              />
+              <span className="text-sm">{product.primaryColor.name}</span>
+              <CheckCircle2 size={16} className="text-primary-500" />
+            </div>
+          </div>
+        ) : null}
+
+        {/* Other Dynamic Variants (Size, Storage etc.) */}
+        {Object.entries(variantGroups)
+          .filter(([groupName]) => groupName !== colorGroupKey)
+          .map(([groupName, variants]) => (
+            <div key={groupName}>
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
+                {groupName}: <span className="text-primary-600 dark:text-primary-400 font-extrabold">{selectedVariants[groupName]}</span>
+              </h3>
+              <div className={`flex flex-wrap gap-2 ${isCheckout ? 'justify-start' : 'justify-center lg:justify-start'}`}>
+                {variants?.map(v => {
+                  const isSelected = selectedVariants[groupName] === v.value;
+                  const hasCustomPrice = !!v.price && Number(v.price) > 0;
+                  return (
+                    <button
+                      key={v.value}
+                      type="button"
+                      onClick={() => setSelectedVariants(prev => ({ ...prev, [groupName]: v.value }))}
+                      className={`px-4 py-2 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer ${
+                        isSelected
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 shadow-md ring-2 ring-primary-500/20'
+                          : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary-200 bg-white dark:bg-dark-800'
+                      }`}
+                    >
+                      {v.value}
+                      {hasCustomPrice && (
+                        <span className={`ml-1 text-xs ${isSelected ? 'text-primary-500' : 'text-slate-400'}`}>
+                          (+৳{Number(v.price).toFixed(0)})
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+      </div>
+    );
   };
 
   return (
@@ -199,55 +462,7 @@ export default function PromoPage() {
             </div>
 
             {/* Colors & Variants Selector */}
-            <div className="space-y-4">
-              {product.colors && product.colors.length > 0 && (
-                <div className="max-w-md mx-auto lg:mx-0">
-                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">Color: {selectedVariants['Color']}</h3>
-                  <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
-                    {product.colors.map(color => (
-                      <button
-                        key={color.name}
-                        type="button"
-                        onClick={() => setSelectedVariants({ ...selectedVariants, 'Color': color.name })}
-                        className={`w-12 h-12 rounded-full border-2 transition-all flex items-center justify-center ${
-                          selectedVariants['Color'] === color.name
-                            ? 'border-primary-500 scale-110 shadow-lg'
-                            : 'border-transparent shadow-sm hover:scale-105'
-                        }`}
-                        style={{ backgroundColor: color.hex }}
-                        title={color.name}
-                      >
-                        {selectedVariants['Color'] === color.name && (
-                          <CheckCircle2 size={24} className={['#ffffff', '#fff'].includes(color.hex.toLowerCase()) ? "text-slate-800" : "text-white"} />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {Object.entries(variantGroups).map(([groupName, variants]) => (
-                <div key={groupName} className="max-w-md mx-auto lg:mx-0">
-                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">{groupName}: {selectedVariants[groupName]}</h3>
-                  <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
-                    {variants?.map(v => (
-                      <button
-                        key={v.value}
-                        type="button"
-                        onClick={() => setSelectedVariants({ ...selectedVariants, [groupName]: v.value })}
-                        className={`px-5 py-2.5 rounded-xl border-2 font-bold transition-all ${
-                          selectedVariants[groupName] === v.value
-                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400'
-                            : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-primary-200'
-                        }`}
-                      >
-                        {v.value}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+            {renderVariantSelector(false)}
 
             {/* Feature Description Accordion */}
             <div className="max-w-xl mx-auto lg:mx-0 mt-6 bg-white dark:bg-dark-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
@@ -331,35 +546,41 @@ export default function PromoPage() {
           {/* Left Side: Order Form */}
           <div className="p-5 sm:p-8 lg:p-12 lg:w-3/5 space-y-8 sm:space-y-10">
             
-
+            {/* Step 1: Variant Selector inside Checkout */}
+            <div className="bg-slate-50 dark:bg-dark-900/60 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80">
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-slate-700">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-full shrink-0 bg-primary-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-primary-500/30">1</span>
+                  কালার ও ভ্যারিয়েন্ট নির্বাচন করুন
+                </h3>
+                {selectedColorName && (
+                  <span className="text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-500/10 px-2.5 py-1 rounded-lg border border-primary-200 dark:border-primary-500/20">
+                    {selectedColorName}
+                  </span>
+                )}
+              </div>
+              {renderVariantSelector(true)}
+            </div>
 
             {/* Delivery Info */}
             <div className="space-y-4 sm:space-y-5">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                <span className="w-8 h-8 rounded-full shrink-0 bg-primary-500 text-white flex items-center justify-center text-sm shadow-md shadow-primary-500/30">1</span> 
-                Delivery Details
+                <span className="w-8 h-8 rounded-full shrink-0 bg-primary-500 text-white flex items-center justify-center text-sm shadow-md shadow-primary-500/30">2</span> 
+                ডেলিভারি ঠিকানা
               </h3>
               
               <div className="pl-0 sm:pl-11 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mt-3 sm:mt-0">
                 <div className="md:col-span-1">
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Full Name *</label>
-                  <input required type="text" value={firstName} onChange={e => setFirstName(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white transition-shadow" placeholder="e.g. Rahul Islam" />
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">আপনার নাম *</label>
+                  <input required type="text" value={firstName} onChange={e => updateFirstName(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white transition-shadow" placeholder="e.g. Rahul Islam" />
                 </div>
                 <div className="md:col-span-1">
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Mobile Number *</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">মোবাইল নাম্বার *</label>
                   <input 
                     required 
                     type="tel" 
                     value={phone} 
-                    onChange={e => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      setPhone(val);
-                      if (val.length !== 11 && val.length > 0) {
-                        setPhoneError("Mobile number must be exactly 11 digits.");
-                      } else {
-                        setPhoneError("");
-                      }
-                    }}
+                    onChange={e => updatePhone(e.target.value)}
                     maxLength={11}
                     className={`w-full bg-slate-50 dark:bg-dark-900 border ${phoneError ? 'border-red-500' : 'border-slate-200 dark:border-slate-700'} rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white transition-shadow`} 
                     placeholder="01XXXXXXXXX" 
@@ -367,9 +588,9 @@ export default function PromoPage() {
                   {phoneError && <p className="text-red-500 text-xs mt-1">{phoneError}</p>}
                 </div>
                 <div className="md:col-span-1">
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">District *</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">জেলা *</label>
                   <div className="relative">
-                    <select value={district} onChange={e => setDistrict(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white font-medium cursor-pointer appearance-none">
+                    <select value={district} onChange={e => updateDistrict(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white font-medium cursor-pointer appearance-none">
                       {BD_DISTRICTS.map(d => (
                         <option key={d} value={d}>{d}</option>
                       ))}
@@ -380,12 +601,12 @@ export default function PromoPage() {
                   </div>
                 </div>
                 <div className="md:col-span-1">
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Thana / Upazila <span className="font-normal text-slate-500">(Optional)</span></label>
-                  <input type="text" value={thana} onChange={e => setThana(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white transition-shadow" placeholder="e.g. Dhanmondi" />
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">থানা / উপজেলা <span className="font-normal text-slate-500">(Optional)</span></label>
+                  <input type="text" value={thana} onChange={e => updateThana(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white transition-shadow" placeholder="e.g. Dhanmondi" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Full Address *</label>
-                  <textarea required rows={3} value={address} onChange={e => setAddress(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white resize-none transition-shadow" placeholder="House/Apartment, Street Name, Area" />
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">সম্পূর্ণ ঠিকানা *</label>
+                  <textarea required rows={3} value={address} onChange={e => updateAddress(e.target.value)} className="w-full bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white resize-none transition-shadow" placeholder="বাসা/হোল্ডিং নম্বর, রোড, এলাকা" />
                 </div>
               </div>
             </div>
@@ -397,15 +618,27 @@ export default function PromoPage() {
               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 sm:mb-8">Order Summary</h3>
               
               <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-200 dark:border-slate-700">
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm shrink-0">
                   <Image src={product.image} alt={product.name} fill className="object-cover" />
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-slate-900 dark:text-white">{product.name}</h4>
-                  <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap gap-x-2">
-                    {Object.entries(selectedVariants).map(([k,v]) => <span key={k}>{v}</span>)}
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base line-clamp-2">{product.name}</h4>
+                  <div className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 flex flex-wrap gap-1.5 items-center">
+                    {selectedColorName && (
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 font-bold border border-primary-200 dark:border-primary-500/20">
+                        <span className="w-2.5 h-2.5 rounded-full border border-black/10 shrink-0" style={{ backgroundColor: activeColorHex }} />
+                        {selectedColorName}
+                      </span>
+                    )}
+                    {Object.entries(selectedVariants)
+                      .filter(([k]) => !['color', 'colour', 'colors', 'edition', 'variant', 'রঙ'].includes(k.trim().toLowerCase()))
+                      .map(([k, v]) => (
+                        <span key={k} className="px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-dark-700 text-slate-700 dark:text-slate-300 font-semibold text-xs">
+                          {k}: {v}
+                        </span>
+                      ))}
                   </div>
-                  <div className="font-bold text-slate-900 dark:text-white mt-1">৳{basePrice.toFixed(0)}</div>
+                  <div className="font-bold text-slate-900 dark:text-white mt-1.5 text-base">৳{basePrice.toFixed(0)}</div>
                 </div>
               </div>
 
