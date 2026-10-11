@@ -237,180 +237,6 @@ export default function PromoPage() {
     router.push('/order-complete');
   };
 
-  const renderVariantSelector = (isCheckout = false) => {
-    const hasAnyVariants = 
-      siblingProducts.length > 1 || 
-      (product.colors && product.colors.length > 0) || 
-      (dynamicColorVariants && dynamicColorVariants.length > 0) || 
-      product.primaryColor || 
-      Object.keys(variantGroups).length > 0;
-
-    if (!hasAnyVariants) return null;
-
-    return (
-      <div className={`space-y-4 ${isCheckout ? 'w-full' : 'max-w-md mx-auto lg:mx-0'}`}>
-        {/* Sibling Products Color Swatches */}
-        {siblingProducts.length > 1 ? (
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span>Color:</span>
-                <span className="text-primary-600 dark:text-primary-400 font-extrabold">{product.primaryColor?.name || product.name}</span>
-              </h3>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-dark-700 text-slate-600 dark:text-slate-400">
-                {siblingProducts.length} Colors Available
-              </span>
-            </div>
-            <div className={`flex flex-wrap gap-2.5 ${isCheckout ? 'justify-start' : 'justify-center lg:justify-start'}`}>
-              {siblingProducts.map(sibling => {
-                const isCurrent = sibling.id === product.id;
-                const colorHex = sibling.primaryColor?.hex || '#1e293b';
-                const colorName = sibling.primaryColor?.name || sibling.name;
-                return (
-                  <button
-                    key={sibling.id}
-                    type="button"
-                    onClick={() => handleSelectSibling(sibling.id)}
-                    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer ${
-                      isCurrent
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 shadow-md ring-2 ring-primary-500/20 scale-[1.02]'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary-300 bg-white dark:bg-dark-800'
-                    }`}
-                  >
-                    <span 
-                      className="w-5 h-5 rounded-full border border-black/15 shadow-inner flex-shrink-0"
-                      style={{ backgroundColor: colorHex }}
-                    />
-                    <span>{colorName}</span>
-                    {isCurrent && <CheckCircle2 size={16} className="text-primary-500 shrink-0" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : (product.colors && product.colors.length > 0) ? (
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span>Color:</span>
-                <span className="text-primary-600 dark:text-primary-400 font-extrabold">{selectedVariants['Color'] || product.colors[0]?.name}</span>
-              </h3>
-            </div>
-            <div className={`flex flex-wrap gap-2.5 ${isCheckout ? 'justify-start' : 'justify-center lg:justify-start'}`}>
-              {product.colors.map(color => {
-                const isSelected = (selectedVariants['Color'] || product.colors?.[0]?.name) === color.name;
-                return (
-                  <button
-                    key={color.name}
-                    type="button"
-                    onClick={() => setSelectedVariants(prev => ({ ...prev, 'Color': color.name }))}
-                    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer ${
-                      isSelected
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 shadow-md ring-2 ring-primary-500/20 scale-[1.02]'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary-300 bg-white dark:bg-dark-800'
-                    }`}
-                  >
-                    <span 
-                      className="w-5 h-5 rounded-full border border-black/15 shadow-inner flex-shrink-0"
-                      style={{ backgroundColor: color.hex }}
-                    />
-                    <span>{color.name}</span>
-                    {isSelected && <CheckCircle2 size={16} className="text-primary-500 shrink-0" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : dynamicColorVariants && dynamicColorVariants.length > 0 ? (
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span>Color:</span>
-                <span className="text-primary-600 dark:text-primary-400 font-extrabold">{selectedVariants[colorGroupKey!] || dynamicColorVariants[0]?.value}</span>
-              </h3>
-            </div>
-            <div className={`flex flex-wrap gap-2.5 ${isCheckout ? 'justify-start' : 'justify-center lg:justify-start'}`}>
-              {dynamicColorVariants.map(v => {
-                const isSelected = (selectedVariants[colorGroupKey!] || dynamicColorVariants[0]?.value) === v.value;
-                const hasCustomPrice = !!v.price && Number(v.price) > 0;
-                return (
-                  <button
-                    key={v.value}
-                    type="button"
-                    onClick={() => setSelectedVariants(prev => ({ ...prev, [colorGroupKey!]: v.value, 'Color': v.value }))}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer ${
-                      isSelected
-                        ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 shadow-md ring-2 ring-primary-500/20 scale-[1.02]'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary-200 bg-white dark:bg-dark-800'
-                    }`}
-                  >
-                    <span>{v.value}</span>
-                    {hasCustomPrice && (
-                      <span className={`text-xs ${isSelected ? 'text-primary-500' : 'text-slate-400'}`}>
-                        (+৳{Number(v.price).toFixed(0)})
-                      </span>
-                    )}
-                    {isSelected && <CheckCircle2 size={16} className="text-primary-500 shrink-0" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : product.primaryColor ? (
-          <div className={isCheckout ? 'text-left' : 'text-center lg:text-left'}>
-            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider flex items-center gap-1.5">
-              <span>Color:</span>
-              <span className="text-primary-600 dark:text-primary-400 font-extrabold">{product.primaryColor.name}</span>
-            </h3>
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl border-2 border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 font-bold">
-              <span 
-                className="w-5 h-5 rounded-full border border-black/15 shadow-inner flex-shrink-0"
-                style={{ backgroundColor: product.primaryColor.hex }}
-              />
-              <span className="text-sm">{product.primaryColor.name}</span>
-              <CheckCircle2 size={16} className="text-primary-500" />
-            </div>
-          </div>
-        ) : null}
-
-        {/* Other Dynamic Variants (Size, Storage etc.) */}
-        {Object.entries(variantGroups)
-          .filter(([groupName]) => groupName !== colorGroupKey)
-          .map(([groupName, variants]) => (
-            <div key={groupName}>
-              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">
-                {groupName}: <span className="text-primary-600 dark:text-primary-400 font-extrabold">{selectedVariants[groupName]}</span>
-              </h3>
-              <div className={`flex flex-wrap gap-2 ${isCheckout ? 'justify-start' : 'justify-center lg:justify-start'}`}>
-                {variants?.map(v => {
-                  const isSelected = selectedVariants[groupName] === v.value;
-                  const hasCustomPrice = !!v.price && Number(v.price) > 0;
-                  return (
-                    <button
-                      key={v.value}
-                      type="button"
-                      onClick={() => setSelectedVariants(prev => ({ ...prev, [groupName]: v.value }))}
-                      className={`px-4 py-2 rounded-xl border-2 font-bold text-sm transition-all duration-200 cursor-pointer ${
-                        isSelected
-                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 shadow-md ring-2 ring-primary-500/20'
-                          : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary-200 bg-white dark:bg-dark-800'
-                      }`}
-                    >
-                      {v.value}
-                      {hasCustomPrice && (
-                        <span className={`ml-1 text-xs ${isSelected ? 'text-primary-500' : 'text-slate-400'}`}>
-                          (+৳{Number(v.price).toFixed(0)})
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-      </div>
-    );
-  };
 
   return (
     <div className="bg-slate-50 dark:bg-dark-900 pb-20 lg:pb-0">
@@ -428,7 +254,7 @@ export default function PromoPage() {
           </div>
 
           {/* Product Details & CTA */}
-          <div className="space-y-8 text-center lg:text-left px-4 lg:px-0">
+          <div className="space-y-8 text-left px-4 lg:px-0">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 font-bold rounded-full text-sm uppercase tracking-wider">
               🔥 Limited Time Offer
             </div>
@@ -437,7 +263,7 @@ export default function PromoPage() {
               {product.name}
             </h1>
             
-            <div className="flex items-center justify-center lg:justify-start gap-3 sm:gap-4">
+            <div className="flex items-center justify-start gap-3 sm:gap-4">
               <span className="text-4xl sm:text-5xl lg:text-6xl font-black text-primary-500">৳{basePrice.toFixed(0)}</span>
               {regularPrice > basePrice && (
                 <div className="flex flex-col items-start">
@@ -448,7 +274,7 @@ export default function PromoPage() {
             </div>
 
             {/* Scarcity Bar */}
-            <div className="max-w-md mx-auto lg:mx-0 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 p-4 rounded-2xl">
+            <div className="max-w-md mx-0 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 p-4 rounded-2xl">
               <div className="flex justify-between items-center mb-2">
                 <span className="font-bold text-red-600 dark:text-red-400 text-sm flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> 
@@ -461,38 +287,29 @@ export default function PromoPage() {
               </div>
             </div>
 
-            {/* Colors & Variants Selector */}
-            {renderVariantSelector(false)}
-
-            {/* Feature Description Accordion */}
-            <div className="max-w-xl mx-auto lg:mx-0 mt-6 bg-white dark:bg-dark-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
-              <details className="group" open>
-                <summary className="flex justify-between items-center font-bold cursor-pointer list-none p-5 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-dark-700 transition-colors">
-                  <span className="flex items-center gap-2">
-                    <Star size={20} className="text-primary-500" /> 
-                    Product Description
-                  </span>
-                  <span className="transition group-open:rotate-180 text-slate-400">
-                    <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24"><path d="M6 9l6 6 6-6"></path></svg>
-                  </span>
-                </summary>
-                <div className="text-slate-600 dark:text-slate-400 mt-2 p-5 pt-0 group-open:animate-fade-in text-base md:text-lg leading-relaxed border-t border-slate-100 dark:border-slate-700">
-                  <ul className="list-disc pl-5 space-y-2">
-                    {(product.description || "The ultimate choice for premium quality and style.\nOrder today to get fast delivery.\nExclusive discounts available.")
-                      .split('\n')
-                      .filter(line => line.trim())
-                      .map((line, idx) => (
-                        <li key={idx}>{line.trim()}</li>
-                      ))
-                    }
-                  </ul>
-                </div>
-              </details>
+            {/* Feature Description - always visible, left-aligned bullet points */}
+            <div className="max-w-xl mx-0">
+              <h3 className="text-base font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2 mb-3">
+                <Star size={16} className="text-primary-500" />
+                Product Details
+              </h3>
+              <ul className="space-y-2">
+                {(product.description || "The ultimate choice for premium quality and style.\nOrder today to get fast delivery.\nExclusive discounts available.")
+                  .split('\n')
+                  .filter(line => line.trim())
+                  .map((line, idx) => (
+                    <li key={idx} className="flex items-start gap-2.5 text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
+                      <span className="mt-1.5 w-2 h-2 rounded-full bg-primary-500 shrink-0"></span>
+                      <span>{line.trim()}</span>
+                    </li>
+                  ))
+                }
+              </ul>
             </div>
 
 
 
-            <div className="pt-4 pb-4 lg:pb-0 flex flex-col items-center lg:items-start gap-3">
+            <div className="pt-4 pb-4 lg:pb-0 flex flex-col items-start gap-3">
               <button 
                 onClick={scrollToCheckout}
                 className="w-full sm:w-auto bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white text-2xl sm:text-3xl font-black py-5 sm:py-6 px-8 sm:px-14 rounded-2xl sm:rounded-[2rem] shadow-2xl shadow-primary-500/40 transition-all hover:scale-105 flex flex-col items-center justify-center gap-1 animate-pulse-slow border-b-4 border-primary-700"
@@ -546,26 +363,10 @@ export default function PromoPage() {
           {/* Left Side: Order Form */}
           <div className="p-5 sm:p-8 lg:p-12 lg:w-3/5 space-y-8 sm:space-y-10">
             
-            {/* Step 1: Variant Selector inside Checkout */}
-            <div className="bg-slate-50 dark:bg-dark-900/60 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-700/80">
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-slate-700">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-full shrink-0 bg-primary-500 text-white flex items-center justify-center text-sm font-bold shadow-md shadow-primary-500/30">1</span>
-                  কালার ও ভ্যারিয়েন্ট নির্বাচন করুন
-                </h3>
-                {selectedColorName && (
-                  <span className="text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-500/10 px-2.5 py-1 rounded-lg border border-primary-200 dark:border-primary-500/20">
-                    {selectedColorName}
-                  </span>
-                )}
-              </div>
-              {renderVariantSelector(true)}
-            </div>
-
             {/* Delivery Info */}
             <div className="space-y-4 sm:space-y-5">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                <span className="w-8 h-8 rounded-full shrink-0 bg-primary-500 text-white flex items-center justify-center text-sm shadow-md shadow-primary-500/30">2</span> 
+                <span className="w-8 h-8 rounded-full shrink-0 bg-primary-500 text-white flex items-center justify-center text-sm shadow-md shadow-primary-500/30">1</span> 
                 ডেলিভারি ঠিকানা
               </h3>
               

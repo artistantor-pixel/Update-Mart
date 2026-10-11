@@ -66,16 +66,16 @@ export default function CampaignHubPage() {
       </section>
 
       {/* Variants Grid */}
-      <section className="max-w-6xl mx-auto px-4 py-16 -mt-8 relative z-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+      <section className="max-w-6xl mx-auto px-3 sm:px-4 py-10 sm:py-16 -mt-8 relative z-20">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 md:gap-8">
           {displayProducts.map((product) => (
             <div 
               key={product.id}
               onClick={() => router.push(`/promo/${product.id}`)}
-              className="group bg-white dark:bg-dark-800 rounded-[2rem] p-4 shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-white/5 hover:-translate-y-2 hover:shadow-2xl hover:border-primary-500/30 transition-all duration-300 cursor-pointer flex flex-col"
+              className="group bg-white dark:bg-dark-800 rounded-2xl sm:rounded-[2rem] p-3 sm:p-4 shadow-lg shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-white/5 hover:-translate-y-1 sm:hover:-translate-y-2 hover:shadow-2xl hover:border-primary-500/30 transition-all duration-300 cursor-pointer flex flex-col"
             >
               {/* Product Image */}
-              <div className="relative aspect-square rounded-[1.5rem] overflow-hidden bg-slate-100 dark:bg-dark-700 mb-6">
+              <div className="relative aspect-square rounded-xl sm:rounded-[1.5rem] overflow-hidden bg-slate-100 dark:bg-dark-700 mb-3 sm:mb-6">
                 <Image 
                   src={product.image} 
                   alt={product.name} 
@@ -85,12 +85,12 @@ export default function CampaignHubPage() {
                 
                 {/* Color Badge */}
                 {product.primaryColor && (
-                  <div className="absolute top-4 left-4 bg-white/90 dark:bg-dark-900/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2">
+                  <div className="absolute top-2 left-2 sm:top-4 sm:left-4 bg-white/90 dark:bg-dark-900/90 backdrop-blur-md px-2 py-1 sm:px-3 sm:py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
                     <div 
-                      className="w-4 h-4 rounded-full border border-slate-200 dark:border-slate-600 shadow-inner" 
+                      className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border border-slate-200 dark:border-slate-600 shadow-inner" 
                       style={{ backgroundColor: product.primaryColor.hex }}
                     />
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">
+                    <span className="text-[10px] sm:text-xs font-bold text-slate-900 dark:text-white leading-none">
                       {product.primaryColor.name}
                     </span>
                   </div>
@@ -98,30 +98,31 @@ export default function CampaignHubPage() {
               </div>
 
               {/* Product Info */}
-              <div className="px-2 flex-1 flex flex-col">
-                <div className="flex items-center gap-1 mb-2">
-                  <Star size={16} className="fill-accent-500 text-accent-500" />
-                  <Star size={16} className="fill-accent-500 text-accent-500" />
-                  <Star size={16} className="fill-accent-500 text-accent-500" />
-                  <Star size={16} className="fill-accent-500 text-accent-500" />
-                  <Star size={16} className="fill-accent-500 text-accent-500" />
-                  <span className="text-xs text-slate-500 font-semibold ml-1">4.9/5</span>
+              <div className="px-1 sm:px-2 flex-1 flex flex-col">
+                <div className="flex items-center gap-0.5 sm:gap-1 mb-1.5 sm:mb-2">
+                  <Star size={12} className="fill-accent-500 text-accent-500" />
+                  <Star size={12} className="fill-accent-500 text-accent-500" />
+                  <Star size={12} className="fill-accent-500 text-accent-500" />
+                  <Star size={12} className="fill-accent-500 text-accent-500" />
+                  <Star size={12} className="fill-accent-500 text-accent-500" />
+                  <span className="text-[10px] sm:text-xs text-slate-500 font-semibold ml-1">4.9/5</span>
                 </div>
                 
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 line-clamp-2">
+                <h3 className="text-sm sm:text-xl font-bold text-slate-900 dark:text-white mb-1.5 sm:mb-2 line-clamp-2 leading-snug">
                   {product.name}
                 </h3>
                 
-                <div className="mt-auto pt-4 flex items-center justify-between">
+                <div className="mt-auto pt-2 sm:pt-4 flex items-center justify-between gap-1">
                   <div className="flex flex-col">
-                    <span className="text-2xl font-black text-primary-500">৳{product.price.toFixed(0)}</span>
+                    <span className="text-base sm:text-2xl font-black text-primary-500">৳{product.price.toFixed(0)}</span>
                     {product.regularPrice && product.regularPrice > product.price && (
-                      <span className="text-sm text-slate-400 line-through font-medium">৳{product.regularPrice.toFixed(0)}</span>
+                      <span className="text-[10px] sm:text-sm text-slate-400 line-through font-medium">৳{product.regularPrice.toFixed(0)}</span>
                     )}
                   </div>
                   
-                  <button className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 w-12 h-12 rounded-full flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors shadow-lg">
-                    <ChevronRight size={24} />
+                  <button className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-colors shadow-lg flex-shrink-0">
+                    <ChevronRight size={16} className="sm:hidden" />
+                    <ChevronRight size={24} className="hidden sm:block" />
                   </button>
                 </div>
               </div>
