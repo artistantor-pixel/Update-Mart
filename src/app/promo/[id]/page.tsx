@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Shield, Truck, CreditCard, CheckCircle2, Star, ChevronRight } from 'lucide-react';
+import { Shield, Truck, CreditCard, CheckCircle2, Star, ChevronRight, ChevronLeft, ChevronDown, ZoomIn, ZoomOut, X } from 'lucide-react';
 import { useProductStore, ProductVariant } from '@/store/productStore';
 import { useOrderStore } from '@/store/orderStore';
 import * as fpixel from '@/lib/fpixel';
@@ -37,6 +37,35 @@ export default function PromoPage() {
   const [thana, setThana] = useState('');
   const [address, setAddress] = useState('');
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Gallery images support (primary image + optional gallery)
+  const galleryImages = (product?.images && product.images.length > 0) 
+    ? product.images 
+    : (product?.image ? [product.image] : []);
+  const currentImage = galleryImages[activeImageIndex] || product?.image || '';
+
+  // Handle ESC key and scroll lock for image zoom lightbox
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsImageZoomed(false);
+        setZoomScale(1);
+      }
+    };
+    if (isImageZoomed) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isImageZoomed]);
 
   // Restore form state if saved in sessionStorage
   useEffect(() => {
@@ -248,9 +277,49 @@ export default function PromoPage() {
         
         <div className="max-w-6xl mx-auto px-0 lg:px-4 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
           
-          {/* Product Image */}
-          <div className="relative aspect-square sm:aspect-[4/5] overflow-hidden lg:rounded-[2rem] lg:shadow-2xl lg:border-8 lg:border-slate-100 dark:lg:border-dark-700 w-full max-w-md mx-auto lg:mx-0 bg-transparent lg:bg-white dark:lg:bg-dark-800">
-            <Image src={product.image} alt={product.name} fill className="object-contain p-0 lg:p-4" priority />
+          {/* Product Image - Clickable for zoom */}
+          <div className="flex flex-col items-center w-full max-w-md mx-auto lg:mx-0">
+            <div 
+              className="relative aspect-square sm:aspect-[4/5] overflow-hidden rounded-2xl lg:rounded-[2rem] shadow-xl lg:shadow-2xl border-4 lg:border-8 border-slate-100 dark:border-dark-700 w-full bg-white dark:bg-dark-800 cursor-zoom-in group transition-all"
+              onClick={() => {
+                setIsImageZoomed(true);
+                setZoomScale(1);
+              }}
+              title="Click to zoom image"
+            >
+              <Image 
+                src={currentImage} 
+                alt={product.name} 
+                fill 
+                className="object-contain p-2 sm:p-4 transition-transform duration-300 group-hover:scale-105" 
+                priority 
+              />
+              {/* Zoom hint overlay */}
+              <div className="absolute bottom-3 right-3 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg border border-white/20 transition-all pointer-events-none group-hover:scale-105">
+                <ZoomIn size={14} className="text-primary-400" />
+                <span>জুম করে দেখুন</span>
+              </div>
+            </div>
+
+            {/* Thumbnail Gallery (if multiple images exist) */}
+            {galleryImages.length > 1 && (
+              <div className="flex items-center gap-2 mt-3 overflow-x-auto max-w-full py-1">
+                {galleryImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`relative w-14 h-14 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${
+                      activeImageIndex === idx 
+                        ? 'border-primary-500 shadow-md ring-2 ring-primary-500/30' 
+                        : 'border-slate-200 dark:border-slate-700 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <Image src={img} alt={`${product.name} ${idx + 1}`} fill className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Details & CTA */}
@@ -287,24 +356,48 @@ export default function PromoPage() {
               </div>
             </div>
 
-            {/* Feature Description - always visible, left-aligned bullet points */}
-            <div className="max-w-xl mx-0">
-              <h3 className="text-base font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-2 mb-3">
-                <Star size={16} className="text-primary-500" />
-                Product Details
-              </h3>
-              <ul className="space-y-2">
-                {(product.description || "The ultimate choice for premium quality and style.\nOrder today to get fast delivery.\nExclusive discounts available.")
-                  .split('\n')
-                  .filter(line => line.trim())
-                  .map((line, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5 text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
-                      <span className="mt-1.5 w-2 h-2 rounded-full bg-primary-500 shrink-0"></span>
-                      <span>{line.trim()}</span>
-                    </li>
-                  ))
-                }
-              </ul>
+            {/* Product Details - Dropdown/Accordion */}
+            <div className="max-w-xl mx-0 bg-white dark:bg-dark-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden transition-all">
+              <button 
+                type="button"
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                className="w-full flex justify-between items-center p-4 sm:p-5 hover:bg-slate-50 dark:hover:bg-dark-700 transition-colors select-none text-left"
+                aria-expanded={isDescriptionExpanded}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-500/10 text-primary-500 flex items-center justify-center">
+                    <Star size={18} className="fill-primary-500/20" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-slate-800 dark:text-white text-sm sm:text-base block">
+                      Product Details (প্রোডাক্ট বিবরণ)
+                    </span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      {isDescriptionExpanded ? 'ক্লিক করে বন্ধ করুন' : 'বিস্তারিত দেখতে ক্লিক করুন'}
+                    </span>
+                  </div>
+                </div>
+                <div className={`w-8 h-8 rounded-full bg-slate-100 dark:bg-dark-700 flex items-center justify-center text-slate-500 transition-transform duration-300 ${isDescriptionExpanded ? 'rotate-180 bg-primary-50 text-primary-600 dark:bg-primary-500/20 dark:text-primary-400' : ''}`}>
+                  <ChevronDown size={18} />
+                </div>
+              </button>
+
+              {isDescriptionExpanded && (
+                <div className="border-t border-slate-100 dark:border-slate-700 p-4 sm:p-5 bg-slate-50/50 dark:bg-dark-800/50 animate-fade-in">
+                  <ul className="space-y-2.5 text-left">
+                    {(product.description || "The ultimate choice for premium quality and style.\nOrder today to get fast delivery.\nExclusive discounts available.")
+                      .split('\n')
+                      .filter(line => line.trim())
+                      .map((line, idx) => (
+                        <li key={idx} className="flex items-start gap-2.5 text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed">
+                          <span className="mt-2 w-2 h-2 rounded-full bg-primary-500 shrink-0"></span>
+                          <span>{line.trim()}</span>
+                        </li>
+                      ))
+                    }
+                  </ul>
+                </div>
+              )}
             </div>
 
 
@@ -501,6 +594,142 @@ export default function PromoPage() {
           <span className="text-[10px] sm:text-xs font-semibold text-primary-100 uppercase tracking-widest">Pay Cash on Delivery</span>
         </button>
       </div>
+
+      {/* Fullscreen Image Zoom Lightbox Modal */}
+      {isImageZoomed && (
+        <div 
+          className="fixed inset-0 z-[999] bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-3 sm:p-6 select-none animate-fade-in"
+          onClick={() => {
+            setIsImageZoomed(false);
+            setZoomScale(1);
+          }}
+        >
+          {/* Header Controls */}
+          <div 
+            className="w-full max-w-5xl flex items-center justify-between text-white py-2 z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col">
+              <span className="font-bold text-sm sm:text-base line-clamp-1">{product.name}</span>
+              <span className="text-[11px] sm:text-xs text-white/60">
+                {zoomScale > 1 ? 'ট্যাপ করে ১x রিসেট করুন' : 'ছবিতে ট্যাপ করে জুম ইন করুন (২.৫x)'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setZoomScale(prev => (prev === 1 ? 2.5 : 1))}
+                className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:bg-white/30 text-white text-xs font-medium flex items-center gap-1.5 backdrop-blur-sm transition-all border border-white/10"
+                title="Toggle Zoom Level"
+              >
+                {zoomScale === 1 ? (
+                  <>
+                    <ZoomIn size={16} /> <span>2.5x Zoom</span>
+                  </>
+                ) : (
+                  <>
+                    <ZoomOut size={16} /> <span>1x Zoom</span>
+                  </>
+                )}
+              </button>
+
+              <button 
+                type="button"
+                onClick={() => {
+                  setIsImageZoomed(false);
+                  setZoomScale(1);
+                }}
+                className="w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/40 text-white flex items-center justify-center transition-all backdrop-blur-sm shadow-xl border border-white/20"
+                aria-label="Close image modal"
+              >
+                <X size={22} />
+              </button>
+            </div>
+          </div>
+
+          {/* Center Image Canvas */}
+          <div 
+            className="relative flex-1 w-full max-w-4xl flex items-center justify-center overflow-auto my-2"
+            onClick={() => setZoomScale(prev => (prev === 1 ? 2.5 : 1))}
+          >
+            <div 
+              className={`relative w-full h-[65vh] sm:h-[75vh] max-h-[800px] transition-transform duration-300 ${
+                zoomScale > 1 ? 'cursor-zoom-out' : 'cursor-zoom-in'
+              }`}
+              style={{ transform: `scale(${zoomScale})` }}
+            >
+              <Image 
+                src={currentImage} 
+                alt={product.name} 
+                fill 
+                className="object-contain" 
+                priority 
+                sizes="(max-width: 1024px) 100vw, 85vw"
+              />
+            </div>
+
+            {/* Prev / Next Arrows if multiple images */}
+            {galleryImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImageIndex(prev => (prev > 0 ? prev - 1 : galleryImages.length - 1));
+                    setZoomScale(1);
+                  }}
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm border border-white/20 transition-all z-20"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveImageIndex(prev => (prev < galleryImages.length - 1 ? prev + 1 : 0));
+                    setZoomScale(1);
+                  }}
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-sm border border-white/20 transition-all z-20"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Footer Controls / Gallery Thumbnails */}
+          <div 
+            className="w-full max-w-xl flex flex-col items-center gap-2 py-2 z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {galleryImages.length > 1 && (
+              <div className="flex items-center gap-2 overflow-x-auto max-w-full px-2 py-1">
+                {galleryImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setActiveImageIndex(idx);
+                      setZoomScale(1);
+                    }}
+                    className={`relative w-12 h-12 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
+                      activeImageIndex === idx 
+                        ? 'border-primary-400 shadow-lg scale-105 ring-2 ring-primary-400/50' 
+                        : 'border-white/30 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <Image src={img} alt={`Thumbnail ${idx + 1}`} fill className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+            <p className="text-[11px] sm:text-xs text-white/50 text-center">
+              ট্যাপ করে বন্ধ করতে বাইরে ক্লিক করুন অথবা ESC চাপুন
+            </p>
+          </div>
+        </div>
+      )}
 
     </div>
   );
