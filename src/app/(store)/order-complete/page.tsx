@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, ArrowRight, Package, MapPin, ListOrdered } from 'lucide-react';
 import { useOrderStore } from '@/store/orderStore';
+import { Order } from '@/components/admin/orders/types';
 import * as fpixel from '@/lib/fpixel';
 import * as gtm from '@/lib/gtm';
 
@@ -11,9 +12,12 @@ export default function OrderComplete() {
   const columns = useOrderStore(state => state.columns);
   // Get the most recently added order based on createdAt
   const allOrders = Object.values(columns).flat();
-  const latestOrder = allOrders.length > 0 
+  const latestOrder: Order | null = allOrders.length > 0 
+    ? allOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0] 
+    : null;
+
   // Try to recover order from sessionStorage if latestOrder is missing
-  let activeOrder = latestOrder;
+  let activeOrder: Order | null = latestOrder;
   if (!activeOrder && typeof window !== 'undefined') {
     try {
       const saved = sessionStorage.getItem('last_placed_order');
@@ -64,7 +68,7 @@ export default function OrderComplete() {
               Thank you for your purchase. We've received your order and are getting it ready for shipment.
             </p>
 
-            {latestOrder && (
+            {activeOrder && (
               <div className="bg-slate-50 dark:bg-dark-900 rounded-2xl p-6 mb-10 text-left border border-slate-100 dark:border-white/5">
                 <h3 className="font-semibold text-slate-900 dark:text-white mb-4">Order Details</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -72,17 +76,17 @@ export default function OrderComplete() {
                     <div className="mt-1 text-slate-400"><Package size={20} /></div>
                     <div>
                       <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Order Number</p>
-                      <p className="font-semibold text-slate-900 dark:text-white">{latestOrder.id}</p>
+                      <p className="font-semibold text-slate-900 dark:text-white">{activeOrder.id}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <div className="mt-1 text-slate-400"><MapPin size={20} /></div>
                     <div>
                       <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Shipping to</p>
-                      <p className="font-semibold text-slate-900 dark:text-white">{latestOrder.customerName}</p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">{latestOrder.address}</p>
-                      {latestOrder.orderNote && (
-                        <p className="text-sm text-slate-500 italic mt-1">Note: {latestOrder.orderNote}</p>
+                      <p className="font-semibold text-slate-900 dark:text-white">{activeOrder.customerName}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400">{activeOrder.address}</p>
+                      {activeOrder.orderNote && (
+                        <p className="text-sm text-slate-500 italic mt-1">Note: {activeOrder.orderNote}</p>
                       )}
                     </div>
                   </div>
@@ -94,19 +98,19 @@ export default function OrderComplete() {
                     <h4 className="font-medium text-slate-900 dark:text-white">Items</h4>
                   </div>
                   <div className="space-y-3">
-                    {latestOrder.items.map(item => (
+                    {(activeOrder.items || []).map((item: any) => (
                       <div key={item.id} className="flex justify-between items-center text-sm">
                         <div className="flex-1">
                           <p className="font-medium text-slate-800 dark:text-slate-200">{item.name}</p>
                           <p className="text-xs text-slate-500">Variant: {item.variant} • Qty: {item.quantity}</p>
                         </div>
-                        <p className="font-medium text-slate-900 dark:text-white">৳{(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-medium text-slate-900 dark:text-white">৳{((item.price || 0) * (item.quantity || 1)).toFixed(2)}</p>
                       </div>
                     ))}
                   </div>
                   <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 font-bold text-slate-900 dark:text-white">
                     <p>Total</p>
-                    <p>৳{latestOrder.total.toFixed(2)}</p>
+                    <p>৳{(activeOrder.total || 0).toFixed(2)}</p>
                   </div>
                 </div>
               </div>
