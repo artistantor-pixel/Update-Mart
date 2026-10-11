@@ -230,7 +230,7 @@ export default function PromoPage() {
                 <div key={groupName} className="max-w-md mx-auto lg:mx-0">
                   <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider">{groupName}: {selectedVariants[groupName]}</h3>
                   <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
-                    {variants.map(v => (
+                    {variants?.map(v => (
                       <button
                         key={v.value}
                         type="button"
