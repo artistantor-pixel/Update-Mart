@@ -33,12 +33,23 @@ export default function OrderComplete() {
       const trackedKey = `tracked_order_${activeOrder.id}`;
       if (!sessionStorage.getItem(trackedKey)) {
         sessionStorage.setItem(trackedKey, 'true');
+        const rawTotal = typeof activeOrder.total === 'number'
+          ? activeOrder.total
+          : parseFloat(String(activeOrder.total || '0').replace(/[^0-9.]/g, ''));
+        const safeTotal = (!isNaN(rawTotal) && rawTotal > 0) ? Math.round(rawTotal * 100) / 100 : 0;
+        const itemsTotal = (activeOrder.items || []).reduce((sum: number, i: any) => {
+          const p = Number(i.price) || 0;
+          const q = Number(i.quantity) || 1;
+          return sum + (p * q);
+        }, 0);
+        const finalValue = safeTotal > 0 ? safeTotal : (itemsTotal > 0 ? itemsTotal : 0);
+
         fpixel.event('Purchase', {
-          value: activeOrder.total,
+          value: finalValue,
           currency: 'BDT',
-          content_ids: (activeOrder.items || []).map((i: any) => i.id),
+          content_ids: (activeOrder.items || []).map((i: any) => String(i.id)),
           content_type: 'product',
-          num_items: (activeOrder.items || []).reduce((sum: number, i: any) => sum + (i.quantity || 1), 0),
+          num_items: (activeOrder.items || []).reduce((sum: number, i: any) => sum + (Number(i.quantity) || 1), 0),
         }, {
           phone: activeOrder.customerPhone,
           name: activeOrder.customerName,

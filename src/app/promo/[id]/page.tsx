@@ -235,11 +235,16 @@ export default function PromoPage() {
 
   const selectedVariantObj = rawVariants.find(v => v && v.value === selectedVariants[v.name]);
   
-  const basePrice = selectedVariantObj?.price ? Number(selectedVariantObj.price) : product.price;
-  const regularPrice = product.regularPrice || (product.price * 1.33);
+  const parsedProductPrice = typeof product.price === 'number'
+    ? product.price
+    : (parseFloat(String(product.price || '0').replace(/[^0-9.]/g, '')) || 0);
+  const basePrice = selectedVariantObj?.price 
+    ? (typeof selectedVariantObj.price === 'number' ? selectedVariantObj.price : parseFloat(String(selectedVariantObj.price).replace(/[^0-9.]/g, '')) || 0)
+    : parsedProductPrice;
+  const regularPrice = product.regularPrice || (basePrice * 1.33);
   
-  const shippingFee = deliveryZone === 'inside' ? insideDhakaFee : outsideDhakaFee;
-  const totalAmount = (basePrice * quantity) + shippingFee;
+  const shippingFee = deliveryZone === 'inside' ? Number(insideDhakaFee || 0) : Number(outsideDhakaFee || 0);
+  const totalAmount = Math.max(0, Math.round(((basePrice * (Number(quantity) || 1)) + shippingFee) * 100) / 100);
 
   const scrollToCheckout = () => {
     fpixel.event('InitiateCheckout');
@@ -302,13 +307,14 @@ export default function PromoPage() {
     try {
       sessionStorage.setItem('last_placed_order', JSON.stringify(newOrder));
       sessionStorage.setItem(`tracked_order_${newOrder.id}`, 'true');
+      const purchaseValue = Math.max(0, Math.round(Number(totalAmount || 0) * 100) / 100);
       await fpixel.event('Purchase', {
-        value: totalAmount,
+        value: purchaseValue,
         currency: 'BDT',
-        content_ids: [product.id],
+        content_ids: [String(product.id)],
         content_name: product.name,
         content_type: 'product',
-        num_items: quantity,
+        num_items: Number(quantity) || 1,
       }, {
         phone: phone,
         name: firstName,

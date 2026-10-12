@@ -43,12 +43,19 @@ export default function Checkout() {
   const [discountAmount, setDiscountAmount] = useState(0);
   const [promoError, setPromoError] = useState("");
 
-  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((acc, item) => {
+    const p = typeof item.price === 'number' ? item.price : (parseFloat(String(item.price || '0').replace(/[^0-9.]/g, '')) || 0);
+    const q = Number(item.quantity) || 1;
+    return acc + (p * q);
+  }, 0);
   
   const activeCourier = couriers.find(c => c.isActive) || { deliveryChargeInsideDhaka: 60, deliveryChargeOutsideDhaka: 120 };
-  const shipping = selectedDistrict === 'Dhaka' ? activeCourier.deliveryChargeInsideDhaka : activeCourier.deliveryChargeOutsideDhaka;
+  const insideCharge = Number(activeCourier.deliveryChargeInsideDhaka) || 60;
+  const outsideCharge = Number(activeCourier.deliveryChargeOutsideDhaka) || 120;
+  const shipping = selectedDistrict === 'Dhaka' ? insideCharge : outsideCharge;
+  const discount = Number(discountAmount) || 0;
   
-  const total = Math.max(0, subtotal + shipping - discountAmount);
+  const total = Math.max(0, Math.round((subtotal + shipping - discount) * 100) / 100);
   
   // Re-validate promo if subtotal changes (e.g. if they somehow change cart during checkout)
   useEffect(() => {
@@ -189,12 +196,13 @@ export default function Checkout() {
       try {
         sessionStorage.setItem('last_placed_order', JSON.stringify(newOrder));
         sessionStorage.setItem(`tracked_order_${newOrder.id}`, 'true');
+        const purchaseValue = Math.max(0, Math.round(Number(total || 0) * 100) / 100);
         await fpixel.event('Purchase', {
-          value: total,
+          value: purchaseValue,
           currency: 'BDT',
-          content_ids: newOrder.items.map(i => i.id),
+          content_ids: newOrder.items.map(i => String(i.id)),
           content_type: 'product',
-          num_items: newOrder.items.reduce((sum, item) => sum + item.quantity, 0),
+          num_items: newOrder.items.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0),
         }, {
           phone: phone,
           name: firstName,

@@ -1,14 +1,8 @@
 export const FB_PIXEL_ID = process.env.NEXT_PUBLIC_FB_PIXEL_ID || '1445895464095441';
 
-// Event deduplication er jonno random ID generate korar function
+// Event deduplication ID generator
 export const generateEventId = () => {
-  return new Date().getTime().toString() + Math.random().toString(36).substring(2, 9);
-};
-
-export const pageview = () => {
-  if (typeof window !== 'undefined' && (window as any).fbq) {
-    (window as any).fbq('track', 'PageView');
-  }
+  return `evt_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 };
 
 const getCookieValue = (name: string): string | undefined => {
@@ -24,21 +18,71 @@ export interface CapiUserData {
   [key: string]: any;
 }
 
-// Frontend theke event track korar function
-export const event = async (name: string, options: Record<string, any> = {}, userData?: CapiUserData) => {
-  const eventID = generateEventId();
-  
-  // 1. Browser e track (Facebook Pixel)
+// Sanitize options to conform strictly to Meta Pixel & CAPI specs
+export const sanitizeEventOptions = (name: string, options: Record<string, any> = {}): Record<string, any> => {
+  const clean: Record<string, any> = { ...options };
+
+  // Format value strictly as a positive float/number (Meta rejects NaN, string with symbols, etc.)
+  if (clean.value !== undefined || name === 'Purchase') {
+    let numVal = typeof clean.value === 'number'
+      ? clean.value
+      : parseFloat(String(clean.value ?? '').replace(/[^0-9.]/g, ''));
+    if (isNaN(numVal) || !isFinite(numVal) || numVal < 0) {
+      numVal = 0;
+    }
+    // Meta requires valid decimal number format (e.g. 1250 or 1250.00)
+    clean.value = Number(numVal.toFixed(2));
+  }
+
+  // Ensure currency is 3-letter uppercase ISO code
+  if (clean.currency || name === 'Purchase') {
+    clean.currency = clean.currency ? String(clean.currency).trim().toUpperCase() : 'BDT';
+  }
+
+  // Ensure content_ids is an array of strings
+  if (Array.isArray(clean.content_ids)) {
+    clean.content_ids = clean.content_ids.map(id => String(id));
+  }
+
+  // Provide contents array if content_ids exists but contents is omitted
+  if (clean.content_ids && !clean.contents && Array.isArray(clean.content_ids)) {
+    clean.contents = clean.content_ids.map(id => ({
+      id: String(id),
+      quantity: 1,
+      item_price: clean.value,
+    }));
+  }
+
+  if (clean.content_type === undefined && (name === 'Purchase' || name === 'ViewContent' || name === 'AddToCart' || name === 'InitiateCheckout')) {
+    clean.content_type = 'product';
+  }
+
+  return clean;
+};
+
+// Frontend track function with Pixel + CAPI and deduplication eventID
+export const event = async (
+  name: string,
+  options: Record<string, any> = {},
+  userData?: CapiUserData,
+  customEventId?: string,
+  customUrl?: string
+) => {
+  const eventID = customEventId || generateEventId();
+  const cleanOptions = sanitizeEventOptions(name, options);
+
+  // 1. Browser Pixel Track
   if (typeof window !== 'undefined') {
     if ((window as any).fbq) {
-      (window as any).fbq('track', name, options, { eventID: eventID });
+      (window as any).fbq('track', name, cleanOptions, { eventID });
     }
   }
-  
-  // 2. Server e track (Facebook CAPI)
+
+  // 2. Server CAPI Track
   try {
     const fbp = getCookieValue('_fbp');
     const fbc = getCookieValue('_fbc');
+    const eventUrl = customUrl || (typeof window !== 'undefined' ? window.location.href : '');
 
     await fetch('/api/capi', {
       method: 'POST',
@@ -48,8 +92,8 @@ export const event = async (name: string, options: Record<string, any> = {}, use
       body: JSON.stringify({
         eventName: name,
         eventID: eventID,
-        eventData: options,
-        eventUrl: typeof window !== 'undefined' ? window.location.href : '',
+        eventData: cleanOptions,
+        eventUrl: eventUrl,
         userData: {
           ...userData,
           fbp: fbp || undefined,
@@ -60,5 +104,12 @@ export const event = async (name: string, options: Record<string, any> = {}, use
   } catch (error) {
     console.error('CAPI Request Error:', error);
   }
+
+  return { eventID };
+};
+
+// PageView tracker that sends both Pixel & CAPI with matching deduplication key
+export const pageview = (url?: string) => {
+  return event('PageView', {}, undefined, undefined, url);
 };
 

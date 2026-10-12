@@ -40,17 +40,27 @@ export async function POST(req: Request) {
     const clientIp = forwardedHeader ? forwardedHeader.split(',')[0].trim() : (req.headers.get('x-real-ip') || undefined);
     const userAgent = req.headers.get('user-agent') || undefined;
 
+    // Fallback extraction of _fbp and _fbc from HTTP request cookies
+    const cookieHeader = req.headers.get('cookie') || '';
+    const getCookie = (cname: string): string | undefined => {
+      const match = cookieHeader.match(new RegExp('(?:^|;\\s*)' + cname + '=([^;]*)'));
+      return match ? decodeURIComponent(match[1]) : undefined;
+    };
+
+    const resolvedFbp = userData.fbp || getCookie('_fbp');
+    const resolvedFbc = userData.fbc || getCookie('_fbc');
+
     // Build Meta CAPI compliant user_data object
     const metaUserData: Record<string, any> = {
       client_ip_address: clientIp,
       client_user_agent: userAgent,
     };
 
-    if (userData.fbp) {
-      metaUserData.fbp = userData.fbp;
+    if (resolvedFbp) {
+      metaUserData.fbp = resolvedFbp;
     }
-    if (userData.fbc) {
-      metaUserData.fbc = userData.fbc;
+    if (resolvedFbc) {
+      metaUserData.fbc = resolvedFbc;
     }
     if (userData.phone) {
       metaUserData.ph = hashPhone(userData.phone);
@@ -62,6 +72,35 @@ export async function POST(req: Request) {
       metaUserData.fn = hashValue(userData.name);
     }
 
+    // Sanitize custom_data strictly according to Meta specifications
+    const cleanCustomData: Record<string, any> = { ...(eventData || {}) };
+
+    if (cleanCustomData.value !== undefined || eventName === 'Purchase') {
+      let numVal = typeof cleanCustomData.value === 'number'
+        ? cleanCustomData.value
+        : parseFloat(String(cleanCustomData.value ?? '').replace(/[^0-9.]/g, ''));
+      if (isNaN(numVal) || !isFinite(numVal) || numVal < 0) {
+        numVal = 0;
+      }
+      cleanCustomData.value = Number(numVal.toFixed(2));
+    }
+
+    if (cleanCustomData.currency || eventName === 'Purchase') {
+      cleanCustomData.currency = cleanCustomData.currency ? String(cleanCustomData.currency).trim().toUpperCase() : 'BDT';
+    }
+
+    if (Array.isArray(cleanCustomData.content_ids)) {
+      cleanCustomData.content_ids = cleanCustomData.content_ids.map((id: any) => String(id));
+    }
+
+    if (cleanCustomData.content_ids && !cleanCustomData.contents && Array.isArray(cleanCustomData.content_ids)) {
+      cleanCustomData.contents = cleanCustomData.content_ids.map((id: any) => ({
+        id: String(id),
+        quantity: 1,
+        item_price: cleanCustomData.value,
+      }));
+    }
+
     const payload = {
       data: [
         {
@@ -69,9 +108,9 @@ export async function POST(req: Request) {
           event_time: Math.floor(Date.now() / 1000),
           action_source: 'website',
           event_id: eventID,
-          event_source_url: eventUrl,
+          event_source_url: eventUrl || req.headers.get('referer') || '',
           user_data: metaUserData,
-          custom_data: eventData || {},
+          custom_data: cleanCustomData,
         },
       ],
     };
