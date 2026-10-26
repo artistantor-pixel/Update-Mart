@@ -222,14 +222,31 @@ function ProductsContent() {
 
           {/* Product Grid */}
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-24">
-              <div className="w-12 h-12 border-4 border-slate-200 border-t-primary-500 rounded-full animate-spin mb-4" />
-              <p className="text-slate-500 dark:text-slate-400 text-sm">Loading products...</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col h-full bg-white dark:bg-dark-800 rounded-2xl overflow-hidden border border-slate-100 dark:border-white/5 shadow-sm"
+                >
+                  <div className="relative aspect-square bg-slate-100 dark:bg-dark-700/60 animate-pulse" />
+                  <div className="flex flex-col flex-grow p-5 space-y-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="h-5 bg-slate-200 dark:bg-dark-700 rounded-md w-3/4 animate-pulse" />
+                      <div className="h-4 bg-slate-100 dark:bg-dark-700 rounded-md w-8 animate-pulse" />
+                    </div>
+                    <div className="h-4 bg-slate-100 dark:bg-dark-700/50 rounded-md w-1/3 animate-pulse" />
+                    <div className="pt-3 flex justify-between items-center mt-auto">
+                      <div className="h-6 bg-slate-200 dark:bg-dark-700 rounded-md w-24 animate-pulse" />
+                      <div className="h-8 w-8 bg-slate-100 dark:bg-dark-700 rounded-full animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredProducts.map(product => (
-                <ProductCard key={product.id} {...product} />
+              {filteredProducts.map((product, idx) => (
+                <ProductCard key={product.id} {...product} priority={idx < 4} />
               ))}
             </div>
           ) : (

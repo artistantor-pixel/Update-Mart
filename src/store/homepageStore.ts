@@ -73,7 +73,7 @@ interface HomepageStore {
   resetToDefaults: () => Promise<void>;
 }
 
-const DEFAULT_CONTENT: HomepageContent = {
+export const DEFAULT_CONTENT: HomepageContent = {
   hero: {
     badgeText: 'Just Released',
     headlineLine1: 'Future',

@@ -1,9 +1,12 @@
 "use client";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, TrendingUp, DollarSign, Package, Plus, Edit2, Trash2, Truck, Layout, Activity, Layers, Wallet, Ticket, Shield, MessageSquare, Menu, X, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, TrendingUp, DollarSign, Package, Plus, Edit2, Trash2, Truck, Layout, Activity, Layers, Wallet, Ticket, Shield, MessageSquare, Menu, X, ChevronRight, RefreshCw } from 'lucide-react';
 import AddProductForm from '@/components/admin/AddProductForm';
 import OrderManagement from '@/components/admin/orders/OrderManagement';
 import HomepageEditor from '@/components/admin/homepage/HomepageEditor';
@@ -23,6 +26,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { useProductStore } from '@/store/productStore';
 import { useUserStore } from '@/store/userStore';
 import { useCourierStore } from '@/store/courierStore';
+import { useAccountingStore } from '@/store/accountingStore';
 import { useSession, signOut } from 'next-auth/react';
 import { setSupabaseToken } from '@/lib/supabase';
 
@@ -31,27 +35,120 @@ export default function AdminDashboard() {
   
   const products = useProductStore((state) => state.products);
   const fetchProducts = useProductStore((state) => state.fetchProducts);
+  const resetProducts = useProductStore((state) => state.resetProducts);
   const deleteProduct = useProductStore((state) => state.deleteProduct);
   const authorizedUsers = useUserStore((state) => state.authorizedUsers);
+  const fetchUsers = useUserStore((state) => state.fetchUsers);
+  const resetUsers = useUserStore((state) => state.resetUsers);
   const fetchOrders = useOrderStore((state) => state.fetchOrders);
+  const resetOrders = useOrderStore((state) => state.resetOrders);
   const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'customers' | 'support' | 'settings' | 'couriers' | 'homepage' | 'marketing' | 'meta-ads' | 'accounting' | 'promotions' | 'users'>('overview');
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<import('@/store/productStore').Product | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isCODEnabled, toggleCOD, codFee, setCodFee, topBar, setTopBar, footer, setFooter, fetchSettings } = useSettingsStore();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { isCODEnabled, toggleCOD, codFee, setCodFee, topBar, setTopBar, footer, setFooter, fetchSettings, resetSettings } = useSettingsStore();
   const fetchCouriers = useCourierStore((state) => state.fetchCouriers);
+  const resetCouriers = useCourierStore((state) => state.resetCouriers);
+  const resetAccounting = useAccountingStore((state) => state.resetData);
+
+  // Central refresh function that fetches fresh network data for all stores
+  const refreshAllData = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const currentToken = (session as any)?.supabaseToken || null;
+      if (currentToken) {
+        setSupabaseToken(currentToken);
+      }
+      await Promise.allSettled([
+        fetchSettings(),
+        fetchProducts(),
+        fetchOrders(),
+        fetchCouriers(),
+        fetchUsers(),
+      ]);
+    } catch (err) {
+      console.error("Error refreshing admin data:", err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [session, fetchSettings, fetchProducts, fetchOrders, fetchCouriers, fetchUsers]);
+
+  // Track previous authentication status and email to detect genuine login transitions
+  const prevAuthStatusRef = useRef<string | null>(null);
+  const prevUserEmailRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if ((session as any)?.supabaseToken) {
-      setSupabaseToken((session as any).supabaseToken);
-      fetchSettings();
-      fetchProducts();
-      fetchOrders();
-      fetchCouriers();
+    const currentEmail = session?.user?.email || null;
+    const currentToken = (session as any)?.supabaseToken || null;
+
+    if (status === 'authenticated' && session?.user) {
+      if (currentToken) {
+        setSupabaseToken(currentToken);
+      }
+
+      const isNewLogin =
+        prevAuthStatusRef.current !== 'authenticated' ||
+        prevUserEmailRef.current !== currentEmail;
+
+      if (isNewLogin) {
+        // Reset stores to clear any stale data from another user or earlier session
+        resetOrders();
+        resetProducts();
+        resetSettings();
+        resetCouriers();
+        resetUsers();
+      }
+
+      // Automatically trigger a fresh network data fetch upon successful authentication / login
+      refreshAllData();
+
+      prevAuthStatusRef.current = 'authenticated';
+      prevUserEmailRef.current = currentEmail;
     } else if (status === 'unauthenticated') {
+      prevAuthStatusRef.current = 'unauthenticated';
+      prevUserEmailRef.current = null;
       setSupabaseToken(null);
+
+      // User logged out — clear all stores
+      resetOrders();
+      resetProducts();
+      resetSettings();
+      resetCouriers();
+      resetUsers();
     }
-  }, [session, status, fetchSettings, fetchProducts, fetchOrders, fetchCouriers]);
+  }, [
+    session,
+    status,
+    refreshAllData,
+    resetOrders,
+    resetProducts,
+    resetSettings,
+    resetCouriers,
+    resetUsers,
+  ]);
+
+  // Automatically sync dashboard data when tab is focused or returns from background
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+
+    const handleSync = () => {
+      refreshAllData();
+    };
+
+    window.addEventListener('focus', handleSync);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        refreshAllData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      window.removeEventListener('focus', handleSync);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [status, refreshAllData]);
 
   const handleDeleteProduct = (id: string, name: string) => {
     // Bypassing window.confirm in case it's suppressed by the browser
@@ -158,6 +255,15 @@ export default function AdminDashboard() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => refreshAllData()}
+            disabled={isRefreshing}
+            className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-dark-700 rounded-xl transition-colors disabled:opacity-50"
+            aria-label="Refresh dashboard data"
+            title="Refresh Data"
+          >
+            <RefreshCw size={16} className={isRefreshing ? "animate-spin text-primary-500" : ""} />
+          </button>
           <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 capitalize">
             {activeTab}
           </span>
@@ -485,6 +591,15 @@ export default function AdminDashboard() {
           <h1 className="text-2xl font-bold capitalize">{activeTab}</h1>
 
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => refreshAllData()}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl bg-white dark:bg-dark-800 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-dark-700 transition-all shadow-xs disabled:opacity-60"
+              title="Refresh Dashboard Data"
+            >
+              <RefreshCw size={14} className={isRefreshing ? "animate-spin text-primary-500" : ""} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
             <div className="text-right hidden sm:block">
               <p className="text-sm font-bold text-slate-900 dark:text-white">{session.user.name}</p>
               <p className="text-xs text-slate-500">{role}</p>

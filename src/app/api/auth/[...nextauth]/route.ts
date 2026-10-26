@@ -3,6 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { supabase } from "@/lib/supabase";
 import jwt from "jsonwebtoken";
 
+export const dynamic = 'force-dynamic';
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({

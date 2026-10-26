@@ -9,22 +9,26 @@ export const setSupabaseToken = (token: string | null) => {
   currentToken = token;
 };
 
+export const getSupabaseToken = () => currentToken;
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     fetch: (url, options = {}) => {
+      const headers = new Headers(options.headers || {});
+
       if (currentToken) {
-        if (options.headers instanceof Headers) {
-          options.headers.set('Authorization', `Bearer ${currentToken}`);
-        } else if (Array.isArray(options.headers)) {
-          options.headers.push(['Authorization', `Bearer ${currentToken}`]);
-        } else {
-          options.headers = {
-            ...options.headers,
-            Authorization: `Bearer ${currentToken}`,
-          };
-        }
+        headers.set('Authorization', `Bearer ${currentToken}`);
       }
-      return fetch(url, options);
+
+      // Ensure no browser, Next.js, or CDN caching for critical admin data
+      headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      headers.set('Pragma', 'no-cache');
+
+      return fetch(url, {
+        ...options,
+        headers,
+        cache: 'no-store',
+      });
     },
   },
 });

@@ -14,9 +14,10 @@ interface ProductCardProps {
   image: string;
   rating: number;
   isNew?: boolean;
+  priority?: boolean;
 }
 
-export default function ProductCard({ id, name, price, image, rating, isNew }: ProductCardProps) {
+export default function ProductCard({ id, name, price, image, rating, isNew, priority = false }: ProductCardProps) {
   const addItem = useCartStore(state => state.addItem);
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -50,10 +51,14 @@ export default function ProductCard({ id, name, price, image, rating, isNew }: P
           </span>
         )}
         <Image 
-          src={image} 
+          src={image || '/placeholder.png'} 
           alt={name} 
           className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-        fill={true} style={{objectFit: "cover"}} />
+          fill
+          priority={priority}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          style={{ objectFit: "cover" }}
+        />
         
         {/* Quick Add Overlay */}
         <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">

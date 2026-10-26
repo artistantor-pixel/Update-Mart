@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { Star } from 'lucide-react';
 import { useReviewStore } from '@/store/reviewStore';
-import { useHomepageStore } from '@/store/homepageStore';
+import { useHomepageStore, Testimonial } from '@/store/homepageStore';
 
 const AVATAR_COLORS = [
   'bg-primary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-400',
@@ -13,13 +13,19 @@ const AVATAR_COLORS = [
   'bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-400',
 ];
 
-export default function Testimonials() {
+interface TestimonialsProps {
+  testimonials?: Testimonial[];
+}
+
+export default function Testimonials({ testimonials: initialTestimonials }: TestimonialsProps = {}) {
   const { content } = useHomepageStore();
   const { allReviews, isLoading, fetchAllReviews } = useReviewStore();
 
   useEffect(() => {
     fetchAllReviews();
   }, [fetchAllReviews]);
+
+  const testimonialsList = initialTestimonials || content.testimonials;
 
   // Use real reviews if available, else fall back to admin-managed store testimonials
   const hasRealReviews = allReviews.length > 0;
@@ -106,7 +112,7 @@ export default function Testimonials() {
         {/* Fallback: admin-managed testimonials */}
         {!isLoading && !hasRealReviews && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {content.testimonials.map((testimonial, idx) => (
+            {testimonialsList.map((testimonial, idx) => (
               <div
                 key={testimonial.id}
                 className="bg-slate-50 dark:bg-dark-800 p-8 rounded-3xl border border-slate-200 dark:border-white/5 relative mt-8"

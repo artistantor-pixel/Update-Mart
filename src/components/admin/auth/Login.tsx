@@ -28,8 +28,9 @@ export default function Login() {
       setError('Invalid email or password');
       setIsLoading(false);
     } else {
-      router.push('/admin');
-      router.refresh();
+      // Full document navigation ensures NextAuth session cookie is fresh,
+      // all in-memory Zustand caches are cleanly reset, and latest data is fetched immediately
+      window.location.href = '/admin';
     }
   };
 

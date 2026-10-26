@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { rateLimit } from '@/lib/rateLimit';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
@@ -59,6 +62,14 @@ export async function POST(request: Request) {
     if (error) {
       console.error("Supabase insert error:", error);
       return NextResponse.json({ error: 'Failed to save order' }, { status: 500 });
+    }
+
+    // Invalidate cached admin routes after new order mutation
+    try {
+      revalidatePath('/admin');
+      revalidatePath('/admin/orders');
+    } catch (e) {
+      // Ignore in environments where revalidatePath is not supported
     }
 
     return NextResponse.json({ success: true });

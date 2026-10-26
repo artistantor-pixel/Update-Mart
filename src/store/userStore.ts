@@ -17,6 +17,7 @@ interface UserStore {
   addUser: (email: string, password: string, role: Role) => Promise<void>;
   updateUserRole: (id: string, newRole: Role) => Promise<void>;
   removeUser: (id: string) => Promise<void>;
+  resetUsers: () => void;
 }
 
 export const useUserStore = create<UserStore>()((set, get) => ({
@@ -142,5 +143,9 @@ export const useUserStore = create<UserStore>()((set, get) => ({
         authorizedUsers: [...state.authorizedUsers, user]
       }));
     }
+  },
+
+  resetUsers: () => {
+    set({ authorizedUsers: [], isLoading: false });
   },
 }));

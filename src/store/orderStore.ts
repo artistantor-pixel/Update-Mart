@@ -11,6 +11,7 @@ interface OrderStore {
   bulkUpdateStatus: (orderIds: Set<string>, newStatus: OrderStatus) => Promise<void>;
   updateOrderNote: (orderId: string, note: string) => Promise<void>;
   updateOrder: (orderId: string, updates: Partial<Order>) => Promise<void>;
+  resetOrders: () => void;
 }
 
 const emptyOrders: Record<OrderStatus, Order[]> = {
@@ -235,5 +236,23 @@ export const useOrderStore = create<OrderStore>()((set, get) => ({
     } catch (err) {
       console.error("Error updating order in Supabase:", err);
     }
+  },
+
+  resetOrders: () => {
+    const freshColumns: Record<OrderStatus, Order[]> = {
+      'New': [],
+      'On Hold': [],
+      'Reject Order': [],
+      'Processing': [],
+      'Assigned Courier': [],
+      'Hand to Courier': [],
+      'Shipped': [],
+      'Payment (SF)': [],
+      'Return': [],
+      'Attention': [],
+      'Delivered': [],
+      'Printed Invoices': []
+    };
+    set({ columns: freshColumns, isLoading: false });
   }
 }));

@@ -17,6 +17,7 @@ interface CourierStore {
   fetchCouriers: () => Promise<void>;
   toggleCourierStatus: (id: string) => Promise<void>;
   updateCourierDetails: (id: string, details: Partial<CourierIntegration>) => Promise<void>;
+  resetCouriers: () => void;
 }
 
 export const useCourierStore = create<CourierStore>()((set, get) => ({
@@ -95,5 +96,9 @@ export const useCourierStore = create<CourierStore>()((set, get) => ({
     } catch (err) {
       console.error("Error updating courier details in Supabase:", err);
     }
+  },
+
+  resetCouriers: () => {
+    set({ couriers: [], isLoading: false });
   }
 }));

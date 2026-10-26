@@ -1,17 +1,28 @@
-"use client";
-
+import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import HeroSection from '@/components/home/HeroSection';
 import FeaturesBanner from '@/components/home/FeaturesBanner';
 import CategoryShowcase from '@/components/home/CategoryShowcase';
 import TrendingProducts from '@/components/home/TrendingProducts';
+import TrendingProductsSkeleton from '@/components/home/TrendingProductsSkeleton';
 import Testimonials from '@/components/home/Testimonials';
-import { useEffect } from 'react';
-import { useHomepageStore } from '@/store/homepageStore';
-import { useProductStore } from '@/store/productStore';
+import { getHomepageContent, getTrendingProducts } from '@/lib/products';
 
-export default function Home() {
-  const { content, fetchSettings, isLoading } = useHomepageStore();
-  const { fetchProducts } = useProductStore();
+export const metadata: Metadata = {
+  title: 'Update Mart | Premium E-Commerce Experience',
+  description: 'Discover the latest premium watches, electronics, earbuds, and accessories with instant nationwide delivery.',
+};
+
+// Revalidate every 60 seconds (Incremental Static Regeneration) for instant TTFB
+export const revalidate = 60;
+
+export default async function Home() {
+  // Fetch homepage content and trending products directly on the server
+  const [content, products] = await Promise.all([
+    getHomepageContent(),
+    getTrendingProducts(4),
+  ]);
+
   const newsletter = content.newsletter;
   const visibility = content.visibility || {
     hero: true,
@@ -22,31 +33,31 @@ export default function Home() {
     newsletter: true,
   };
 
-  useEffect(() => {
-    document.title = 'Update Mart | Premium E-Commerce Experience';
-    fetchSettings();
-    fetchProducts();
-  }, [fetchSettings, fetchProducts]);
-
-
-
   return (
     <div className="flex flex-col">
-      {visibility.hero && <HeroSection />}
-      {visibility.features && <FeaturesBanner />}
+      {visibility.hero && <HeroSection hero={content.hero} />}
+      {visibility.features && <FeaturesBanner features={content.features} />}
       {visibility.category && <CategoryShowcase />}
-      {visibility.trending && <TrendingProducts />}
-      {visibility.testimonials && <Testimonials />}
+      
+      {visibility.trending && (
+        <Suspense fallback={<TrendingProductsSkeleton count={4} />}>
+          <TrendingProducts initialProducts={products} />
+        </Suspense>
+      )}
+
+      {visibility.testimonials && <Testimonials testimonials={content.testimonials} />}
       
       {/* Newsletter Section */}
       {visibility.newsletter && (
         <section className="py-24 bg-slate-100 dark:bg-dark-800 transition-colors">
           <div className="container mx-auto px-4 text-center max-w-3xl">
-            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-4">{newsletter.headline}</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+              {newsletter.headline}
+            </h2>
             <p className="text-slate-600 dark:text-slate-400 mb-8 text-lg">
               {newsletter.subtext}
             </p>
-            <form className="flex flex-col sm:flex-row max-w-md mx-auto gap-3" onSubmit={e => e.preventDefault()}>
+            <form className="flex flex-col sm:flex-row max-w-md mx-auto gap-3">
               <input 
                 type="email" 
                 placeholder={newsletter.placeholder}

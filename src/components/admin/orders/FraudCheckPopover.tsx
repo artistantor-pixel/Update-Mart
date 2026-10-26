@@ -32,7 +32,10 @@ export default function FraudCheckPopover({ phone }: FraudCheckProps) {
     if (!data && !isLoading) {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/customers/history?phone=${phone}`);
+        const res = await fetch(`/api/customers/history?phone=${phone}`, {
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
+        });
         if (res.ok) {
           const json = await res.json();
           setData(json);

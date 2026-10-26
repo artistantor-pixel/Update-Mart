@@ -53,7 +53,7 @@ export interface Product {
   variantGroupId?: string;
 }
 
-const INITIAL_PRODUCTS: Product[] = [
+export const INITIAL_PRODUCTS: Product[] = [
   // Watches
   { id: 'p1', name: 'Obsidian Chronograph', price: 299.99, regularPrice: 399.99, image: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', rating: 4.8, category: 'Watches', brand: 'Obsidian', isNew: true, colors: [{name: 'Obsidian Black', hex: '#1e293b'}, {name: 'Silver', hex: '#e2e8f0'}], warranty: '2 Year Warranty', deliveryType: 'Standard Delivery', isLive: true },
   { id: 'watch-combo-01', name: 'Minimalist Titanium Timepiece', price: 189.50, regularPrice: 252.04, image: 'https://images.unsplash.com/photo-1508656946663-cb417106dbbf?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80', rating: 4.5, category: 'Watches', brand: 'Nova', isNew: false, colors: [{name: 'Obsidian Black', hex: '#1e293b'}, {name: 'Titanium Silver', hex: '#e2e8f0'}, {name: 'Rose Gold', hex: '#b76e79'}], warranty: '2 Year Warranty', deliveryType: 'Standard Delivery', isLive: true, description: 'The Obsidian Chronograph brings together high-grade titanium construction with precision movement. Designed for the modern professional who demands both aesthetics and functionality.', specs: [{key: 'Case Diameter', value: '42mm'}, {key: 'Crystal', value: 'Sapphire Crystal Glass'}, {key: 'Water Resistance', value: '50m'}, {key: 'Movement', value: 'Automatic'}] },
@@ -96,6 +96,7 @@ interface ProductStore {
   deleteProduct: (id: string) => Promise<void>;
   setVariantGroup: (productIds: string[], groupId: string) => void;
   removeVariantGroup: (productId: string) => void;
+  resetProducts: () => void;
 }
 
 export const useProductStore = create<ProductStore>()((set, get) => ({
@@ -279,5 +280,9 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
         } catch (error) {
           console.error('Error removing variant group from Supabase:', error);
         }
+      },
+
+      resetProducts: () => {
+        set({ products: [], isLoading: false });
       }
     }));

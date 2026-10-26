@@ -32,6 +32,7 @@ interface SettingsStore {
   setCodFee: (fee: number) => Promise<void>;
   setTopBar: (config: TopBarConfig) => Promise<void>;
   setFooter: (config: FooterConfig) => Promise<void>;
+  resetSettings: () => void;
 }
 
 const DEFAULT_SETTINGS = {
@@ -116,5 +117,9 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
     set({ footer: config });
     const { isCODEnabled, codFee, topBar, footer, blockedPhones } = get();
     await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer, blockedPhones } });
+  },
+
+  resetSettings: () => {
+    set({ ...DEFAULT_SETTINGS, isLoading: false });
   },
 }));

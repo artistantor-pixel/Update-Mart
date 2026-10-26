@@ -1,13 +1,15 @@
-"use client";
-
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, ShoppingBag, Star, Truck, ShieldCheck, Headphones } from 'lucide-react';
-import { useHomepageStore } from '@/store/homepageStore';
+import { ArrowRight, ShoppingBag, Star } from 'lucide-react';
+import { useHomepageStore, HeroContent } from '@/store/homepageStore';
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  hero?: HeroContent;
+}
+
+export default function HeroSection({ hero: initialHero }: HeroSectionProps) {
   const { content } = useHomepageStore();
-  const hero = content.hero;
+  const hero = initialHero || content.hero;
 
   return (
     <section className="relative w-full min-h-screen overflow-hidden bg-[#0a0a0f] -mt-24">
@@ -18,6 +20,7 @@ export default function HeroSection() {
           src={hero.heroImageUrl}
           alt="Hero"
           fill
+          sizes="100vw"
           className="object-cover object-center scale-105"
           priority
         />
