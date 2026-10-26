@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   description: 'Discover the latest premium watches, electronics, earbuds, and accessories with instant nationwide delivery.',
 };
 
-// Revalidate every 60 seconds (Incremental Static Regeneration) for instant TTFB
-export const revalidate = 60;
+// Render dynamically on the server for each request so initial HTML always includes the freshest products
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   // Fetch homepage content and trending products directly on the server

@@ -1,3 +1,5 @@
+"use client";
+
 import { Truck, ShieldCheck, Banknote, Clock, Shield, Battery, Zap, Star, LucideIcon } from 'lucide-react';
 import { useHomepageStore, FeatureItem } from '@/store/homepageStore';
 

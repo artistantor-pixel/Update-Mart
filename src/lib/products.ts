@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
-import { Product, INITIAL_PRODUCTS } from '@/store/productStore';
-import { HomepageContent, DEFAULT_CONTENT } from '@/store/homepageStore';
+import type { Product } from '@/store/productStore';
+import type { HomepageContent } from '@/store/homepageStore';
 
 const safeParse = (val: any) => {
   if (typeof val === 'string') {
@@ -13,8 +13,73 @@ const safeParse = (val: any) => {
   return val;
 };
 
+const DEFAULT_HOMEPAGE: HomepageContent = {
+  hero: {
+    badgeText: 'Just Released',
+    headlineLine1: 'Future',
+    headlineLine2: 'Forward.',
+    subtext: 'Experience the perfect blend of minimalist design and cutting-edge technology. The Obsidian Chronograph is built for tomorrow.',
+    button1Label: 'Buy Now — ৳29,990',
+    button1Link: '/product/watch-combo-01',
+    button2Label: 'Watch Video',
+    heroImageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+    floatingCards: [
+      { id: 'fc1', icon: 'Shield', title: 'Titanium', subtitle: 'Aerospace Grade' },
+      { id: 'fc2', icon: 'Battery', title: '14 Days', subtitle: 'Battery Life' },
+      { id: 'fc3', icon: 'Zap', title: 'Fast Charging Supported', subtitle: '' },
+    ],
+  },
+  features: [
+    { id: 'f1', icon: 'Truck', title: 'Free Shipping', description: 'On orders over ৳5000' },
+    { id: 'f2', icon: 'Banknote', title: 'Cash on Delivery', description: 'Available nationwide' },
+    { id: 'f3', icon: 'ShieldCheck', title: 'Secure Warranty', description: '2 Years coverage' },
+    { id: 'f4', icon: 'Clock', title: '24/7 Support', description: 'Always here for you' },
+  ],
+  testimonials: [
+    {
+      id: 't1',
+      name: 'Ahmed F.',
+      role: 'Verified Buyer',
+      content: 'The Obsidian Chronograph is a masterpiece. The titanium build feels incredibly premium, and delivery in Dhaka was completed within 24 hours. Highly recommended!',
+      rating: 5,
+      avatar: 'AF',
+    },
+    {
+      id: 't2',
+      name: 'Sarah K.',
+      role: 'Verified Buyer',
+      content: 'I was hesitant about buying electronics online, but the Aero Earbuds are genuine and the noise cancellation is top-notch. Customer support is very responsive.',
+      rating: 5,
+      avatar: 'SK',
+    },
+    {
+      id: 't3',
+      name: 'Rahim U.',
+      role: 'Verified Buyer',
+      content: 'Good quality backpack. The materials are sturdy and it has enough compartments for my tech gear. Only docking a star because it took 4 days to reach Chittagong.',
+      rating: 4,
+      avatar: 'RU',
+    },
+  ],
+  newsletter: {
+    headline: 'Join the Inner Circle',
+    subtext: 'Be the first to know about new releases, exclusive drops, and insider-only promotions.',
+    buttonLabel: 'Subscribe',
+    placeholder: 'Enter your email address',
+  },
+  visibility: {
+    hero: true,
+    features: true,
+    category: true,
+    trending: true,
+    testimonials: true,
+    newsletter: true,
+    productTrustBadges: true,
+  },
+};
+
 /**
- * Fetch top trending/featured products optimized for initial server-side render.
+ * Fetch top trending/featured products directly on the server.
  * Selects only required card fields, filters by live status, and orders by newest.
  */
 export async function getTrendingProducts(limit: number = 4): Promise<Product[]> {
@@ -28,11 +93,11 @@ export async function getTrendingProducts(limit: number = 4): Promise<Product[]>
 
     if (error) {
       console.error('Error fetching trending products on server:', error.message);
-      return INITIAL_PRODUCTS.slice(0, limit);
+      return [];
     }
 
     if (!data || data.length === 0) {
-      return INITIAL_PRODUCTS.slice(0, limit);
+      return [];
     }
 
     return data.map((p: any) => ({
@@ -51,13 +116,13 @@ export async function getTrendingProducts(limit: number = 4): Promise<Product[]>
       variants: safeParse(p.variants),
     })) as Product[];
   } catch (err) {
-    console.error('Failed to get trending products:', err);
-    return INITIAL_PRODUCTS.slice(0, limit);
+    console.error('Failed to get trending products on server:', err);
+    return [];
   }
 }
 
 /**
- * Fetch homepage settings and section content on server.
+ * Fetch homepage settings directly on the server.
  */
 export async function getHomepageContent(): Promise<HomepageContent> {
   try {
@@ -75,7 +140,7 @@ export async function getHomepageContent(): Promise<HomepageContent> {
       return data.value as HomepageContent;
     }
   } catch (err) {
-    console.error('Failed to get homepage content:', err);
+    console.error('Failed to get homepage content on server:', err);
   }
-  return DEFAULT_CONTENT;
+  return DEFAULT_HOMEPAGE;
 }

@@ -18,16 +18,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
       if (currentToken) {
         headers.set('Authorization', `Bearer ${currentToken}`);
+        // Ensure no browser, Next.js, or CDN caching for critical admin data
+        headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+        headers.set('Pragma', 'no-cache');
+
+        return fetch(url, {
+          ...options,
+          headers,
+          cache: 'no-store',
+        });
       }
 
-      // Ensure no browser, Next.js, or CDN caching for critical admin data
-      headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      headers.set('Pragma', 'no-cache');
-
+      // For public storefront queries and build-time static generation
       return fetch(url, {
         ...options,
         headers,
-        cache: 'no-store',
       });
     },
   },
