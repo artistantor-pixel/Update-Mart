@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useProductStore } from '@/store/productStore';
 import { ChevronRight, Shield, Star, CheckCircle2 } from 'lucide-react';
+import * as fpixel from '@/lib/fpixel';
 
 export default function CampaignHubPage() {
   const { groupId } = useParams() as { groupId: string };
@@ -19,6 +20,30 @@ export default function CampaignHubPage() {
     }
   }, [products.length, fetchProducts]);
 
+  // Find all products that belong to this variant group
+  const variantProducts = products.filter(p => p.variantGroupId === groupId);
+  
+  // If no products found for this group, maybe it's just a single product ID fallback
+  const fallbackProducts = products.filter(p => p.id === groupId);
+  const displayProducts = variantProducts.length > 0 ? variantProducts : fallbackProducts;
+
+  // Track ViewContent for the campaign group on Meta Pixel & CAPI
+  useEffect(() => {
+    if (displayProducts.length > 0) {
+      const firstProduct = displayProducts[0];
+      const campaignTitle = `${firstProduct.brand || 'Campaign'} ${groupId}`.toUpperCase();
+      document.title = `${campaignTitle} | Special Offer`;
+
+      fpixel.event('ViewContent', {
+        content_name: campaignTitle,
+        content_ids: displayProducts.map(p => String(p.id)),
+        content_type: 'product_group',
+        value: firstProduct.price,
+        currency: 'BDT'
+      });
+    }
+  }, [displayProducts.length, groupId]);
+
   if (!mounted) return null;
 
   if (isLoading) {
@@ -28,13 +53,6 @@ export default function CampaignHubPage() {
       </div>
     );
   }
-
-  // Find all products that belong to this variant group
-  const variantProducts = products.filter(p => p.variantGroupId === groupId);
-  
-  // If no products found for this group, maybe it's just a single product ID fallback
-  const fallbackProducts = products.filter(p => p.id === groupId);
-  const displayProducts = variantProducts.length > 0 ? variantProducts : fallbackProducts;
 
   if (displayProducts.length === 0) {
     return (
