@@ -711,19 +711,6 @@ export default function PromoPage() {
         </form>
       </section>
 
-      {/* Sticky Mobile Order Button */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 p-3 sm:p-4 bg-white/95 dark:bg-dark-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-white/10 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] pb-safe">
-        <button 
-          onClick={scrollToCheckout}
-          className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white text-xl font-black py-4 px-8 rounded-2xl shadow-2xl shadow-primary-500/40 active:scale-95 transition-all flex flex-col items-center justify-center gap-0.5 border-b-4 border-primary-700"
-        >
-          <div className="flex items-center gap-2">
-            ORDER NOW <ChevronRight size={24} className="animate-bounce-x" />
-          </div>
-          <span className="text-[10px] sm:text-xs font-semibold text-primary-100 uppercase tracking-widest">Pay Cash on Delivery</span>
-        </button>
-      </div>
-
       {/* Fullscreen Image Zoom Lightbox Modal */}
       {isImageZoomed && (
         <div 
