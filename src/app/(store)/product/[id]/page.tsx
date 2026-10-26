@@ -261,6 +261,8 @@ export default function ProductDetails() {
       image: product.image,
       quantity: 1,
       variant: finalVariant,
+      isFreeDelivery: product.isFreeDelivery,
+      customDeliveryCharge: product.customDeliveryCharge,
     });
   };
 
@@ -470,14 +472,44 @@ export default function ProductDetails() {
             {/* Action Box: Delivery + CTAs */}
             <div className="bg-slate-50/80 dark:bg-dark-800/80 backdrop-blur-md p-6 rounded-3xl border border-slate-200 dark:border-white/10 shadow-xl shadow-slate-200/40 dark:shadow-none mb-8">
               {/* Delivery Estimator */}
-              <div className="flex items-center gap-4 bg-white dark:bg-dark-900 p-4 rounded-2xl mb-5 shadow-sm">
-                  <div className="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center flex-shrink-0">
-                    <Truck className="text-primary-500" size={20} />
+              <div className="flex items-center justify-between gap-4 bg-white dark:bg-dark-900 p-4 rounded-2xl mb-5 shadow-sm border border-slate-100 dark:border-white/5">
+                <div className="flex items-center gap-3.5">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    product.isFreeDelivery 
+                      ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' 
+                      : 'bg-primary-50 text-primary-500 dark:bg-primary-500/10'
+                  }`}>
+                    <Truck size={20} />
                   </div>
                   <div>
-                    <p className="font-bold text-slate-900 dark:text-white text-sm">Delivery inside Bangladesh</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Estimated delivery: 2-4 business days.</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-slate-900 dark:text-white text-sm">
+                        {product.isFreeDelivery ? 'Free Delivery' : 'Fast Delivery'}
+                      </p>
+                      {product.isFreeDelivery && (
+                        <span className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                          Free
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {product.isFreeDelivery 
+                        ? 'Eligible for ৳0 delivery fee at checkout'
+                        : product.customDeliveryCharge !== null && product.customDeliveryCharge !== undefined
+                          ? `Special delivery rate: ৳${product.customDeliveryCharge}`
+                          : 'Estimated delivery: 2-4 business days'}
+                    </p>
                   </div>
+                </div>
+                {product.isFreeDelivery ? (
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800/40">
+                    ৳0
+                  </span>
+                ) : (product.customDeliveryCharge !== null && product.customDeliveryCharge !== undefined) ? (
+                  <span className="text-primary-600 dark:text-primary-400 font-bold text-sm bg-primary-50 dark:bg-primary-950/50 px-2.5 py-1 rounded-lg border border-primary-200 dark:border-primary-800/40">
+                    ৳{product.customDeliveryCharge}
+                  </span>
+                ) : null}
               </div>
 
               {/* Inline Action Buttons */}

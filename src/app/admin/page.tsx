@@ -17,6 +17,7 @@ import CustomerManagement from '@/components/admin/customers/CustomerManagement'
 import SupportManagement from '@/components/admin/support/SupportManagement';
 import DashboardOverview from '@/components/admin/dashboard/DashboardOverview';
 import MetaAdsDashboard from '@/components/admin/marketing/MetaAdsDashboard';
+import ProductDeliveryManager from '@/components/admin/delivery/ProductDeliveryManager';
 import Login from '@/components/admin/auth/Login';
 import { useOrderStore } from '@/store/orderStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -39,7 +40,7 @@ export default function AdminDashboard() {
   const resetUsers = useUserStore((state) => state.resetUsers);
   const fetchOrders = useOrderStore((state) => state.fetchOrders);
   const resetOrders = useOrderStore((state) => state.resetOrders);
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'customers' | 'support' | 'settings' | 'couriers' | 'homepage' | 'marketing' | 'meta-ads' | 'accounting' | 'promotions' | 'users'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'customers' | 'support' | 'settings' | 'couriers' | 'delivery' | 'homepage' | 'marketing' | 'meta-ads' | 'accounting' | 'promotions' | 'users'>('overview');
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<import('@/store/productStore').Product | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -176,11 +177,11 @@ export default function AdminDashboard() {
     if (role === 'Super Admin') return true;
 
     if (role === 'Manager') {
-      return ['overview', 'orders', 'products', 'variants', 'customers', 'support', 'couriers', 'meta-ads'].includes(tab);
+      return ['overview', 'orders', 'products', 'variants', 'customers', 'support', 'couriers', 'delivery', 'meta-ads'].includes(tab);
     }
 
     if (role === 'Editor') {
-      return ['homepage', 'marketing', 'promotions', 'products', 'meta-ads'].includes(tab);
+      return ['homepage', 'marketing', 'promotions', 'products', 'delivery', 'meta-ads'].includes(tab);
     }
 
     if (role === 'Accountant') {
@@ -386,6 +387,14 @@ export default function AdminDashboard() {
                   <Truck size={18} /> Couriers
                 </button>
               )}
+              {hasAccess('delivery') && (
+                <button
+                  onClick={() => { setActiveTab('delivery'); setIsMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors text-sm ${activeTab === 'delivery' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
+                >
+                  <Truck size={18} className="text-emerald-500" /> Delivery Charges
+                </button>
+              )}
               {hasAccess('accounting') && (
                 <button
                   onClick={() => { setActiveTab('accounting'); setIsMobileMenuOpen(false); }}
@@ -504,6 +513,14 @@ export default function AdminDashboard() {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'couriers' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
               <Truck size={20} /> Couriers
+            </button>
+          )}
+          {hasAccess('delivery') && (
+            <button
+              onClick={() => setActiveTab('delivery')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'delivery' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
+            >
+              <Truck size={20} className="text-emerald-500" /> Delivery Charges
             </button>
           )}
           {hasAccess('accounting') && (
@@ -901,6 +918,10 @@ export default function AdminDashboard() {
 
         {activeTab === 'couriers' && (
           <CourierManagement />
+        )}
+
+        {activeTab === 'delivery' && (
+          <ProductDeliveryManager />
         )}
 
         {activeTab === 'accounting' && (

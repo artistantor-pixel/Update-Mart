@@ -243,7 +243,12 @@ export default function PromoPage() {
     : parsedProductPrice;
   const regularPrice = product.regularPrice || (basePrice * 1.33);
   
-  const shippingFee = deliveryZone === 'inside' ? Number(insideDhakaFee || 0) : Number(outsideDhakaFee || 0);
+  const standardFee = deliveryZone === 'inside' ? Number(insideDhakaFee || 0) : Number(outsideDhakaFee || 0);
+  const shippingFee = product?.isFreeDelivery 
+    ? 0 
+    : (product?.customDeliveryCharge !== null && product?.customDeliveryCharge !== undefined && !isNaN(Number(product.customDeliveryCharge))
+        ? Number(product.customDeliveryCharge)
+        : standardFee);
   const totalAmount = Math.max(0, Math.round(((basePrice * (Number(quantity) || 1)) + shippingFee) * 100) / 100);
 
   const scrollToCheckout = () => {

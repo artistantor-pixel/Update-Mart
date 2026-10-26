@@ -58,6 +58,12 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
   const [isLive, setIsLive] = useState(editProduct?.isLive ?? true);
   const [warranty, setWarranty] = useState(editProduct?.warranty || 'No Warranty');
   const [deliveryType, setDeliveryType] = useState(editProduct?.deliveryType || 'Standard Delivery');
+  const [isFreeDelivery, setIsFreeDelivery] = useState(Boolean(editProduct?.isFreeDelivery));
+  const [customDeliveryCharge, setCustomDeliveryCharge] = useState<string>(
+    editProduct?.customDeliveryCharge !== null && editProduct?.customDeliveryCharge !== undefined 
+      ? String(editProduct.customDeliveryCharge) 
+      : ''
+  );
   const [materialsAndCare, setMaterialsAndCare] = useState(editProduct?.materialsAndCare || '');
   const [shippingAndReturns, setShippingAndReturns] = useState(editProduct?.shippingAndReturns || '');
   const [metaTitle, setMetaTitle] = useState(editProduct?.metaTitle || '');
@@ -166,6 +172,10 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
       shippingAndReturns: shippingAndReturns || undefined,
       warranty,
       deliveryType,
+      isFreeDelivery,
+      customDeliveryCharge: isFreeDelivery 
+        ? 0 
+        : (customDeliveryCharge.trim() !== '' ? Number(customDeliveryCharge) : null),
       videoUrl: videoUrl || undefined,
       tags: tags.length ? tags : undefined,
       metaTitle: metaTitle || undefined,
@@ -477,6 +487,50 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
                   <option>Express Shipping</option>
                   <option>Digital Delivery</option>
                 </select>
+              </div>
+
+              {/* Delivery Charge Management */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-dark-900 border border-slate-200 dark:border-slate-700 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-900 dark:text-white">Free Delivery</label>
+                    <p className="text-[11px] text-slate-500">Provide ৳0 delivery fee for this product</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !isFreeDelivery;
+                      setIsFreeDelivery(next);
+                      if (next) setCustomDeliveryCharge('');
+                    }}
+                    className={`w-11 h-6 rounded-full transition-colors relative ${isFreeDelivery ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                  >
+                    <span className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isFreeDelivery ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </button>
+                </div>
+
+                {!isFreeDelivery && (
+                  <div className="pt-2 border-t border-slate-200 dark:border-slate-700/60">
+                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                      Custom Delivery Charge (৳)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">৳</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="Leave blank to use default courier rate"
+                        value={customDeliveryCharge}
+                        onChange={(e) => setCustomDeliveryCharge(e.target.value)}
+                        className="w-full pl-7 pr-3 py-2 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1">
+                      Overrides global courier fees during checkout for this item.
+                    </p>
+                  </div>
+                )}
               </div>
               
               <div className="border-t border-slate-200 dark:border-white/10 pt-4 space-y-3">

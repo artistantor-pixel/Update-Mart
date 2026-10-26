@@ -9,6 +9,8 @@ export interface CartItem {
   image: string;
   quantity: number;
   variant: string;
+  isFreeDelivery?: boolean;
+  customDeliveryCharge?: number | null;
 }
 
 interface CartStore {

@@ -51,6 +51,10 @@ export interface Product {
   // Variant Mapping
   primaryColor?: { name: string; hex: string };
   variantGroupId?: string;
+
+  // Delivery Charge Settings
+  isFreeDelivery?: boolean;
+  customDeliveryCharge?: number | null;
 }
 
 export const INITIAL_PRODUCTS: Product[] = [
@@ -93,6 +97,7 @@ interface ProductStore {
   fetchProducts: () => Promise<void>;
   addProduct: (product: Product) => Promise<void>;
   updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
+  updateProductDeliverySettings: (productId: string, settings: { isFreeDelivery: boolean; customDeliveryCharge?: number | null }) => Promise<{ success: boolean; error?: string }>;
   deleteProduct: (id: string) => Promise<void>;
   setVariantGroup: (productIds: string[], groupId: string) => void;
   removeVariantGroup: (productId: string) => void;
@@ -137,6 +142,8 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
               variants: safeParse(p.variants),
               specs: safeParse(p.specs),
               images: safeParse(p.images),
+              isFreeDelivery: Boolean(p.is_free_delivery),
+              customDeliveryCharge: p.custom_delivery_charge !== null && p.custom_delivery_charge !== undefined ? Number(p.custom_delivery_charge) : null,
             })) as Product[];
             set({ products: formattedProducts });
           }
@@ -182,7 +189,9 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
             sale_price: product.salePrice,
             meta_title: product.metaTitle,
             meta_desc: product.metaDesc,
-            video_url: product.videoUrl
+            video_url: product.videoUrl,
+            is_free_delivery: Boolean(product.isFreeDelivery),
+            custom_delivery_charge: product.customDeliveryCharge !== null && product.customDeliveryCharge !== undefined ? Number(product.customDeliveryCharge) : null
           };
           
           const { error } = await supabase.from('products').insert([dbProduct]);
@@ -213,6 +222,8 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
           if (updates.metaTitle !== undefined) dbUpdates.meta_title = updates.metaTitle;
           if (updates.metaDesc !== undefined) dbUpdates.meta_desc = updates.metaDesc;
           if (updates.videoUrl !== undefined) dbUpdates.video_url = updates.videoUrl;
+          if (updates.isFreeDelivery !== undefined) dbUpdates.is_free_delivery = Boolean(updates.isFreeDelivery);
+          if (updates.customDeliveryCharge !== undefined) dbUpdates.custom_delivery_charge = updates.customDeliveryCharge !== null ? Number(updates.customDeliveryCharge) : null;
           
           // Remove camelCase keys from db updates
           delete dbUpdates.regularPrice;
@@ -227,12 +238,47 @@ export const useProductStore = create<ProductStore>()((set, get) => ({
           delete dbUpdates.metaTitle;
           delete dbUpdates.metaDesc;
           delete dbUpdates.videoUrl;
+          delete dbUpdates.isFreeDelivery;
+          delete dbUpdates.customDeliveryCharge;
           delete dbUpdates.id;
 
           const { error } = await supabase.from('products').update(dbUpdates).eq('id', id);
           if (error) throw error;
         } catch (error) {
           console.error('Error updating product in Supabase:', error);
+        }
+      },
+
+      updateProductDeliverySettings: async (productId, { isFreeDelivery, customDeliveryCharge }) => {
+        const charge = isFreeDelivery 
+          ? 0 
+          : (customDeliveryCharge !== undefined && customDeliveryCharge !== null ? Number(customDeliveryCharge) : null);
+
+        // Optimistic update in Zustand store
+        set((state) => ({
+          products: state.products.map(p =>
+            p.id === productId 
+              ? { ...p, isFreeDelivery: Boolean(isFreeDelivery), customDeliveryCharge: charge }
+              : p
+          )
+        }));
+
+        try {
+          const { error } = await supabase
+            .from('products')
+            .update({
+              is_free_delivery: Boolean(isFreeDelivery),
+              custom_delivery_charge: charge
+            })
+            .eq('id', productId);
+
+          if (error) throw error;
+          return { success: true };
+        } catch (error: any) {
+          console.error('Error updating product delivery settings:', error);
+          // Rollback on failure by refetching
+          get().fetchProducts();
+          return { success: false, error: error?.message || 'Failed to update delivery settings' };
         }
       },
 

@@ -10,6 +10,8 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { useCartStore } from '@/store/cartStore';
 import { usePromoStore, PromoCode } from '@/store/promoStore';
 import { useCourierStore } from '@/store/courierStore';
+import { useProductStore } from '@/store/productStore';
+import { calculateDeliveryFee } from '@/lib/delivery';
 import { Order } from '@/components/admin/orders/types';
 import * as gtm from '@/lib/gtm';
 import * as fpixel from '@/lib/fpixel';
@@ -25,12 +27,20 @@ export default function Checkout() {
   const { items: cartItems, clearCart } = useCartStore();
   const { validatePromo } = usePromoStore();
   const { couriers, fetchCouriers } = useCourierStore();
+  const products = useProductStore(state => state.products);
+  const fetchProducts = useProductStore(state => state.fetchProducts);
 
   useEffect(() => {
     if (couriers.length === 0) {
       fetchCouriers();
     }
   }, [couriers.length, fetchCouriers]);
+
+  useEffect(() => {
+    if (products.length === 0) {
+      fetchProducts();
+    }
+  }, [products.length, fetchProducts]);
   
   const [selectedDistrict, setSelectedDistrict] = useState("Dhaka");
   const [selectedThana, setSelectedThana] = useState("");
@@ -48,11 +58,32 @@ export default function Checkout() {
     const q = Number(item.quantity) || 1;
     return acc + (p * q);
   }, 0);
+
+  // Enrich cart items with product-level delivery settings if missing from cart session
+  const enrichedCartItems = cartItems.map(item => {
+    const prod = products.find(p => p.id === item.productId || p.id === item.id);
+    return {
+      ...item,
+      isFreeDelivery: item.isFreeDelivery !== undefined ? item.isFreeDelivery : Boolean(prod?.isFreeDelivery),
+      customDeliveryCharge: item.customDeliveryCharge !== undefined && item.customDeliveryCharge !== null 
+        ? item.customDeliveryCharge 
+        : (prod?.customDeliveryCharge != null ? Number(prod.customDeliveryCharge) : null),
+    };
+  });
   
   const activeCourier = couriers.find(c => c.isActive) || { deliveryChargeInsideDhaka: 60, deliveryChargeOutsideDhaka: 120 };
   const insideCharge = Number(activeCourier.deliveryChargeInsideDhaka) || 60;
   const outsideCharge = Number(activeCourier.deliveryChargeOutsideDhaka) || 120;
-  const shipping = selectedDistrict === 'Dhaka' ? insideCharge : outsideCharge;
+  
+  // Calculate delivery fee respecting product-level free delivery & custom charges
+  const deliveryResult = calculateDeliveryFee({
+    cartItems: enrichedCartItems,
+    selectedDistrict,
+    insideDhakaFee: insideCharge,
+    outsideDhakaFee: outsideCharge,
+  });
+
+  const shipping = deliveryResult.fee;
   const discount = Number(discountAmount) || 0;
   
   const total = Math.max(0, Math.round((subtotal + shipping - discount) * 100) / 100);
@@ -393,7 +424,7 @@ export default function Checkout() {
               
               {/* Mini Cart Items */}
               <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-                {cartItems.map((item) => (
+                {enrichedCartItems.map((item) => (
                   <div key={item.id} className="flex gap-4 items-center">
                     <div className="relative">
                       <div className="w-16 h-16 relative rounded-xl overflow-hidden bg-slate-50 dark:bg-dark-900 flex-shrink-0 border border-slate-100 dark:border-white/5">
@@ -401,8 +432,15 @@ export default function Checkout() {
                       </div>
                       <span className="absolute -top-2 -right-2 bg-slate-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">{item.quantity}</span>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-900 dark:text-white line-clamp-1">{item.name}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-slate-900 dark:text-white line-clamp-1">{item.name}</p>
+                        {item.isFreeDelivery && (
+                          <span className="text-[10px] uppercase font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 px-1.5 py-0.2 rounded flex-shrink-0">
+                            Free Del.
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-500">{item.variant}</p>
                     </div>
                     <p className="font-medium text-slate-900 dark:text-white">৳{(item.price * item.quantity).toFixed(2)}</p>
@@ -454,9 +492,26 @@ export default function Checkout() {
                   <span>Subtotal</span>
                   <span className="font-medium text-slate-900 dark:text-white">৳{subtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                  <span>Shipping</span>
-                  <span className="font-medium text-slate-900 dark:text-white">৳{shipping.toFixed(2)}</span>
+                <div className="flex justify-between items-center text-slate-600 dark:text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <span>Shipping</span>
+                    {deliveryResult.isFree ? (
+                      <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/40">
+                        Free Delivery
+                      </span>
+                    ) : deliveryResult.hasCustomCharge ? (
+                      <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full border border-blue-200 dark:border-blue-800/40">
+                        Product Special Rate
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-slate-400">
+                        ({selectedDistrict === 'Dhaka' ? 'Inside Dhaka' : 'Outside Dhaka'})
+                      </span>
+                    )}
+                  </div>
+                  <span className={`font-medium ${deliveryResult.isFree ? 'text-emerald-600 dark:text-emerald-400 font-bold' : 'text-slate-900 dark:text-white'}`}>
+                    {deliveryResult.isFree ? 'FREE (৳0)' : `৳${shipping.toFixed(2)}`}
+                  </span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-green-600 dark:text-green-400 font-medium">

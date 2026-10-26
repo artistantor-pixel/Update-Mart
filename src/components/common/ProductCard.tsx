@@ -15,9 +15,21 @@ interface ProductCardProps {
   rating: number;
   isNew?: boolean;
   priority?: boolean;
+  isFreeDelivery?: boolean;
+  customDeliveryCharge?: number | null;
 }
 
-export default function ProductCard({ id, name, price, image, rating, isNew, priority = false }: ProductCardProps) {
+export default function ProductCard({ 
+  id, 
+  name, 
+  price, 
+  image, 
+  rating, 
+  isNew, 
+  priority = false,
+  isFreeDelivery,
+  customDeliveryCharge
+}: ProductCardProps) {
   const addItem = useCartStore(state => state.addItem);
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -29,6 +41,8 @@ export default function ProductCard({ id, name, price, image, rating, isNew, pri
       image,
       quantity: 1,
       variant: 'Standard',
+      isFreeDelivery,
+      customDeliveryCharge,
     });
     fpixel.event('AddToCart', {
       content_name: name,
@@ -45,11 +59,18 @@ export default function ProductCard({ id, name, price, image, rating, isNew, pri
       
       {/* Product Image & Badges */}
       <div className="relative aspect-square overflow-hidden bg-slate-50 dark:bg-dark-900">
-        {isNew && (
-          <span className="absolute top-3 left-3 bg-primary-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
-            NEW
-          </span>
-        )}
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+          {isNew && (
+            <span className="bg-primary-500 text-white text-xs font-bold px-2 py-1 rounded shadow-sm">
+              NEW
+            </span>
+          )}
+          {isFreeDelivery && (
+            <span className="bg-emerald-600/90 backdrop-blur-sm text-white text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded shadow-sm">
+              Free Delivery
+            </span>
+          )}
+        </div>
         <Image 
           src={image || '/placeholder.png'} 
           alt={name} 
