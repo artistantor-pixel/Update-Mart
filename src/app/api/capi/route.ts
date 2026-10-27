@@ -44,11 +44,55 @@ export async function POST(req: Request) {
     const cookieHeader = req.headers.get('cookie') || '';
     const getCookie = (cname: string): string | undefined => {
       const match = cookieHeader.match(new RegExp('(?:^|;\\s*)' + cname + '=([^;]*)'));
-      return match ? decodeURIComponent(match[1]) : undefined;
+      return match ? match[1] : undefined;
     };
 
-    const resolvedFbp = userData.fbp || getCookie('_fbp');
-    const resolvedFbc = userData.fbc || getCookie('_fbc');
+    // Extract raw fbclid from event source URL or Referer
+    const eventSourceUrl = eventUrl || req.headers.get('referer') || '';
+    let urlFbclid: string | null = null;
+    try {
+      if (eventSourceUrl) {
+        const parsedUrl = new URL(eventSourceUrl, 'https://mart.updatekeybd.com');
+        urlFbclid = parsedUrl.searchParams.get('fbclid');
+      }
+    } catch {
+      const match = eventSourceUrl.match(/[?&]fbclid=([^&#]+)/);
+      if (match) urlFbclid = match[1];
+    }
+
+    let resolvedFbc: string | undefined = userData.fbc || getCookie('_fbc');
+
+    // Rule 1: If event_source_url contains fbclid, fbc MUST match this exact fbclid (case-sensitive)
+    if (urlFbclid) {
+      if (resolvedFbc) {
+        const parts = resolvedFbc.split('.');
+        const clickIdFromFbc = parts.slice(3).join('.');
+        if (clickIdFromFbc !== urlFbclid) {
+          // Stale or mismatched cookie! Replace with current URL fbclid to prevent Meta warning
+          resolvedFbc = `fb.1.${Date.now()}.${urlFbclid}`;
+        }
+      } else {
+        // Construct compliant fbc from urlFbclid
+        resolvedFbc = `fb.1.${Date.now()}.${urlFbclid}`;
+      }
+    }
+
+    // Rule 2: Strictly validate fbc format: fb.<subdomain_index>.<timestamp>.<fbclid>
+    if (resolvedFbc) {
+      if (!/^fb\.[0-9]+\.[0-9]+\..+$/.test(resolvedFbc)) {
+        if (!resolvedFbc.startsWith('fb.') && resolvedFbc.length > 10) {
+          resolvedFbc = `fb.1.${Date.now()}.${resolvedFbc}`;
+        } else {
+          resolvedFbc = undefined;
+        }
+      }
+    }
+
+    // Rule 3: Strictly validate fbp format: fb.<subdomain_index>.<timestamp>.<random_number>
+    let resolvedFbp: string | undefined = userData.fbp || getCookie('_fbp');
+    if (resolvedFbp && !/^fb\.[0-9]+\.[0-9]+\..+$/.test(resolvedFbp)) {
+      resolvedFbp = undefined;
+    }
 
     // Build Meta CAPI compliant user_data object
     const metaUserData: Record<string, any> = {
