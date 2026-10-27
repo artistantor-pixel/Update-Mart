@@ -18,6 +18,7 @@ import SupportManagement from '@/components/admin/support/SupportManagement';
 import DashboardOverview from '@/components/admin/dashboard/DashboardOverview';
 import MetaAdsDashboard from '@/components/admin/marketing/MetaAdsDashboard';
 import ProductDeliveryManager from '@/components/admin/delivery/ProductDeliveryManager';
+import OrderEmailSettings from '@/components/admin/settings/OrderEmailSettings';
 import Login from '@/components/admin/auth/Login';
 import { useOrderStore } from '@/store/orderStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -732,8 +733,12 @@ export default function AdminDashboard() {
         )}
 
         {activeTab === 'settings' && (
-          <div className="bg-white dark:bg-dark-800 p-8 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm text-left max-w-3xl mx-auto mt-8">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-white/5 pb-4">Store Settings</h2>
+          <div className="space-y-8 max-w-3xl mx-auto mt-8">
+            {/* Order Email Notification System */}
+            <OrderEmailSettings />
+
+            <div className="bg-white dark:bg-dark-800 p-8 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm text-left">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-white/5 pb-4">Store Settings</h2>
 
             <div className="space-y-10">
               {/* Payment Settings */}
@@ -914,6 +919,7 @@ export default function AdminDashboard() {
 
             </div>
           </div>
+        </div>
         )}
 
         {activeTab === 'couriers' && (

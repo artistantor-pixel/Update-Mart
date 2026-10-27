@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/supabase';
 import { rateLimit } from '@/lib/rateLimit';
+import { sendOrderNotificationEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,6 +63,43 @@ export async function POST(request: Request) {
     if (error) {
       console.error("Supabase insert error:", error);
       return NextResponse.json({ error: 'Failed to save order' }, { status: 500 });
+    }
+
+    // 3. Trigger Email Notification if enabled in settings
+    try {
+      const { data: settingsData } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('id', 'general_settings')
+        .single();
+
+      const settings = settingsData?.value;
+      if (settings?.isOrderEmailEnabled && settings?.adminNotificationEmail) {
+        sendOrderNotificationEmail({
+          to: settings.adminNotificationEmail,
+          order: {
+            id: orderData.id,
+            customerName: orderData.customerName,
+            customerPhone: orderData.customerPhone,
+            customerEmail: orderData.customerEmail,
+            address: orderData.address,
+            district: orderData.district,
+            thana: orderData.thana,
+            total: orderData.total,
+            deliveryCharge: orderData.deliveryCharge,
+            discountAmount: orderData.discountAmount,
+            paymentMethod: orderData.paymentMethod,
+            paymentStatus: orderData.paymentStatus,
+            orderNote: orderData.orderNote,
+            items: orderData.items,
+            createdAt: orderData.createdAt
+          }
+        }).catch((err) => {
+          console.error('[Checkout API] Error dispatching email notification:', err);
+        });
+      }
+    } catch (emailErr) {
+      console.error('[Checkout API] Failed to evaluate email settings:', emailErr);
     }
 
     // Invalidate cached admin routes after new order mutation

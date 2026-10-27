@@ -308,6 +308,13 @@ export default function PromoPage() {
 
     addOrder(newOrder);
 
+    // Trigger backend email notification if enabled in store settings
+    fetch('/api/email/order-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderData: newOrder })
+    }).catch(err => console.error('Promo order email notification error:', err));
+
     // Track Purchase immediately on order submission (Browser Pixel + Server CAPI with customer data)
     try {
       sessionStorage.setItem('last_placed_order', JSON.stringify(newOrder));

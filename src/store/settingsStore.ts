@@ -22,6 +22,8 @@ export interface FooterConfig {
 interface SettingsStore {
   isCODEnabled: boolean;
   codFee: number;
+  isOrderEmailEnabled: boolean;
+  adminNotificationEmail: string;
   topBar: TopBarConfig;
   footer: FooterConfig;
   blockedPhones: string[];
@@ -30,6 +32,7 @@ interface SettingsStore {
   toggleBlockPhone: (phone: string, block: boolean) => Promise<void>;
   toggleCOD: (enabled: boolean) => Promise<void>;
   setCodFee: (fee: number) => Promise<void>;
+  setOrderEmailSettings: (settings: { isOrderEmailEnabled: boolean; adminNotificationEmail: string }) => Promise<void>;
   setTopBar: (config: TopBarConfig) => Promise<void>;
   setFooter: (config: FooterConfig) => Promise<void>;
   resetSettings: () => void;
@@ -38,6 +41,8 @@ interface SettingsStore {
 const DEFAULT_SETTINGS = {
   isCODEnabled: true,
   codFee: 60,
+  isOrderEmailEnabled: false,
+  adminNotificationEmail: '',
   topBar: {
     enabled: false,
     message: 'FREE SHIPPING ON ORDERS OVER ৳5000!',
@@ -70,7 +75,7 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data && data.value) {
-        set({ ...data.value });
+        set({ ...DEFAULT_SETTINGS, ...data.value });
       } else {
         await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: DEFAULT_SETTINGS });
         set({ ...DEFAULT_SETTINGS });
@@ -84,8 +89,8 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
 
   toggleCOD: async (enabled) => {
     set({ isCODEnabled: enabled });
-    const { isCODEnabled, codFee, topBar, footer, blockedPhones } = get();
-    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer, blockedPhones } });
+    const { isCODEnabled, codFee, isOrderEmailEnabled, adminNotificationEmail, topBar, footer, blockedPhones } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, isOrderEmailEnabled, adminNotificationEmail, topBar, footer, blockedPhones } });
   },
 
   toggleBlockPhone: async (phone: string, block: boolean) => {
@@ -97,26 +102,32 @@ export const useSettingsStore = create<SettingsStore>()((set, get) => ({
       newList = currentList.filter(p => p !== phone);
     }
     set({ blockedPhones: newList });
-    const { isCODEnabled, codFee, topBar, footer } = get();
-    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer, blockedPhones: newList } });
+    const { isCODEnabled, codFee, isOrderEmailEnabled, adminNotificationEmail, topBar, footer } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, isOrderEmailEnabled, adminNotificationEmail, topBar, footer, blockedPhones: newList } });
   },
 
   setCodFee: async (fee) => {
     set({ codFee: fee });
+    const { isCODEnabled, codFee, isOrderEmailEnabled, adminNotificationEmail, topBar, footer, blockedPhones } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, isOrderEmailEnabled, adminNotificationEmail, topBar, footer, blockedPhones } });
+  },
+
+  setOrderEmailSettings: async ({ isOrderEmailEnabled, adminNotificationEmail }) => {
+    set({ isOrderEmailEnabled, adminNotificationEmail });
     const { isCODEnabled, codFee, topBar, footer, blockedPhones } = get();
-    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer, blockedPhones } });
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, isOrderEmailEnabled, adminNotificationEmail, topBar, footer, blockedPhones } });
   },
 
   setTopBar: async (config) => {
     set({ topBar: config });
-    const { isCODEnabled, codFee, topBar, footer, blockedPhones } = get();
-    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer, blockedPhones } });
+    const { isCODEnabled, codFee, isOrderEmailEnabled, adminNotificationEmail, topBar, footer, blockedPhones } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, isOrderEmailEnabled, adminNotificationEmail, topBar, footer, blockedPhones } });
   },
 
   setFooter: async (config) => {
     set({ footer: config });
-    const { isCODEnabled, codFee, topBar, footer, blockedPhones } = get();
-    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, topBar, footer, blockedPhones } });
+    const { isCODEnabled, codFee, isOrderEmailEnabled, adminNotificationEmail, topBar, footer, blockedPhones } = get();
+    await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: { isCODEnabled, codFee, isOrderEmailEnabled, adminNotificationEmail, topBar, footer, blockedPhones } });
   },
 
   resetSettings: () => {
