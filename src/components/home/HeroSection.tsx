@@ -19,7 +19,7 @@ export default function HeroSection({ hero: initialHero }: HeroSectionProps) {
       {/* ── FULL-BLEED BACKGROUND IMAGE ── */}
       <div className="absolute inset-0 z-0">
         <Image
-          src={hero.heroImageUrl}
+          src={hero.heroImageUrl || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=80'}
           alt="Hero"
           fill
           sizes="100vw"
@@ -95,7 +95,7 @@ export default function HeroSection({ hero: initialHero }: HeroSectionProps) {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14 w-full max-w-md sm:max-w-none">
           <Link
-            href={hero.button1Link}
+            href={hero.button1Link || '/products'}
             className="group inline-flex items-center justify-center gap-3 bg-primary-500 hover:bg-primary-400 text-white font-semibold px-8 py-4 rounded-2xl transition-all duration-300 shadow-2xl shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-1 w-full sm:w-auto"
           >
             <ShoppingBag size={18} />

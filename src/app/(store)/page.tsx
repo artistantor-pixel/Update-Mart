@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
-import MinimalHero from '@/components/home/MinimalHero';
+import HeroBannerSlider from '@/components/home/HeroBannerSlider';
 import CategoryPillNav from '@/components/home/CategoryPillNav';
 import CuratedProductRow from '@/components/home/CuratedProductRow';
 import JustForYouGrid from '@/components/home/JustForYouGrid';
@@ -46,18 +46,12 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col bg-white dark:bg-dark-900 transition-colors">
-      {/* 1. Minimal Hero Section (Optimal LCP with Priority Image) */}
-      <MinimalHero
-        badge={heroContent?.badgeText || 'New Curated Drop'}
-        headline={
-          heroContent
-            ? `${heroContent.headlineLine1} ${heroContent.headlineLine2}`
-            : 'Engineered for Life. Designed with Intent.'
-        }
-        subtext={heroContent?.subtext}
-        ctaText={heroContent?.button1Label || 'Explore Catalog'}
-        ctaLink={heroContent?.button1Link || '/products'}
-        imageUrl={heroContent?.heroImageUrl}
+      {/* 1. Hero Banner Slider (Pure Visual Slider - Optimal LCP with Priority Image) */}
+      <HeroBannerSlider
+        banners={heroContent?.banners}
+        autoSlideInterval={heroContent?.autoSlideInterval || 5}
+        showArrows={heroContent?.showArrows ?? true}
+        showDots={heroContent?.showDots ?? true}
       />
 
       {/* 2. Dynamic Category Navigation (Smooth Touch-Scrollable Pill Menu) */}

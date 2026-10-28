@@ -8,16 +8,31 @@ export interface FloatingCard {
   subtitle: string;
 }
 
+export interface BannerSlide {
+  id: string;
+  imageUrl: string;
+  mobileImageUrl?: string;
+  title: string;
+  linkUrl: string;
+  isActive: boolean;
+  order: number;
+}
+
 export interface HeroContent {
-  badgeText: string;
-  headlineLine1: string;
-  headlineLine2: string;
-  subtext: string;
-  button1Label: string;
-  button1Link: string;
-  button2Label: string;
-  heroImageUrl: string;
-  floatingCards: FloatingCard[];
+  banners?: BannerSlide[];
+  autoSlideInterval?: number; // in seconds
+  showArrows?: boolean;
+  showDots?: boolean;
+  // Legacy fields
+  badgeText?: string;
+  headlineLine1?: string;
+  headlineLine2?: string;
+  subtext?: string;
+  button1Label?: string;
+  button1Link?: string;
+  button2Label?: string;
+  heroImageUrl?: string;
+  floatingCards?: FloatingCard[];
 }
 
 export interface FeatureItem {
@@ -59,11 +74,42 @@ export interface HomepageContent {
   };
 }
 
+export const DEFAULT_BANNERS: BannerSlide[] = [
+  {
+    id: 'banner-1',
+    imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1600&q=85',
+    title: 'Minimalist Flagship Essentials',
+    linkUrl: '/products',
+    isActive: true,
+    order: 1,
+  },
+  {
+    id: 'banner-2',
+    imageUrl: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=1600&q=85',
+    title: 'Future Tech & Smart Peripherals',
+    linkUrl: '/products?category=Electronics',
+    isActive: true,
+    order: 2,
+  },
+  {
+    id: 'banner-3',
+    imageUrl: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=1600&q=85',
+    title: 'Luxury Timepieces & Watches',
+    linkUrl: '/products?category=Watches',
+    isActive: true,
+    order: 3,
+  },
+];
+
 interface HomepageStore {
   content: HomepageContent;
   isLoading: boolean;
   fetchSettings: () => Promise<void>;
   updateHero: (hero: Partial<HeroContent>) => Promise<void>;
+  addBanner: (banner: Omit<BannerSlide, 'id'>) => Promise<void>;
+  updateBanner: (id: string, updates: Partial<BannerSlide>) => Promise<void>;
+  removeBanner: (id: string) => Promise<void>;
+  reorderBanners: (banners: BannerSlide[]) => Promise<void>;
   updateFeature: (id: string, updates: Partial<FeatureItem>) => Promise<void>;
   addTestimonial: (t: Testimonial) => Promise<void>;
   updateTestimonial: (id: string, updates: Partial<Testimonial>) => Promise<void>;
@@ -75,19 +121,19 @@ interface HomepageStore {
 
 export const DEFAULT_CONTENT: HomepageContent = {
   hero: {
+    banners: DEFAULT_BANNERS,
+    autoSlideInterval: 5,
+    showArrows: true,
+    showDots: true,
     badgeText: 'Just Released',
     headlineLine1: 'Future',
     headlineLine2: 'Forward.',
-    subtext: 'Experience the perfect blend of minimalist design and cutting-edge technology. The Obsidian Chronograph is built for tomorrow.',
-    button1Label: 'Buy Now — ৳29,990',
-    button1Link: '/product/watch-combo-01',
+    subtext: 'Experience the perfect blend of minimalist design and cutting-edge technology.',
+    button1Label: 'Buy Now',
+    button1Link: '/products',
     button2Label: 'Watch Video',
-    heroImageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-    floatingCards: [
-      { id: 'fc1', icon: 'Shield', title: 'Titanium', subtitle: 'Aerospace Grade' },
-      { id: 'fc2', icon: 'Battery', title: '14 Days', subtitle: 'Battery Life' },
-      { id: 'fc3', icon: 'Zap', title: 'Fast Charging Supported', subtitle: '' },
-    ],
+    heroImageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1600&q=85',
+    floatingCards: [],
   },
   features: [
     { id: 'f1', icon: 'Truck', title: 'Free Shipping', description: 'On orders over ৳5000' },
@@ -151,7 +197,18 @@ export const useHomepageStore = create<HomepageStore>()((set, get) => ({
       if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "No rows found"
       
       if (data && data.value) {
-        set({ content: data.value as HomepageContent });
+        const fetchedContent = data.value as HomepageContent;
+        // Ensure hero.banners is populated
+        if (!fetchedContent.hero?.banners || fetchedContent.hero.banners.length === 0) {
+          fetchedContent.hero = {
+            ...fetchedContent.hero,
+            banners: DEFAULT_BANNERS,
+            autoSlideInterval: fetchedContent.hero?.autoSlideInterval || 5,
+            showArrows: fetchedContent.hero?.showArrows ?? true,
+            showDots: fetchedContent.hero?.showDots ?? true,
+          };
+        }
+        set({ content: fetchedContent });
       } else {
         // If no row exists, upsert default
         await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: DEFAULT_CONTENT });
@@ -168,6 +225,33 @@ export const useHomepageStore = create<HomepageStore>()((set, get) => ({
     const newContent = { ...get().content, hero: { ...get().content.hero, ...hero } };
     set({ content: newContent });
     await supabase.from('app_settings').upsert({ id: SETTINGS_ID, value: newContent });
+  },
+
+  addBanner: async (banner) => {
+    const currentBanners = get().content.hero?.banners || [];
+    const newSlide: BannerSlide = {
+      ...banner,
+      id: `banner-${Date.now()}`,
+      order: currentBanners.length + 1,
+    };
+    const newBanners = [...currentBanners, newSlide];
+    await get().updateHero({ banners: newBanners });
+  },
+
+  updateBanner: async (id, updates) => {
+    const currentBanners = get().content.hero?.banners || [];
+    const newBanners = currentBanners.map(b => b.id === id ? { ...b, ...updates } : b);
+    await get().updateHero({ banners: newBanners });
+  },
+
+  removeBanner: async (id) => {
+    const currentBanners = get().content.hero?.banners || [];
+    const newBanners = currentBanners.filter(b => b.id !== id);
+    await get().updateHero({ banners: newBanners });
+  },
+
+  reorderBanners: async (banners) => {
+    await get().updateHero({ banners });
   },
 
   updateFeature: async (id, updates) => {

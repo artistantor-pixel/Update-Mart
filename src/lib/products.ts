@@ -15,19 +15,44 @@ const safeParse = (val: any) => {
 
 const DEFAULT_HOMEPAGE: HomepageContent = {
   hero: {
+    banners: [
+      {
+        id: 'banner-1',
+        imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1600&q=85',
+        title: 'Minimalist Flagship Essentials',
+        linkUrl: '/products',
+        isActive: true,
+        order: 1,
+      },
+      {
+        id: 'banner-2',
+        imageUrl: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=1600&q=85',
+        title: 'Future Tech & Smart Peripherals',
+        linkUrl: '/products?category=Electronics',
+        isActive: true,
+        order: 2,
+      },
+      {
+        id: 'banner-3',
+        imageUrl: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=1600&q=85',
+        title: 'Luxury Timepieces & Watches',
+        linkUrl: '/products?category=Watches',
+        isActive: true,
+        order: 3,
+      },
+    ],
+    autoSlideInterval: 5,
+    showArrows: true,
+    showDots: true,
     badgeText: 'Just Released',
     headlineLine1: 'Future',
     headlineLine2: 'Forward.',
-    subtext: 'Experience the perfect blend of minimalist design and cutting-edge technology. The Obsidian Chronograph is built for tomorrow.',
-    button1Label: 'Buy Now — ৳29,990',
-    button1Link: '/product/watch-combo-01',
+    subtext: 'Experience the perfect blend of minimalist design and cutting-edge technology.',
+    button1Label: 'Buy Now',
+    button1Link: '/products',
     button2Label: 'Watch Video',
-    heroImageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
-    floatingCards: [
-      { id: 'fc1', icon: 'Shield', title: 'Titanium', subtitle: 'Aerospace Grade' },
-      { id: 'fc2', icon: 'Battery', title: '14 Days', subtitle: 'Battery Life' },
-      { id: 'fc3', icon: 'Zap', title: 'Fast Charging Supported', subtitle: '' },
-    ],
+    heroImageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1600&q=85',
+    floatingCards: [],
   },
   features: [
     { id: 'f1', icon: 'Truck', title: 'Free Shipping', description: 'On orders over ৳5000' },
@@ -137,7 +162,17 @@ export async function getHomepageContent(): Promise<HomepageContent> {
     }
 
     if (data && data.value) {
-      return data.value as HomepageContent;
+      const val = data.value as HomepageContent;
+      if (!val.hero?.banners || val.hero.banners.length === 0) {
+        val.hero = {
+          ...val.hero,
+          banners: DEFAULT_HOMEPAGE.hero.banners,
+          autoSlideInterval: val.hero?.autoSlideInterval || 5,
+          showArrows: val.hero?.showArrows ?? true,
+          showDots: val.hero?.showDots ?? true,
+        };
+      }
+      return val;
     }
   } catch (err) {
     console.error('Failed to get homepage content on server:', err);
