@@ -144,3 +144,140 @@ export async function getHomepageContent(): Promise<HomepageContent> {
   }
   return DEFAULT_HOMEPAGE;
 }
+
+/**
+ * Fetch active categories for the dynamic pill menu on the homepage.
+ */
+export async function getCategoriesForHome() {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name, slug, image_url, is_active, sort_order')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true });
+
+    if (!error && data && data.length > 0) {
+      return data;
+    }
+  } catch (err) {
+    console.error('Failed to get categories on server:', err);
+  }
+
+  // Minimal fallback categories
+  return [
+    { id: 'cat-all', name: 'All Products', slug: 'all', image_url: null },
+    { id: 'cat-watches', name: 'Watches', slug: 'watches', image_url: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=300&q=80' },
+    { id: 'cat-electronics', name: 'Electronics', slug: 'electronics', image_url: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=300&q=80' },
+    { id: 'cat-accessories', name: 'Accessories', slug: 'accessories', image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80' },
+    { id: 'cat-bags', name: 'Bags', slug: 'bags', image_url: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=300&q=80' },
+    { id: 'cat-smart-home', name: 'Smart Home', slug: 'smart-home', image_url: 'https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=300&q=80' },
+  ];
+}
+
+/**
+ * Fetch Flash Sales products (products with sale discount).
+ */
+export async function getFlashSaleProducts(limit: number = 6): Promise<Product[]> {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, name, price, regular_price, image, rating, category, brand, is_new, is_live, stock, colors, variants')
+      .or('is_live.eq.true,is_live.is.null')
+      .gt('regular_price', 0)
+      .order('price', { ascending: true })
+      .limit(limit);
+
+    if (!error && data && data.length > 0) {
+      return data.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        price: Number(p.price) || 0,
+        regularPrice: p.regular_price ? Number(p.regular_price) : undefined,
+        image: p.image || '/placeholder.png',
+        rating: Number(p.rating) || 5,
+        category: p.category || 'General',
+        brand: p.brand || '',
+        isNew: Boolean(p.is_new),
+        isLive: p.is_live !== false,
+        stock: p.stock,
+        colors: safeParse(p.colors),
+        variants: safeParse(p.variants),
+      })) as Product[];
+    }
+  } catch (err) {
+    console.error('Failed to get flash sale products on server:', err);
+  }
+  return getTrendingProducts(limit);
+}
+
+/**
+ * Fetch New Arrivals.
+ */
+export async function getNewArrivalProducts(limit: number = 6): Promise<Product[]> {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, name, price, regular_price, image, rating, category, brand, is_new, is_live, stock, colors, variants')
+      .or('is_live.eq.true,is_live.is.null')
+      .eq('is_new', true)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (!error && data && data.length > 0) {
+      return data.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        price: Number(p.price) || 0,
+        regularPrice: p.regular_price ? Number(p.regular_price) : undefined,
+        image: p.image || '/placeholder.png',
+        rating: Number(p.rating) || 5,
+        category: p.category || 'General',
+        brand: p.brand || '',
+        isNew: true,
+        isLive: p.is_live !== false,
+        stock: p.stock,
+        colors: safeParse(p.colors),
+        variants: safeParse(p.variants),
+      })) as Product[];
+    }
+  } catch (err) {
+    console.error('Failed to get new arrivals on server:', err);
+  }
+  return getTrendingProducts(limit);
+}
+
+/**
+ * Fetch 'Just For You' recommended product catalog.
+ */
+export async function getJustForYouProducts(limit: number = 10): Promise<Product[]> {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, name, price, regular_price, image, rating, category, brand, is_new, is_live, stock, colors, variants')
+      .or('is_live.eq.true,is_live.is.null')
+      .order('rating', { ascending: false })
+      .limit(limit);
+
+    if (!error && data && data.length > 0) {
+      return data.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        price: Number(p.price) || 0,
+        regularPrice: p.regular_price ? Number(p.regular_price) : undefined,
+        image: p.image || '/placeholder.png',
+        rating: Number(p.rating) || 5,
+        category: p.category || 'General',
+        brand: p.brand || '',
+        isNew: Boolean(p.is_new),
+        isLive: p.is_live !== false,
+        stock: p.stock,
+        colors: safeParse(p.colors),
+        variants: safeParse(p.variants),
+      })) as Product[];
+    }
+  } catch (err) {
+    console.error('Failed to get Just For You products on server:', err);
+  }
+  return getTrendingProducts(limit);
+}

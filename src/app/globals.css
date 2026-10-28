@@ -26,4 +26,12 @@
   .animation-delay-4000 {
     animation-delay: 4s;
   }
+  /* Hide scrollbar for clean touch sliders */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
