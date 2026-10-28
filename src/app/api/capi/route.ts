@@ -25,6 +25,80 @@ const hashPhone = (phone?: string | null): string | undefined => {
   return crypto.createHash('sha256').update(digits).digest('hex');
 };
 
+/**
+ * Validates fbc strictly: fb.<subdomain_index>.<creation_time>.<fbclid>
+ * Rejects modified, truncated, lowercased, or malformed values.
+ */
+const validateFbc = (raw?: string | null): string | undefined => {
+  if (!raw) return undefined;
+  let val = raw.trim().replace(/^["']|["']$/g, '');
+  try {
+    val = decodeURIComponent(val);
+  } catch {
+    // ignore
+  }
+  const parts = val.split('.');
+  if (parts.length < 4) return undefined;
+  if (parts[0] !== 'fb') return undefined;
+  if (!/^[0-9]+$/.test(parts[1])) return undefined;
+  if (!/^[0-9]{10,14}$/.test(parts[2])) return undefined;
+  const clickId = parts.slice(3).join('.');
+  if (!/^[A-Za-z0-9_-]{20,250}$/.test(clickId)) return undefined;
+  return `fb.${parts[1]}.${parts[2]}.${clickId}`;
+};
+
+/**
+ * Validates fbp strictly: fb.<subdomain_index>.<creation_time>.<random_number>
+ */
+const validateFbp = (raw?: string | null): string | undefined => {
+  if (!raw) return undefined;
+  let val = raw.trim().replace(/^["']|["']$/g, '');
+  try {
+    val = decodeURIComponent(val);
+  } catch {
+    // ignore
+  }
+  const parts = val.split('.');
+  if (parts.length < 4) return undefined;
+  if (parts[0] !== 'fb') return undefined;
+  if (!/^[0-9]+$/.test(parts[1])) return undefined;
+  if (!/^[0-9]{10,14}$/.test(parts[2])) return undefined;
+  if (!/^[0-9]+$/.test(parts[3])) return undefined;
+  return `fb.${parts[1]}.${parts[2]}.${parts[3]}`;
+};
+
+/**
+ * Extracts and strictly validates raw fbclid from event source URL or referer.
+ */
+const extractCleanFbclid = (rawUrl?: string): string | null => {
+  if (!rawUrl) return null;
+  let raw: string | null = null;
+  try {
+    const parsedUrl = new URL(rawUrl, 'https://mart.updatekeybd.com');
+    raw = parsedUrl.searchParams.get('fbclid');
+  } catch {
+    // URL parse fallback
+  }
+  if (!raw) {
+    const match = rawUrl.match(/[?&]fbclid=([A-Za-z0-9_-]+)/);
+    if (match) raw = match[1];
+  }
+  if (!raw) return null;
+
+  let cleaned = raw.trim().replace(/^["']|["']$/g, '');
+  try {
+    cleaned = decodeURIComponent(cleaned);
+  } catch {
+    // ignore
+  }
+  cleaned = cleaned.replace(/[/?#].*$/, '');
+
+  if (/^[A-Za-z0-9_-]{20,250}$/.test(cleaned)) {
+    return cleaned;
+  }
+  return null;
+};
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -40,29 +114,28 @@ export async function POST(req: Request) {
     const clientIp = forwardedHeader ? forwardedHeader.split(',')[0].trim() : (req.headers.get('x-real-ip') || undefined);
     const userAgent = req.headers.get('user-agent') || undefined;
 
-    // Fallback extraction of _fbp and _fbc from HTTP request cookies
+    // Fallback extraction of cookies from HTTP request headers
     const cookieHeader = req.headers.get('cookie') || '';
     const getCookie = (cname: string): string | undefined => {
       const match = cookieHeader.match(new RegExp('(?:^|;\\s*)' + cname + '=([^;]*)'));
-      return match ? match[1] : undefined;
+      if (!match) return undefined;
+      let val = match[1].trim().replace(/^["']|["']$/g, '');
+      try {
+        val = decodeURIComponent(val);
+      } catch {
+        // ignore
+      }
+      return val;
     };
 
-    // Extract raw fbclid from event source URL or Referer
+    // Extract & validate fbclid from event source URL or Referer
     const eventSourceUrl = eventUrl || req.headers.get('referer') || '';
-    let urlFbclid: string | null = null;
-    try {
-      if (eventSourceUrl) {
-        const parsedUrl = new URL(eventSourceUrl, 'https://mart.updatekeybd.com');
-        urlFbclid = parsedUrl.searchParams.get('fbclid');
-      }
-    } catch {
-      const match = eventSourceUrl.match(/[?&]fbclid=([^&#]+)/);
-      if (match) urlFbclid = match[1];
-    }
+    const urlFbclid = extractCleanFbclid(eventSourceUrl);
 
-    let resolvedFbc: string | undefined = userData.fbc || getCookie('_fbc');
+    // Initial fbc candidate from payload or incoming cookie
+    let resolvedFbc: string | undefined = validateFbc(userData.fbc) || validateFbc(getCookie('_fbc'));
 
-    // Rule 1: If event_source_url contains fbclid, fbc MUST match this exact fbclid (case-sensitive)
+    // Rule 1: If event_source_url contains a valid fbclid, fbc MUST match this exact fbclid (case-sensitive)
     if (urlFbclid) {
       if (resolvedFbc) {
         const parts = resolvedFbc.split('.');
@@ -72,26 +145,33 @@ export async function POST(req: Request) {
           resolvedFbc = `fb.1.${Date.now()}.${urlFbclid}`;
         }
       } else {
-        // Construct compliant fbc from urlFbclid
+        // Construct compliant fbc from valid urlFbclid
         resolvedFbc = `fb.1.${Date.now()}.${urlFbclid}`;
       }
     }
 
-    // Rule 2: Strictly validate fbc format: fb.<subdomain_index>.<timestamp>.<fbclid>
-    if (resolvedFbc) {
-      if (!/^fb\.[0-9]+\.[0-9]+\..+$/.test(resolvedFbc)) {
-        if (!resolvedFbc.startsWith('fb.') && resolvedFbc.length > 10) {
-          resolvedFbc = `fb.1.${Date.now()}.${resolvedFbc}`;
-        } else {
-          resolvedFbc = undefined;
-        }
-      }
-    }
+    // Final strict format check: fb.<subdomain_index>.<timestamp>.<fbclid>
+    // NEVER send a truncated or corrupted fbclid
+    resolvedFbc = validateFbc(resolvedFbc);
 
-    // Rule 3: Strictly validate fbp format: fb.<subdomain_index>.<timestamp>.<random_number>
-    let resolvedFbp: string | undefined = userData.fbp || getCookie('_fbp');
-    if (resolvedFbp && !/^fb\.[0-9]+\.[0-9]+\..+$/.test(resolvedFbp)) {
-      resolvedFbp = undefined;
+    // Rule 2: Strictly validate fbp format: fb.<subdomain_index>.<timestamp>.<random_number>
+    let resolvedFbp: string | undefined = validateFbp(userData.fbp) || validateFbp(getCookie('_fbp'));
+
+    // Clean event_source_url to ensure Meta receives clean matching URLs
+    let cleanEventSourceUrl = eventSourceUrl;
+    if (cleanEventSourceUrl && cleanEventSourceUrl.includes('fbclid=')) {
+      try {
+        const parsed = new URL(cleanEventSourceUrl, 'https://mart.updatekeybd.com');
+        if (urlFbclid) {
+          parsed.searchParams.set('fbclid', urlFbclid);
+        } else {
+          // Remove truncated or invalid fbclid parameter
+          parsed.searchParams.delete('fbclid');
+        }
+        cleanEventSourceUrl = parsed.toString();
+      } catch {
+        // ignore
+      }
     }
 
     // Build Meta CAPI compliant user_data object
@@ -152,7 +232,7 @@ export async function POST(req: Request) {
           event_time: Math.floor(Date.now() / 1000),
           action_source: 'website',
           event_id: eventID,
-          event_source_url: eventUrl || req.headers.get('referer') || '',
+          event_source_url: cleanEventSourceUrl,
           user_data: metaUserData,
           custom_data: cleanCustomData,
         },

@@ -9,7 +9,96 @@ export const generateEventId = () => {
 const getRawCookie = (name: string): string | undefined => {
   if (typeof document === 'undefined') return undefined;
   const match = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
-  return match ? match[1] : undefined;
+  if (!match) return undefined;
+  let val = match[1].trim().replace(/^["']|["']$/g, '');
+  try {
+    val = decodeURIComponent(val);
+  } catch {
+    // ignore
+  }
+  return val;
+};
+
+/**
+ * Validates that an fbc string strictly conforms to Meta's specification:
+ * Format: fb.<subdomain_index>.<creation_time>.<fbclid>
+ * - Subdomain index is a numeric digit
+ * - Creation time is a valid Unix millisecond timestamp (10-14 digits)
+ * - fbclid is an unmodified, case-sensitive alphanumeric/base64url string (20-250 chars)
+ */
+export const validateFbc = (raw?: string | null): string | undefined => {
+  if (!raw) return undefined;
+  let val = raw.trim().replace(/^["']|["']$/g, '');
+  try {
+    val = decodeURIComponent(val);
+  } catch {
+    // ignore
+  }
+  const parts = val.split('.');
+  if (parts.length < 4) return undefined;
+  if (parts[0] !== 'fb') return undefined;
+  if (!/^[0-9]+$/.test(parts[1])) return undefined;
+  if (!/^[0-9]{10,14}$/.test(parts[2])) return undefined;
+  const clickId = parts.slice(3).join('.');
+  if (!/^[A-Za-z0-9_-]{20,250}$/.test(clickId)) return undefined;
+  return `fb.${parts[1]}.${parts[2]}.${clickId}`;
+};
+
+/**
+ * Validates that an fbp string strictly conforms to Meta's specification:
+ * Format: fb.<subdomain_index>.<creation_time>.<random_number>
+ */
+export const validateFbp = (raw?: string | null): string | undefined => {
+  if (!raw) return undefined;
+  let val = raw.trim().replace(/^["']|["']$/g, '');
+  try {
+    val = decodeURIComponent(val);
+  } catch {
+    // ignore
+  }
+  const parts = val.split('.');
+  if (parts.length < 4) return undefined;
+  if (parts[0] !== 'fb') return undefined;
+  if (!/^[0-9]+$/.test(parts[1])) return undefined;
+  if (!/^[0-9]{10,14}$/.test(parts[2])) return undefined;
+  if (!/^[0-9]+$/.test(parts[3])) return undefined;
+  return `fb.${parts[1]}.${parts[2]}.${parts[3]}`;
+};
+
+/**
+ * Extracts and strictly validates raw fbclid from an incoming URL.
+ * Strips any trailing slashes, fragments, or appended query delimiters.
+ * Ensures the value is not truncated or corrupted.
+ */
+export const extractCleanFbclid = (rawUrl?: string): string | null => {
+  if (!rawUrl) return null;
+  let raw: string | null = null;
+  try {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://mart.updatekeybd.com';
+    const parsed = new URL(rawUrl, origin);
+    raw = parsed.searchParams.get('fbclid');
+  } catch {
+    // URL parse fallback
+  }
+  if (!raw) {
+    const match = rawUrl.match(/[?&]fbclid=([A-Za-z0-9_-]+)/);
+    if (match) raw = match[1];
+  }
+  if (!raw) return null;
+
+  let cleaned = raw.trim().replace(/^["']|["']$/g, '');
+  try {
+    cleaned = decodeURIComponent(cleaned);
+  } catch {
+    // ignore
+  }
+  cleaned = cleaned.replace(/[/?#].*$/, '');
+
+  // Meta fbclid is case-sensitive, alphanumeric with '-' and '_', at least 20-25 characters long
+  if (/^[A-Za-z0-9_-]{20,250}$/.test(cleaned)) {
+    return cleaned;
+  }
+  return null;
 };
 
 /**
@@ -20,26 +109,17 @@ const getRawCookie = (name: string): string | undefined => {
 export const resolveFbc = (currentUrl?: string): string | undefined => {
   if (typeof window === 'undefined') return undefined;
 
-  let urlFbclid: string | null = null;
-  try {
-    const url = currentUrl || window.location.href;
-    const parsed = new URL(url, window.location.origin);
-    urlFbclid = parsed.searchParams.get('fbclid');
-  } catch {
-    // URL parse fallback
-    const match = (currentUrl || window.location.search).match(/[?&]fbclid=([^&#]+)/);
-    if (match) urlFbclid = match[1];
-  }
+  const url = currentUrl || window.location.href;
+  const urlFbclid = extractCleanFbclid(url);
+  const existingCookieFbc = validateFbc(getRawCookie('_fbc'));
 
-  const existingCookieFbc = getRawCookie('_fbc');
-
-  // Case 1: Page URL contains fbclid query parameter
+  // Case 1: Page URL contains valid fbclid query parameter
   if (urlFbclid) {
     if (existingCookieFbc) {
       const parts = existingCookieFbc.split('.');
       const cookieFbclid = parts.slice(3).join('.');
       // If cookie already has this EXACT fbclid, preserve original creation timestamp
-      if (cookieFbclid === urlFbclid && /^fb\.[0-9]+\.[0-9]+\..+$/.test(existingCookieFbc)) {
+      if (cookieFbclid === urlFbclid) {
         return existingCookieFbc;
       }
     }
@@ -50,9 +130,7 @@ export const resolveFbc = (currentUrl?: string): string | undefined => {
 
     try {
       // Store in first-party cookie for subsequent pages (90 days)
-      const domain = window.location.hostname.replace(/^www\./, '');
-      const domainAttr = domain && domain !== 'localhost' ? `; domain=.${domain}` : '';
-      document.cookie = `_fbc=${freshFbc}; path=/; max-age=7776000; SameSite=Lax${domainAttr}`;
+      document.cookie = `_fbc=${freshFbc}; path=/; max-age=7776000; SameSite=Lax`;
       
       // Also save to sessionStorage/localStorage as backup for multi-page checkout
       sessionStorage.setItem('meta_fbc', freshFbc);
@@ -65,15 +143,16 @@ export const resolveFbc = (currentUrl?: string): string | undefined => {
   }
 
   // Case 2: Page URL does not have fbclid, check existing cookie
-  if (existingCookieFbc && /^fb\.[0-9]+\.[0-9]+\..+$/.test(existingCookieFbc)) {
+  if (existingCookieFbc) {
     return existingCookieFbc;
   }
 
   // Case 3: Check storage backup if cookie was lost during checkout navigation
   try {
     const storedFbc = sessionStorage.getItem('meta_fbc') || localStorage.getItem('meta_fbc');
-    if (storedFbc && /^fb\.[0-9]+\.[0-9]+\..+$/.test(storedFbc)) {
-      return storedFbc;
+    const validStored = validateFbc(storedFbc);
+    if (validStored) {
+      return validStored;
     }
   } catch {
     // Storage access fallback
@@ -89,10 +168,7 @@ export const resolveFbc = (currentUrl?: string): string | undefined => {
 export const resolveFbp = (): string | undefined => {
   if (typeof window === 'undefined') return undefined;
   const fbp = getRawCookie('_fbp');
-  if (fbp && /^fb\.[0-9]+\.[0-9]+\..+$/.test(fbp)) {
-    return fbp;
-  }
-  return undefined;
+  return validateFbp(fbp);
 };
 
 export interface CapiUserData {
