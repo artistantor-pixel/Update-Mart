@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, TrendingUp, DollarSign, Package, Plus, Edit2, Trash2, Truck, Layout, Activity, Layers, Wallet, Ticket, Shield, MessageSquare, Menu, X, ChevronRight, RefreshCw } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, TrendingUp, DollarSign, Package, Plus, Edit2, Trash2, Truck, Layout, Activity, Layers, Wallet, Ticket, Shield, MessageSquare, Menu, X, ChevronRight, RefreshCw, FolderTree } from 'lucide-react';
 import AddProductForm from '@/components/admin/AddProductForm';
 import OrderManagement from '@/components/admin/orders/OrderManagement';
 import HomepageEditor from '@/components/admin/homepage/HomepageEditor';
@@ -19,6 +19,7 @@ import DashboardOverview from '@/components/admin/dashboard/DashboardOverview';
 import MetaAdsDashboard from '@/components/admin/marketing/MetaAdsDashboard';
 import ProductDeliveryManager from '@/components/admin/delivery/ProductDeliveryManager';
 import OrderEmailSettings from '@/components/admin/settings/OrderEmailSettings';
+import BrandCategoryManager from '@/components/admin/brands-categories/BrandCategoryManager';
 import Login from '@/components/admin/auth/Login';
 import { useOrderStore } from '@/store/orderStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -26,6 +27,7 @@ import { useProductStore } from '@/store/productStore';
 import { useUserStore } from '@/store/userStore';
 import { useCourierStore } from '@/store/courierStore';
 import { useAccountingStore } from '@/store/accountingStore';
+import { useBrandCategoryStore } from '@/store/brandCategoryStore';
 import { useSession, signOut } from 'next-auth/react';
 import { setSupabaseToken } from '@/lib/supabase';
 
@@ -41,7 +43,10 @@ export default function AdminDashboard() {
   const resetUsers = useUserStore((state) => state.resetUsers);
   const fetchOrders = useOrderStore((state) => state.fetchOrders);
   const resetOrders = useOrderStore((state) => state.resetOrders);
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'customers' | 'support' | 'settings' | 'couriers' | 'delivery' | 'homepage' | 'marketing' | 'meta-ads' | 'accounting' | 'promotions' | 'users'>('overview');
+  const fetchCategories = useBrandCategoryStore((state) => state.fetchCategories);
+  const fetchBrands = useBrandCategoryStore((state) => state.fetchBrands);
+  const resetBrandCategory = useBrandCategoryStore((state) => state.resetData);
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'brands-categories' | 'customers' | 'support' | 'settings' | 'couriers' | 'delivery' | 'homepage' | 'marketing' | 'meta-ads' | 'accounting' | 'promotions' | 'users'>('overview');
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<import('@/store/productStore').Product | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -65,13 +70,15 @@ export default function AdminDashboard() {
         fetchOrders(),
         fetchCouriers(),
         fetchUsers(),
+        fetchCategories(),
+        fetchBrands(),
       ]);
     } catch (err) {
       console.error("Error refreshing admin data:", err);
     } finally {
       setIsRefreshing(false);
     }
-  }, [session, fetchSettings, fetchProducts, fetchOrders, fetchCouriers, fetchUsers]);
+  }, [session, fetchSettings, fetchProducts, fetchOrders, fetchCouriers, fetchUsers, fetchCategories, fetchBrands]);
 
   // Track previous authentication status and email to detect genuine login transitions
   const prevAuthStatusRef = useRef<string | null>(null);
@@ -97,6 +104,7 @@ export default function AdminDashboard() {
         resetSettings();
         resetCouriers();
         resetUsers();
+        resetBrandCategory();
       }
 
       // Automatically trigger a fresh network data fetch upon successful authentication / login
@@ -115,6 +123,7 @@ export default function AdminDashboard() {
       resetSettings();
       resetCouriers();
       resetUsers();
+      resetBrandCategory();
     }
   }, [
     session,
@@ -125,6 +134,7 @@ export default function AdminDashboard() {
     resetSettings,
     resetCouriers,
     resetUsers,
+    resetBrandCategory,
   ]);
 
   // Automatically sync dashboard data when tab is focused or returns from background
@@ -353,6 +363,14 @@ export default function AdminDashboard() {
                   <Layers size={18} /> Variant Maps
                 </button>
               )}
+              {hasAccess('products') && (
+                <button
+                  onClick={() => { setActiveTab('brands-categories'); setIsMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors text-sm ${activeTab === 'brands-categories' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
+                >
+                  <FolderTree size={18} /> Brands & Categories
+                </button>
+              )}
               {hasAccess('marketing') && (
                 <button
                   onClick={() => { setActiveTab('marketing'); setIsMobileMenuOpen(false); }}
@@ -490,6 +508,14 @@ export default function AdminDashboard() {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'variants' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
               <Layers size={20} /> Variant Maps
+            </button>
+          )}
+          {hasAccess('products') && (
+            <button
+              onClick={() => setActiveTab('brands-categories')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'brands-categories' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
+            >
+              <FolderTree size={20} /> Brands & Categories
             </button>
           )}
           {hasAccess('homepage') && (
@@ -726,6 +752,10 @@ export default function AdminDashboard() {
 
         {activeTab === 'variants' && (
           <VariantMapManager />
+        )}
+
+        {activeTab === 'brands-categories' && (
+          <BrandCategoryManager />
         )}
 
         {activeTab === 'orders' && (

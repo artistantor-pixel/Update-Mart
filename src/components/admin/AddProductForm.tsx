@@ -1,12 +1,13 @@
 "use client";
 
 import Image from 'next/image';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   UploadCloud, Plus, X, Tag, Image as ImageIcon, CheckCircle2, ChevronRight,
   Save, Info, DollarSign, Layers, FileText, Settings, Palette, Trash2
 } from 'lucide-react';
 import { useProductStore, Product, ProductColor, ProductVariant, ProductSpec } from '@/store/productStore';
+import { useBrandCategoryStore } from '@/store/brandCategoryStore';
 
 interface AddProductFormProps {
   onCancel: () => void;
@@ -16,6 +17,12 @@ interface AddProductFormProps {
 export default function AddProductForm({ onCancel, editProduct }: AddProductFormProps) {
   const isEdit = !!editProduct;
   const { addProduct, updateProduct } = useProductStore();
+  const { categories, brands, fetchCategories, fetchBrands } = useBrandCategoryStore();
+
+  useEffect(() => {
+    fetchCategories();
+    fetchBrands();
+  }, [fetchCategories, fetchBrands]);
 
   // Section 1: Basic Info
   const [title, setTitle] = useState(editProduct?.name || '');
@@ -237,18 +244,37 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Brand</label>
-                  <input type="text" placeholder="e.g. Nova" value={brand} onChange={e => setBrand(e.target.value)} className={inputCls} />
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Brand</label>
+                    <span className="text-xs text-slate-400">Select or type</span>
+                  </div>
+                  <input
+                    type="text"
+                    list="brand-options-list"
+                    placeholder="e.g. Nova"
+                    value={brand}
+                    onChange={e => setBrand(e.target.value)}
+                    className={inputCls}
+                  />
+                  <datalist id="brand-options-list">
+                    {brands.filter(b => b.is_active).map(b => (
+                      <option key={b.id} value={b.name} />
+                    ))}
+                  </datalist>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Category</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Category</label>
+                    <span className="text-xs text-slate-400">{categories.filter(c => c.is_active).length} available</span>
+                  </div>
                   <select value={category} onChange={e => setCategory(e.target.value)} className={inputCls}>
                     <option value="" disabled>Select category</option>
-                    <option value="Watches">Watches</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Accessories">Accessories</option>
-                    <option value="Bags">Bags</option>
-                    <option value="Smart Home">Smart Home</option>
+                    {categories.filter(c => c.is_active).map(cat => (
+                      <option key={cat.id} value={cat.name}>{cat.name}</option>
+                    ))}
+                    {category && !categories.some(c => c.name.toLowerCase() === category.toLowerCase()) && (
+                      <option value={category}>{category}</option>
+                    )}
                   </select>
                 </div>
               </div>
