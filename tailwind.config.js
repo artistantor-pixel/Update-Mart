@@ -20,6 +20,19 @@ export default {
         },
         accent: {
           500: '#f59e0b',
+        },
+        boyam: {
+          bg: '#FAF8F5',
+          card: '#FFFFFF',
+          stone: '#F4ECE4',
+          border: '#EAE2D8',
+          darkBorder: '#332B24',
+          text: '#2C231B',
+          muted: '#7A6F64',
+          amber: '#C57E3A',
+          amberDark: '#9C5B23',
+          honey: '#E9A648',
+          olive: '#5F6B48',
         }
       },
       fontFamily: {
