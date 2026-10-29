@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import type { Product } from '@/store/productStore';
 import type { HomepageContent } from '@/store/homepageStore';
+import { DEFAULT_BOYAM_SETTINGS, type BoyamPageSettings } from '@/store/boyamStore';
 
 const safeParse = (val: any) => {
   if (typeof val === 'string') {
@@ -334,11 +335,17 @@ export const DEFAULT_BOYAM_PRODUCTS: Product[] = [
     isLive: true,
     stock: 45,
     description: 'খাঁটি কাঠের ঘানির সরিষার তেলে কড়া করে ভাজা হাড় ছাড়া প্রিমিয়াম গরুর মাংস ও ঐতিহ্যবাহী মশলার নিখুঁত মিশ্রণে তৈরি বোয়াম স্পেশাল মাংসের আচার। কোনো কৃত্রিম প্রিজারভেটিভ বা রঙ নেই।',
+    variants: [
+      { name: 'Weight', value: '250g', price: '450', stock: '20' },
+      { name: 'Weight', value: '400g', price: '650', stock: '45' },
+      { name: 'Weight', value: '800g', price: '1250', stock: '15' },
+    ],
     specs: [
       { key: 'Weight', value: '400g' },
+      { key: 'উপকরণ (Ingredients)', value: 'হাড়ছাড়া গরুর মাংস, কাঠের ঘানির সরিষার তেল, আদা-রসুন বাটা, পাঁচফোড়ন, ভিনেগার, মরিচ ও খাঁটি মশলা' },
+      { key: 'সংরক্ষণ (Storage)', value: 'শুকনো স্থানে রাখুন, খোলার পর ফ্রিজে সংরক্ষণ করুন' },
+      { key: 'Shelf Life', value: '৬ মাস' },
       { key: 'Packaging', value: 'Airtight Food-Grade Glass Jar' },
-      { key: 'Shelf Life', value: '6 Months (Refrigerated after opening)' },
-      { key: 'Purity', value: '100% Homemade & Preservative Free' },
     ],
   },
   {
@@ -354,11 +361,17 @@ export const DEFAULT_BOYAM_PRODUCTS: Product[] = [
     isLive: true,
     stock: 60,
     description: 'সুন্দরবনের গভীর অরণ্যের বুনো মৌচাক থেকে সরাসরি সংগৃহীত ১০০% অপরিশোধিত কাঁচা মধু। কোনো তাপ বা চিনি ছাড়াই সম্পূর্ণ প্রাকৃতিক পরাগরেণু সমৃদ্ধ।',
+    variants: [
+      { name: 'Weight', value: '250g', price: '450', stock: '25' },
+      { name: 'Weight', value: '500g', price: '780', stock: '60' },
+      { name: 'Weight', value: '1kg', price: '1500', stock: '30' },
+    ],
     specs: [
       { key: 'Weight', value: '500g' },
-      { key: 'Source', value: 'Sundarbans Natural Wild Beehives' },
-      { key: 'Processing', value: 'Unfiltered, Unheated, 100% Raw' },
-      { key: 'Packaging', value: 'Glass Clamp Jar' },
+      { key: 'উপকরণ (Ingredients)', value: '১০০% সুন্দরবনের প্রাকৃতিক বুনো মৌচাকের কাঁচা মধু' },
+      { key: 'সংরক্ষণ (Storage)', value: 'সাধারণ তাপমাত্রায় বায়ুরোধী পাত্রে রাখুন (ফ্রিজে রাখার প্রয়োজন নেই)' },
+      { key: 'Shelf Life', value: 'প্রাকৃতিক মধু নষ্ট হয় না' },
+      { key: 'Packaging', value: 'Glass Clamp Jar with Wooden Dipper' },
     ],
   },
   {
@@ -374,10 +387,15 @@ export const DEFAULT_BOYAM_PRODUCTS: Product[] = [
     isLive: true,
     stock: 30,
     description: 'দেশি গরুর খাঁটি দুধের দই কাঠের মন্থন দিয়ে ঘুঁটে মাখন তৈরি করে ধীর আঁচে প্রস্তুত খাঁটি সুগন্ধি দানাদার বিলোনা ঘি। মুখে দিলেই ঐতিহ্যবাহী ঘ্রাণে মন জুড়াবে।',
+    variants: [
+      { name: 'Weight', value: '250g', price: '550', stock: '20' },
+      { name: 'Weight', value: '450g', price: '950', stock: '30' },
+      { name: 'Weight', value: '900g', price: '1850', stock: '10' },
+    ],
     specs: [
       { key: 'Weight', value: '450g' },
-      { key: 'Method', value: 'Traditional Ayurvedic Bilona Method' },
-      { key: 'Aroma', value: 'Rich, Golden & Naturally Granular' },
+      { key: 'উপকরণ (Ingredients)', value: 'দেশি গাভীর দুধের দইয়ের মন্থন মাখন (Bilona Churned)' },
+      { key: 'Shelf Life', value: '১ বছর' },
       { key: 'Packaging', value: 'Sealed Amber Glass Jar' },
     ],
   },
@@ -394,10 +412,15 @@ export const DEFAULT_BOYAM_PRODUCTS: Product[] = [
     isLive: true,
     stock: 55,
     description: 'দেশি আস্ত রসুনের কোয়া এবং সুগন্ধি কাঁচা মরিচ দিয়ে রোদে শুকিয়ে প্রস্তুত করা অতুলনীয় স্বাদের স্বাস্থ্যকর রসুন আচার। খাবারে রুচি বাড়াতে অতুলনীয়।',
+    variants: [
+      { name: 'Weight', value: '200g', price: '250', stock: '25' },
+      { name: 'Weight', value: '350g', price: '380', stock: '55' },
+      { name: 'Weight', value: '700g', price: '720', stock: '15' },
+    ],
     specs: [
       { key: 'Weight', value: '350g' },
-      { key: 'Base Oil', value: 'Pure Cold Pressed Mustard Oil' },
-      { key: 'Taste Profile', value: 'Tangy, Pungent & Spicy' },
+      { key: 'উপকরণ (Ingredients)', value: 'দেশি রসুন, কাঁচা মরিচ, সরিষার তেল, বিট লবণ, পাঁচফোড়ন' },
+      { key: 'Shelf Life', value: '৬ মাস' },
       { key: 'Packaging', value: 'Glass Jar' },
     ],
   },
@@ -414,10 +437,15 @@ export const DEFAULT_BOYAM_PRODUCTS: Product[] = [
     isLive: true,
     stock: 80,
     description: 'বাছাইকৃত দেশি মাঘী সরিষা থেকে কাঠের ঘানিতে ধীর গতিতে নিষ্কাশিত ১০০% আসল ঝাঁঝালো সরিষার তেল। রান্নায় ও ভর্তায় এনে দেয় আসল দেশীয় স্বাদ।',
+    variants: [
+      { name: 'Weight', value: '500ml', price: '230', stock: '40' },
+      { name: 'Weight', value: '1 Litre', price: '420', stock: '80' },
+      { name: 'Weight', value: '5 Litre', price: '1950', stock: '15' },
+    ],
     specs: [
       { key: 'Weight', value: '1 Litre' },
-      { key: 'Method', value: 'Traditional Wood Cold Pressed (কাঠের ঘানি)' },
-      { key: 'Purity', value: '100% Unrefined & Chemical Free' },
+      { key: 'উপকরণ (Ingredients)', value: '১০০% দেশি মাঘী সরিষা (Cold Pressed)' },
+      { key: 'Shelf Life', value: '১ বছর' },
       { key: 'Packaging', value: 'Heavy Duty Glass Bottle' },
     ],
   },
@@ -434,9 +462,14 @@ export const DEFAULT_BOYAM_PRODUCTS: Product[] = [
     isLive: true,
     stock: 40,
     description: 'খাঁটি গাওয়া ঘি ও কালোজিরার সুবাসে হাতে গড়া মুচমুচে কুড়মুড়ে নিমকি। বৈকালিক চা কিংবা পারিবারিক আড্ডার নিখুঁত সঙ্গী।',
+    variants: [
+      { name: 'Weight', value: '300g', price: '220', stock: '40' },
+      { name: 'Weight', value: '600g', price: '400', stock: '25' },
+    ],
     specs: [
       { key: 'Weight', value: '300g' },
-      { key: 'Taste', value: 'Crispy, Flaky with Black Cumin (কালোজিরা)' },
+      { key: 'উপকরণ (Ingredients)', value: 'ময়দা, কালোজিরা, গাওয়া ঘি, লবণ, খাঁটি তেল' },
+      { key: 'Shelf Life', value: '৪৫ দিন' },
       { key: 'Packaging', value: 'Vacuum Sealed Freshness Jar' },
     ],
   },
@@ -453,9 +486,15 @@ export const DEFAULT_BOYAM_PRODUCTS: Product[] = [
     isLive: true,
     stock: 65,
     description: 'মায়ের হাতের চিরচেনা রেসিপিতে রোদে শুকানো কাঁচা আমের টুকরো ও পাঁচফোড়নের স্বাদে তৈরি জিভে জল আনা টক-মিষ্টি আমের আচার।',
+    variants: [
+      { name: 'Weight', value: '250g', price: '240', stock: '30' },
+      { name: 'Weight', value: '400g', price: '350', stock: '65' },
+      { name: 'Weight', value: '800g', price: '650', stock: '20' },
+    ],
     specs: [
       { key: 'Weight', value: '400g' },
-      { key: 'Flavor', value: 'Tangy, Sweet & Spiced' },
+      { key: 'উপকরণ (Ingredients)', value: 'দেশি কাঁচা আম, সরিষার তেল, গুড়, পাঁচফোড়ন, শুকনা মরিচ' },
+      { key: 'Shelf Life', value: '৬ মাস' },
       { key: 'Packaging', value: 'Traditional Wide-Mouth Glass Jar' },
     ],
   },
@@ -472,9 +511,15 @@ export const DEFAULT_BOYAM_PRODUCTS: Product[] = [
     isLive: true,
     stock: 35,
     description: 'কালোজিরা ফুলের প্রাকৃতিক নেকটার থেকে সংগৃহীত গাড় লালচে-বাদামি রঙের বিশেষ ঔষধি গুণসম্পন্ন অপরিশোধিত মধু।',
+    variants: [
+      { name: 'Weight', value: '250g', price: '480', stock: '15' },
+      { name: 'Weight', value: '500g', price: '850', stock: '35' },
+      { name: 'Weight', value: '1kg', price: '1650', stock: '10' },
+    ],
     specs: [
       { key: 'Weight', value: '500g' },
-      { key: 'Flower', value: 'Black Seed (Nigella Sativa) Blossom' },
+      { key: 'উপকরণ (Ingredients)', value: 'কালোজিরা ফুলের প্রাকৃতিক নেকটার মধু' },
+      { key: 'Shelf Life', value: 'প্রাকৃতিক মধু নষ্ট হয় না' },
       { key: 'Packaging', value: 'Glass Jar with Wooden Dipper' },
     ],
   },
@@ -520,4 +565,25 @@ export async function getBoyamProducts(): Promise<Product[]> {
   }
 
   return DEFAULT_BOYAM_PRODUCTS;
+}
+
+/**
+ * Fetch dynamic Boyam page settings (Hero, Categories, Trust items, SEO) on server.
+ */
+export async function getBoyamPageSettings(): Promise<BoyamPageSettings> {
+  try {
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('value')
+      .eq('id', 'boyam_page_settings')
+      .single();
+
+    if (!error && data && data.value) {
+      return { ...DEFAULT_BOYAM_SETTINGS, ...data.value };
+    }
+  } catch (err) {
+    console.error('Failed to get boyam settings on server:', err);
+  }
+
+  return DEFAULT_BOYAM_SETTINGS;
 }

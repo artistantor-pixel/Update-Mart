@@ -2,29 +2,33 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import type { BoyamCategoryItem } from '@/store/boyamStore';
 
-/** Categories available for the Boyam brand filter. */
-const BOYAM_CATEGORIES = [
+const DEFAULT_CATEGORIES: BoyamCategoryItem[] = [
   { id: 'all', label: 'সকল পণ্য', labelEn: 'All' },
   { id: 'Pickles', label: 'আচার', labelEn: 'Pickles' },
   { id: 'Honey', label: 'মধু', labelEn: 'Honey' },
   { id: 'Ghee', label: 'ঘি', labelEn: 'Ghee' },
   { id: 'Oils', label: 'তেল', labelEn: 'Oils' },
   { id: 'Snacks', label: 'নাস্তা', labelEn: 'Snacks' },
-] as const;
+];
 
 interface BoyamCategoryFilterProps {
   activeCategory: string;
   onCategoryChange: (category: string) => void;
+  categories?: BoyamCategoryItem[];
 }
 
 export default function BoyamCategoryFilter({
   activeCategory,
   onCategoryChange,
+  categories = DEFAULT_CATEGORIES,
 }: BoyamCategoryFilterProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showLeft, setShowLeft] = useState(false);
   const [showRight, setShowRight] = useState(false);
+
+  const activeCategoriesList = categories && categories.length > 0 ? categories : DEFAULT_CATEGORIES;
 
   const checkScroll = () => {
     const el = scrollRef.current;
@@ -72,7 +76,7 @@ export default function BoyamCategoryFilter({
           className="flex items-center gap-2 overflow-x-auto scrollbar-hide scroll-smooth px-1"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {BOYAM_CATEGORIES.map((cat) => {
+          {activeCategoriesList.map((cat) => {
             const isActive = activeCategory === cat.id;
             return (
               <button
@@ -90,7 +94,9 @@ export default function BoyamCategoryFilter({
               >
                 <span className="block sm:hidden">{cat.label}</span>
                 <span className="hidden sm:inline">{cat.label}</span>
-                <span className="hidden sm:inline text-[10px] ml-1 opacity-60">({cat.labelEn})</span>
+                {cat.labelEn && (
+                  <span className="hidden sm:inline text-[10px] ml-1 opacity-60">({cat.labelEn})</span>
+                )}
               </button>
             );
           })}
@@ -110,4 +116,3 @@ export default function BoyamCategoryFilter({
     </div>
   );
 }
-

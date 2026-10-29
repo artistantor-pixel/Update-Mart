@@ -1,38 +1,70 @@
 import React from 'react';
-import { ShieldCheck, Leaf, FlaskConical, HeartHandshake } from 'lucide-react';
+import {
+  ShieldCheck,
+  Leaf,
+  FlaskConical,
+  HeartHandshake,
+  Award,
+  Sparkles,
+  CheckCircle,
+  Truck,
+  type LucideIcon,
+} from 'lucide-react';
+import type { BoyamTrustItem } from '@/store/boyamStore';
 
-const TRUST_ITEMS = [
+const ICON_MAP: Record<string, LucideIcon> = {
+  ShieldCheck,
+  Leaf,
+  FlaskConical,
+  HeartHandshake,
+  Award,
+  Sparkles,
+  CheckCircle,
+  Truck,
+};
+
+const DEFAULT_TRUST_ITEMS: BoyamTrustItem[] = [
   {
-    icon: ShieldCheck,
+    id: 't-1',
+    icon: 'ShieldCheck',
     title: '১০০% ঘরে তৈরি',
     titleEn: 'Homemade',
-    desc: 'প্রতিটি পণ্য ঘরোয়া পরিবেশে হাতে তৈরি — কারখানায় নয়।',
+    desc: 'প্রতিটি পণ্য ঘরোয়া পরিবেশে পরিচ্ছন্নভাবে প্রস্তুত — কারখানায় নয়।',
   },
   {
-    icon: Leaf,
+    id: 't-2',
+    icon: 'Leaf',
     title: 'সম্পূর্ণ প্রাকৃতিক',
     titleEn: 'Organic',
-    desc: 'সরাসরি কৃষকের কাছ থেকে সংগৃহীত বিশুদ্ধ কাঁচামাল ব্যবহৃত।',
+    desc: 'সরাসরি কৃষকের কাছ থেকে সংগৃহীত খাঁটি উপাদান ও কাঠের ঘানির সরিষার তেল।',
   },
   {
-    icon: FlaskConical,
+    id: 't-3',
+    icon: 'FlaskConical',
     title: 'প্রিজারভেটিভ মুক্ত',
     titleEn: 'Preservative-Free',
-    desc: 'কোনো কৃত্রিম রঙ, রাসায়নিক বা প্রিজারভেটিভ যোগ করা হয় না।',
+    desc: 'কোনো কৃত্রিম রঙ, ক্ষতিকর রাসায়নিক বা প্রিজারভেটিভ ব্যবহার করা হয় না।',
   },
   {
-    icon: HeartHandshake,
+    id: 't-4',
+    icon: 'HeartHandshake',
     title: 'ছোট ব্যাচে রান্না',
     titleEn: 'Small-Batch',
-    desc: 'মানের সাথে কোনো আপোষ নেই — ধীর আঁচে অল্প পরিমাণে প্রস্তুত।',
+    desc: 'মানের সাথে আপোষহীন — প্রতিটি বোয়াম পরম যত্ন ও ভালোবাসায় প্রস্তুত।',
   },
-] as const;
+];
+
+interface BoyamTrustBannerProps {
+  items?: BoyamTrustItem[];
+}
 
 /**
  * Trust & Authenticity Banner — a beautifully typography-driven section
  * reinforcing the Boyam brand promise at the bottom of the landing page.
  */
-export default function BoyamTrustBanner() {
+export default function BoyamTrustBanner({ items = DEFAULT_TRUST_ITEMS }: BoyamTrustBannerProps) {
+  const activeItems = items && items.length > 0 ? items : DEFAULT_TRUST_ITEMS;
+
   return (
     <section className="relative bg-gradient-to-b from-[#FAF8F5] to-[#F2EBE1] dark:from-[#141110] dark:to-[#1A1613]">
       {/* Accent Line */}
@@ -57,11 +89,11 @@ export default function BoyamTrustBanner() {
 
         {/* Trust Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-          {TRUST_ITEMS.map((item) => {
-            const Icon = item.icon;
+          {activeItems.map((item) => {
+            const Icon = ICON_MAP[item.icon] || ShieldCheck;
             return (
               <div
-                key={item.titleEn}
+                key={item.id || item.titleEn}
                 className="group relative flex flex-col items-center text-center p-6 sm:p-8 rounded-2xl bg-white/70 dark:bg-[#1F1A16]/70 backdrop-blur-sm border border-[#ECE5DD] dark:border-[#2A221C] hover:border-[#C57E3A]/30 transition-all duration-300 hover:shadow-lg hover:shadow-[#C57E3A]/5"
               >
                 {/* Icon */}
@@ -73,9 +105,11 @@ export default function BoyamTrustBanner() {
                 <h3 className="font-serif font-bold text-base sm:text-lg text-[#2C231B] dark:text-[#F5EDE4] mb-1.5 tracking-tight">
                   {item.title}
                 </h3>
-                <span className="text-[10px] uppercase tracking-widest text-[#A6976F] dark:text-[#776A5A] font-medium mb-3">
-                  {item.titleEn}
-                </span>
+                {item.titleEn && (
+                  <span className="text-[10px] uppercase tracking-widest text-[#A6976F] dark:text-[#776A5A] font-medium mb-3">
+                    {item.titleEn}
+                  </span>
+                )}
 
                 {/* Description */}
                 <p className="text-xs sm:text-sm text-[#7A6F64] dark:text-[#A89888] leading-relaxed">
@@ -96,4 +130,3 @@ export default function BoyamTrustBanner() {
     </section>
   );
 }
-

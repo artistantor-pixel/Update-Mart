@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import type { Product } from '@/store/productStore';
+import type { BoyamPageSettings } from '@/store/boyamStore';
 import BoyamHero from '@/components/boyam/BoyamHero';
 import BoyamCategoryFilter from '@/components/boyam/BoyamCategoryFilter';
 import BoyamProductCard from '@/components/boyam/BoyamProductCard';
@@ -10,13 +11,14 @@ import { Package } from 'lucide-react';
 
 interface BoyamPageClientProps {
   products: Product[];
+  settings?: BoyamPageSettings;
 }
 
 /**
  * Client-side Boyam landing page — handles category filtering,
- * product grid rendering, and interactive add-to-cart.
+ * product grid rendering, dynamic page settings, and interactive add-to-cart.
  */
-export default function BoyamPageClient({ products }: BoyamPageClientProps) {
+export default function BoyamPageClient({ products, settings }: BoyamPageClientProps) {
   const [activeCategory, setActiveCategory] = useState<string>('all');
 
   const filteredProducts = useMemo(() => {
@@ -26,15 +28,25 @@ export default function BoyamPageClient({ products }: BoyamPageClientProps) {
     );
   }, [products, activeCategory]);
 
+  // Find human-readable label for selected category
+  const activeCategoryLabel = useMemo(() => {
+    if (activeCategory === 'all') return 'সকল বোয়াম পণ্য';
+    const found = settings?.categories?.find(
+      (c) => c.id.toLowerCase() === activeCategory.toLowerCase()
+    );
+    return found ? `${found.label} (${found.labelEn})` : activeCategory;
+  }, [activeCategory, settings?.categories]);
+
   return (
     <div className="min-h-screen bg-[#FAF8F5] dark:bg-[#0E0C0A]">
-      {/* Hero Banner */}
-      <BoyamHero />
+      {/* Dynamic Hero Banner */}
+      <BoyamHero settings={settings?.hero} />
 
       {/* Sticky Category Filter */}
       <BoyamCategoryFilter
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
+        categories={settings?.categories}
       />
 
       {/* Product Grid Section */}
@@ -43,9 +55,7 @@ export default function BoyamPageClient({ products }: BoyamPageClientProps) {
         <div className="flex items-center justify-between mb-8 sm:mb-10">
           <div>
             <h2 className="font-serif text-xl sm:text-2xl md:text-3xl font-bold text-[#2C231B] dark:text-[#F5EDE4] tracking-tight">
-              {activeCategory === 'all'
-                ? 'সকল বোয়াম পণ্য'
-                : `${activeCategory}`}
+              {activeCategoryLabel}
             </h2>
             <p className="mt-1 text-xs sm:text-sm text-[#9C8E80] dark:text-[#897B6D]">
               {filteredProducts.length}টি পণ্য পাওয়া গেছে
@@ -87,8 +97,7 @@ export default function BoyamPageClient({ products }: BoyamPageClientProps) {
       </section>
 
       {/* Trust & Authenticity Banner */}
-      <BoyamTrustBanner />
+      <BoyamTrustBanner items={settings?.trustItems} />
     </div>
   );
 }
-

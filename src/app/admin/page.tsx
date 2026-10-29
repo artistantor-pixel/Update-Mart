@@ -3,10 +3,11 @@
 import Image from 'next/image';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, TrendingUp, DollarSign, Package, Plus, Edit2, Trash2, Truck, Layout, Activity, Layers, Wallet, Ticket, Shield, MessageSquare, Menu, X, ChevronRight, RefreshCw, FolderTree } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Settings, LogOut, TrendingUp, DollarSign, Package, Plus, Edit2, Trash2, Truck, Layout, Activity, Layers, Wallet, Ticket, Shield, MessageSquare, Menu, X, ChevronRight, RefreshCw, FolderTree, Leaf } from 'lucide-react';
 import AddProductForm from '@/components/admin/AddProductForm';
 import OrderManagement from '@/components/admin/orders/OrderManagement';
 import HomepageEditor from '@/components/admin/homepage/HomepageEditor';
+import BoyamPageEditor from '@/components/admin/boyam/BoyamPageEditor';
 import CourierManagement from '@/components/admin/couriers/CourierManagement';
 import LandingPageManager from '@/components/admin/marketing/LandingPageManager';
 import VariantMapManager from '@/components/admin/variants/VariantMapManager';
@@ -46,7 +47,7 @@ export default function AdminDashboard() {
   const fetchCategories = useBrandCategoryStore((state) => state.fetchCategories);
   const fetchBrands = useBrandCategoryStore((state) => state.fetchBrands);
   const resetBrandCategory = useBrandCategoryStore((state) => state.resetData);
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'brands-categories' | 'customers' | 'support' | 'settings' | 'couriers' | 'delivery' | 'homepage' | 'marketing' | 'meta-ads' | 'accounting' | 'promotions' | 'users'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'products' | 'variants' | 'brands-categories' | 'customers' | 'support' | 'settings' | 'couriers' | 'delivery' | 'homepage' | 'boyam' | 'marketing' | 'meta-ads' | 'accounting' | 'promotions' | 'users'>('overview');
   const [isAddingProduct, setIsAddingProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<import('@/store/productStore').Product | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -188,11 +189,11 @@ export default function AdminDashboard() {
     if (role === 'Super Admin') return true;
 
     if (role === 'Manager') {
-      return ['overview', 'orders', 'products', 'variants', 'customers', 'support', 'couriers', 'delivery', 'meta-ads'].includes(tab);
+      return ['overview', 'orders', 'products', 'variants', 'customers', 'support', 'couriers', 'delivery', 'meta-ads', 'boyam'].includes(tab);
     }
 
     if (role === 'Editor') {
-      return ['homepage', 'marketing', 'promotions', 'products', 'delivery', 'meta-ads'].includes(tab);
+      return ['homepage', 'boyam', 'marketing', 'promotions', 'products', 'delivery', 'meta-ads'].includes(tab);
     }
 
     if (role === 'Accountant') {
@@ -398,6 +399,14 @@ export default function AdminDashboard() {
                   <Layout size={18} /> Homepage Editor
                 </button>
               )}
+              {hasAccess('boyam') && (
+                <button
+                  onClick={() => { setActiveTab('boyam'); setIsMobileMenuOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-colors text-sm ${activeTab === 'boyam' ? 'bg-amber-50 text-amber-800 dark:bg-amber-500/15 dark:text-amber-400 font-bold' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
+                >
+                  <Leaf size={18} className={activeTab === 'boyam' ? 'text-amber-600' : 'text-slate-400'} /> Boyam Page
+                </button>
+              )}
               {hasAccess('couriers') && (
                 <button
                   onClick={() => { setActiveTab('couriers'); setIsMobileMenuOpen(false); }}
@@ -524,6 +533,14 @@ export default function AdminDashboard() {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'homepage' ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
             >
               <Layout size={20} /> Homepage
+            </button>
+          )}
+          {hasAccess('boyam') && (
+            <button
+              onClick={() => setActiveTab('boyam')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${activeTab === 'boyam' ? 'bg-amber-50 text-amber-800 dark:bg-amber-500/15 dark:text-amber-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-dark-700'}`}
+            >
+              <Leaf size={20} className={activeTab === 'boyam' ? 'text-amber-600' : 'text-slate-400'} /> Boyam Page
             </button>
           )}
           {hasAccess('orders') && (
@@ -966,6 +983,10 @@ export default function AdminDashboard() {
 
         {activeTab === 'homepage' && (
           <HomepageEditor />
+        )}
+
+        {activeTab === 'boyam' && (
+          <BoyamPageEditor />
         )}
 
         {activeTab === 'marketing' && (

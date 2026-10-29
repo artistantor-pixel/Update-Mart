@@ -4,9 +4,9 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag, Zap, Check, Star, Plus, Minus } from 'lucide-react';
+import { ShoppingBag, Zap, Check, Star, Plus, Minus, ShieldCheck } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
-import type { Product } from '@/store/productStore';
+import type { Product, ProductVariant } from '@/store/productStore';
 import * as gtm from '@/lib/gtm';
 import * as fpixel from '@/lib/fpixel';
 
@@ -42,21 +42,43 @@ function extractWeight(product: Product): string {
 export default function BoyamProductCard({ product, priority = false }: BoyamProductCardProps) {
   const router = useRouter();
   const addItem = useCartStore((state) => state.addItem);
-  
+
+  // Extract weight/size variants if present
+  const weightVariants: ProductVariant[] = (product.variants || []).filter(
+    (v) =>
+      v.name?.toLowerCase() === 'weight' ||
+      v.name?.toLowerCase() === 'size' ||
+      /\d+\s*(?:g|gm|kg|ml|ltr|লিটার|গ্রাম)/i.test(v.value)
+  );
+
+  const [selectedVariantIdx, setSelectedVariantIdx] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
 
-  const weight = extractWeight(product);
+  // Dynamic price & weight based on variant selection
+  const activeVariant = weightVariants[selectedVariantIdx] || null;
+  const currentPrice = activeVariant?.price ? Number(activeVariant.price) : product.price;
+  const currentWeight = activeVariant?.value || extractWeight(product);
+
   const discount =
-    product.regularPrice && product.regularPrice > product.price
-      ? Math.round(((product.regularPrice - product.price) / product.regularPrice) * 100)
+    product.regularPrice && product.regularPrice > currentPrice
+      ? Math.round(((product.regularPrice - currentPrice) / product.regularPrice) * 100)
       : null;
+
+  // Key food specs summary (e.g. shelf life or ingredients)
+  const shelfLifeSpec = product.specs?.find((s) => /shelf|মেয়াদ|লাইফ/i.test(s.key))?.value;
 
   const handleQuantityChange = (delta: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setQuantity((prev) => Math.max(1, prev + delta));
+  };
+
+  const handleVariantSelect = (idx: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedVariantIdx(idx);
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -66,10 +88,10 @@ export default function BoyamProductCard({ product, priority = false }: BoyamPro
     addItem({
       productId: product.id,
       name: product.name,
-      price: product.price,
+      price: currentPrice,
       image: product.image,
       quantity,
-      variant: weight,
+      variant: currentWeight,
       isFreeDelivery: product.isFreeDelivery,
       customDeliveryCharge: product.customDeliveryCharge,
     });
@@ -79,19 +101,19 @@ export default function BoyamProductCard({ product, priority = false }: BoyamPro
       content_name: product.name,
       content_ids: [product.id],
       content_type: 'product',
-      value: product.price * quantity,
+      value: currentPrice * quantity,
       currency: 'BDT',
     });
     gtm.trackAddToCart(
       {
         id: product.id,
         name: product.name,
-        price: product.price,
+        price: currentPrice,
         category: product.category || 'Food & Gourmet',
         brand: 'Boyam',
       },
       quantity,
-      weight
+      currentWeight
     );
 
     // Frictionless in-place visual feedback
@@ -107,10 +129,10 @@ export default function BoyamProductCard({ product, priority = false }: BoyamPro
     addItem({
       productId: product.id,
       name: product.name,
-      price: product.price,
+      price: currentPrice,
       image: product.image,
       quantity,
-      variant: weight,
+      variant: currentWeight,
       isFreeDelivery: product.isFreeDelivery,
       customDeliveryCharge: product.customDeliveryCharge,
     });
@@ -119,7 +141,7 @@ export default function BoyamProductCard({ product, priority = false }: BoyamPro
       content_name: product.name,
       content_ids: [product.id],
       content_type: 'product',
-      value: product.price * quantity,
+      value: currentPrice * quantity,
       currency: 'BDT',
     });
 
@@ -133,14 +155,18 @@ export default function BoyamProductCard({ product, priority = false }: BoyamPro
         {/* Top Badges */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10 pointer-events-none">
           {/* Weight Badge */}
-          <span className="inline-flex items-center gap-1 bg-white/90 dark:bg-[#1A1613]/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-semibold text-[#5A4839] dark:text-[#E2D5C8] border border-[#E8DFD4] dark:border-[#382E25] shadow-xs">
-            {weight}
+          <span className="inline-flex items-center gap-1 bg-white/95 dark:bg-[#1A1613]/95 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-semibold text-[#5A4839] dark:text-[#E2D5C8] border border-[#E8DFD4] dark:border-[#382E25] shadow-xs">
+            {currentWeight}
           </span>
 
           {/* Discount Badge */}
-          {discount && discount > 0 && (
+          {discount && discount > 0 ? (
             <span className="bg-[#9C5B23] text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-xs tracking-tight">
               -{discount}%
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 bg-[#5F6B48]/10 text-[#5F6B48] dark:text-[#9FB182] text-[10px] font-semibold px-2 py-0.5 rounded-full">
+              <ShieldCheck className="w-3 h-3" /> খাঁটি
             </span>
           )}
         </div>
@@ -180,21 +206,62 @@ export default function BoyamProductCard({ product, priority = false }: BoyamPro
           </h3>
         </Link>
 
+        {/* Weight Variant Selector (if variants exist) */}
+        {weightVariants.length > 0 && (
+          <div className="mb-3">
+            <span className="text-[11px] font-medium text-[#7C6F63] dark:text-[#9E9082] block mb-1.5">
+              সাইজ / ওজন নির্বাচন করুন:
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {weightVariants.map((v, idx) => {
+                const isSelected = selectedVariantIdx === idx;
+                return (
+                  <button
+                    key={`${v.value}-${idx}`}
+                    type="button"
+                    onClick={(e) => handleVariantSelect(idx, e)}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all ${
+                      isSelected
+                        ? 'bg-[#9C5B23] text-white shadow-xs font-semibold scale-[1.02]'
+                        : 'bg-[#F5EFE6] dark:bg-[#251F19] text-[#5A4839] dark:text-[#D5C7B8] border border-[#E6DFD4] dark:border-[#382E25] hover:border-[#9C5B23]/40'
+                    }`}
+                  >
+                    {v.value}
+                    {v.price && (
+                      <span className="ml-1 opacity-80 text-[10px]">
+                        ৳{Number(v.price).toLocaleString()}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Shelf Life / Freshness Tag */}
+        {shelfLifeSpec && (
+          <div className="text-[11px] text-[#7A6F64] dark:text-[#A89888] mb-2 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#5F6B48]" />
+            <span>শেল্ফ লাইফ: {shelfLifeSpec}</span>
+          </div>
+        )}
+
         {/* Price & Savings */}
         <div className="mt-auto pt-2 pb-3">
           <div className="flex items-baseline gap-2">
             <span className="text-xl sm:text-2xl font-bold text-[#1F1914] dark:text-[#FAF6F0] tracking-tight">
-              ৳{product.price.toLocaleString()}
+              ৳{currentPrice.toLocaleString()}
             </span>
-            {product.regularPrice && product.regularPrice > product.price && (
+            {product.regularPrice && product.regularPrice > currentPrice && (
               <span className="text-xs sm:text-sm text-[#9C8F82] line-through font-normal">
                 ৳{product.regularPrice.toLocaleString()}
               </span>
             )}
           </div>
-          {product.regularPrice && product.regularPrice > product.price && (
+          {product.regularPrice && product.regularPrice > currentPrice && (
             <p className="text-[11px] text-[#2F6F3E] dark:text-[#52B768] font-medium mt-0.5">
-              সাশ্রয় ৳{(product.regularPrice - product.price).toLocaleString()}
+              সাশ্রয় ৳{(product.regularPrice - currentPrice).toLocaleString()}
             </p>
           )}
         </div>
@@ -266,4 +333,3 @@ export default function BoyamProductCard({ product, priority = false }: BoyamPro
     </div>
   );
 }
-

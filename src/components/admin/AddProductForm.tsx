@@ -142,12 +142,37 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
   };
   const removeVariant = (i: number) => setVariants(variants.filter((_, idx) => idx !== i));
 
+  const addWeightVariantsTemplate = () => {
+    const existingValues = new Set(variants.map(v => v.value.toLowerCase()));
+    const templates: ProductVariant[] = [
+      { name: 'Weight', value: '250g', price: '', stock: '50' },
+      { name: 'Weight', value: '500g', price: '', stock: '50' },
+      { name: 'Weight', value: '1kg', price: '', stock: '30' },
+    ];
+    const newItems = templates.filter(t => !existingValues.has(t.value.toLowerCase()));
+    setVariants([...variants, ...newItems]);
+  };
+
   // --- Specs ---
   const addSpec = () => setSpecs([...specs, { key: '', value: '' }]);
   const updateSpec = (i: number, field: 'key' | 'value', val: string) => {
     setSpecs(specs.map((s, idx) => idx === i ? { ...s, [field]: val } : s));
   };
   const removeSpec = (i: number) => setSpecs(specs.filter((_, idx) => idx !== i));
+
+  const addFoodSpecsTemplate = () => {
+    const existingKeys = new Set(specs.map(s => s.key.trim().toLowerCase()));
+    const templates: ProductSpec[] = [
+      { key: 'উপকরণ (Ingredients)', value: '' },
+      { key: 'পরিমাণ/ওজন (Net Weight)', value: '' },
+      { key: 'সংরক্ষণ পদ্ধতি (Storage)', value: 'শুকনো ও ঠান্ডা স্থানে রাখুন' },
+      { key: 'শেল্ফ লাইফ (Shelf Life)', value: '৬ মাস' },
+      { key: 'প্যাকেজিং (Packaging)', value: 'ফুড-গ্রেড কাঁচের বোয়াম' },
+      { key: 'অ্যালার্জেন (Allergens)', value: 'সরিষা থাকতে পারে' },
+    ];
+    const newItems = templates.filter(t => !existingKeys.has(t.key.toLowerCase()));
+    setSpecs([...specs, ...newItems]);
+  };
 
   // --- Save ---
   const handleSave = () => {
@@ -394,9 +419,18 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
                 <div className="p-2 bg-orange-50 dark:bg-orange-500/10 text-orange-500 rounded-lg"><Layers size={20} /></div>
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">Dynamic Variants</h2>
               </div>
-              <button onClick={addVariant} className="text-primary-500 hover:text-primary-600 font-medium text-sm flex items-center gap-1 bg-primary-50 dark:bg-primary-500/10 px-3 py-1.5 rounded-lg">
-                <Plus size={16} /> Add Variant
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={addWeightVariantsTemplate}
+                  className="text-amber-700 dark:text-amber-400 hover:text-amber-800 text-xs font-medium flex items-center gap-1 bg-amber-50 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/20 px-2.5 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800/40 transition-colors"
+                >
+                  <Plus size={13} /> Weight Pack (250g, 500g, 1kg)
+                </button>
+                <button onClick={addVariant} className="text-primary-500 hover:text-primary-600 font-medium text-sm flex items-center gap-1 bg-primary-50 dark:bg-primary-500/10 px-3 py-1.5 rounded-lg">
+                  <Plus size={16} /> Add Variant
+                </button>
+              </div>
             </div>
             {variants.length === 0 ? (
               <p className="text-slate-500 text-sm text-center py-6 bg-slate-50 dark:bg-dark-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">No variants added yet.</p>
@@ -406,7 +440,7 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
                   <div key={i} className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-start bg-slate-50 dark:bg-dark-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 relative group">
                     <button onClick={() => removeVariant(i)} className="absolute -top-2 -right-2 bg-red-100 text-red-500 hover:bg-red-500 hover:text-white p-1 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all shadow-sm"><X size={14} /></button>
                     <select value={v.name} onChange={e => updateVariant(i, 'name', e.target.value)} className="w-full sm:w-1/4 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white">
-                      <option>Color</option><option>Size</option><option>Material</option>
+                      <option>Color</option><option>Size</option><option>Material</option><option>Weight</option>
                     </select>
                     <input type="text" placeholder="Value (e.g. Black)" value={v.value} onChange={e => updateVariant(i, 'value', e.target.value)} className="w-full sm:w-1/4 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white" />
                     <input type="number" placeholder="Price override" value={v.price} onChange={e => updateVariant(i, 'price', e.target.value)} className="w-full sm:w-1/4 bg-white dark:bg-dark-800 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 text-slate-900 dark:text-white" />
@@ -429,9 +463,18 @@ export default function AddProductForm({ onCancel, editProduct }: AddProductForm
                 <textarea rows={4} value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the product..." className={`${inputCls} resize-none`} />
               </div>
               <div>
-                <div className="flex justify-between items-center mb-2">
+                <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Technical Specs (Key-Value)</label>
-                  <button onClick={addSpec} className="text-primary-500 hover:text-primary-600 text-xs font-medium flex items-center gap-1"><Plus size={14} /> Add Row</button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={addFoodSpecsTemplate}
+                      className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 text-xs font-medium flex items-center gap-1 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800/40 transition-colors"
+                    >
+                      <Plus size={13} /> Food Specs Template
+                    </button>
+                    <button onClick={addSpec} className="text-primary-500 hover:text-primary-600 text-xs font-medium flex items-center gap-1"><Plus size={14} /> Add Row</button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   {specs.map((spec, i) => (
