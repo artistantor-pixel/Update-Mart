@@ -656,13 +656,12 @@ export async function getProductsByCategory(
 
   // 2. Query products from Supabase
   try {
-    // Search by category ILIKE matching categoryName OR slug
     const { data, error } = await supabase
       .from('products')
       .select(
         'id, name, price, regular_price, image, rating, category, brand, is_new, is_live, stock, colors, variants, description, specs, isFreeDelivery, customDeliveryCharge'
       )
-      .or('is_live.eq.true,is_live.is.null')
+      .neq('is_live', false)
       .or(`category.ilike.%${categoryName}%,category.ilike.%${normalizedSlug}%`)
       .order('created_at', { ascending: false });
 
@@ -693,18 +692,21 @@ export async function getProductsByCategory(
     console.error(`Error querying products for category ${categoryName}:`, err);
   }
 
-  // 3. Fallback: Filter from INITIAL_PRODUCTS
-  const fallbackFiltered = INITIAL_PRODUCTS.filter((p) => {
-    const cat = (p.category || '').toLowerCase();
-    return (
-      cat.includes(normalizedSlug) ||
-      cat.includes(categoryName.toLowerCase()) ||
-      normalizedSlug.includes(cat)
-    );
-  });
+  // 3. Fallback: Only for default seed categories when DB has no items yet
+  const isSeedCategory = ['watches', 'electronics', 'accessories', 'bags', 'smart-home'].includes(normalizedSlug);
+  const fallbackFiltered = isSeedCategory
+    ? INITIAL_PRODUCTS.filter((p) => {
+        const cat = (p.category || '').toLowerCase();
+        return (
+          cat.includes(normalizedSlug) ||
+          cat.includes(categoryName.toLowerCase()) ||
+          normalizedSlug.includes(cat)
+        );
+      })
+    : [];
 
   return {
     categoryName,
-    products: fallbackFiltered.length > 0 ? fallbackFiltered : INITIAL_PRODUCTS.slice(0, 4),
+    products: fallbackFiltered,
   };
 }

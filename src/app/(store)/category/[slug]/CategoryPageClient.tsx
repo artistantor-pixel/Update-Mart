@@ -696,3 +696,4 @@ export default function CategoryPageClient({
     </div>
   );
 }
+

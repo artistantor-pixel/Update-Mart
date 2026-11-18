@@ -19,6 +19,15 @@ interface CategoryPillNavProps {
 }
 
 // Icon helper for common category names
+const DEFAULT_CATEGORY_IMAGES: Record<string, string> = {
+  watches: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=300&q=80',
+  electronics: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=300&q=80',
+  accessories: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=300&q=80',
+  bags: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=300&q=80',
+  'smart-home': 'https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=300&q=80',
+  'art-materials': 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=300&q=80',
+};
+
 const getCategoryIcon = (name: string) => {
   const lower = name.toLowerCase();
   if (lower.includes('watch')) return <Watch size={16} />;
@@ -79,10 +88,10 @@ export default function CategoryPillNav({
                       : 'bg-slate-50 dark:bg-dark-800 text-slate-600 dark:text-slate-400 border-slate-200/80 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-dark-700 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  {cat.image_url ? (
+                  {cat.image_url || DEFAULT_CATEGORY_IMAGES[cat.slug?.toLowerCase()] ? (
                     <div className="relative h-5 w-5 rounded-full overflow-hidden flex-shrink-0">
                       <Image
-                        src={cat.image_url}
+                        src={cat.image_url || DEFAULT_CATEGORY_IMAGES[cat.slug?.toLowerCase()]}
                         alt={cat.name}
                         fill
                         className="object-cover"
@@ -106,10 +115,10 @@ export default function CategoryPillNav({
                       : 'bg-slate-50 dark:bg-dark-800 text-slate-600 dark:text-slate-400 border-slate-200/80 dark:border-white/5 hover:bg-slate-100 dark:hover:bg-dark-700 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  {cat.image_url ? (
+                  {cat.image_url || DEFAULT_CATEGORY_IMAGES[cat.slug?.toLowerCase()] ? (
                     <div className="relative h-5 w-5 rounded-full overflow-hidden flex-shrink-0">
                       <Image
-                        src={cat.image_url}
+                        src={cat.image_url || DEFAULT_CATEGORY_IMAGES[cat.slug?.toLowerCase()]}
                         alt={cat.name}
                         fill
                         className="object-cover"

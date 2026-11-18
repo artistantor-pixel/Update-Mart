@@ -72,6 +72,21 @@ const FALLBACK_CATEGORIES: HomeCategoryItem[] = [
   },
 ];
 
+const DEFAULT_CATEGORY_IMAGES: Record<string, string> = {
+  watches:
+    'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=400&q=80',
+  electronics:
+    'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=400&q=80',
+  accessories:
+    'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80',
+  bags:
+    'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=400&q=80',
+  'smart-home':
+    'https://images.unsplash.com/photo-1558002038-1055907df827?auto=format&fit=crop&w=400&q=80',
+  'art-materials':
+    'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=400&q=80',
+};
+
 // Soft rotating pastel backgrounds for circular category thumbnails
 const CIRCLE_TINTS = [
   'bg-[#eef0fb] dark:bg-primary-500/20',
@@ -156,9 +171,9 @@ export default function CategoryShowcase({
                 <div
                   className={`relative w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden ${circleBg} border-2 border-transparent group-hover:border-primary-500/40 shadow-sm group-hover:shadow-md transition-all duration-300 flex items-center justify-center`}
                 >
-                  {cat.image_url ? (
+                  {cat.image_url || DEFAULT_CATEGORY_IMAGES[cat.slug?.toLowerCase()] ? (
                     <Image
-                      src={cat.image_url}
+                      src={cat.image_url || DEFAULT_CATEGORY_IMAGES[cat.slug?.toLowerCase()]}
                       alt={cat.name}
                       fill
                       sizes="(max-width: 640px) 96px, 128px"
