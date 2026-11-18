@@ -143,7 +143,7 @@ export default function CategoryShowcase({
             const href =
               cat.slug === 'deals'
                 ? '/products?filter=sale'
-                : `/products?category=${encodeURIComponent(cat.name)}`;
+                : `/category/${cat.slug}`;
             const circleBg = CIRCLE_TINTS[idx % CIRCLE_TINTS.length];
 
             return (

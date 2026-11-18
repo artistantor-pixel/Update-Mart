@@ -1,7 +1,12 @@
 import { supabase } from '@/lib/supabase';
-import type { Product } from '@/store/productStore';
+import { INITIAL_PRODUCTS, type Product } from '@/store/productStore';
 import type { HomepageContent } from '@/store/homepageStore';
 import { DEFAULT_BOYAM_SETTINGS, type BoyamPageSettings } from '@/store/boyamStore';
+import {
+  DEFAULT_CATEGORY_CONFIGS,
+  generateDefaultCategoryConfig,
+  type CategoryPageConfig,
+} from '@/store/categoryPageStore';
 
 const safeParse = (val: any) => {
   if (typeof val === 'string') {
@@ -586,4 +591,120 @@ export async function getBoyamPageSettings(): Promise<BoyamPageSettings> {
   }
 
   return DEFAULT_BOYAM_SETTINGS;
+}
+
+/**
+ * Fetch dynamic Category page config (Hero banner, highlights, SEO, filters) on server.
+ */
+export async function getCategoryPageConfigServer(slug: string): Promise<CategoryPageConfig> {
+  const normalizedSlug = slug.toLowerCase().trim();
+  try {
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('value')
+      .eq('id', 'category_page_settings')
+      .single();
+
+    if (!error && data && data.value) {
+      const allConfigs = data.value as Record<string, CategoryPageConfig>;
+      if (allConfigs[normalizedSlug]) {
+        return allConfigs[normalizedSlug];
+      }
+    }
+  } catch (err) {
+    console.error(`Failed to get category config for ${slug} on server:`, err);
+  }
+
+  if (DEFAULT_CATEGORY_CONFIGS[normalizedSlug]) {
+    return DEFAULT_CATEGORY_CONFIGS[normalizedSlug];
+  }
+
+  return generateDefaultCategoryConfig(normalizedSlug);
+}
+
+/**
+ * Fetch products belonging to a specific category (by slug or name).
+ * Falls back to matching INITIAL_PRODUCTS if database table is empty or offline.
+ */
+export async function getProductsByCategory(
+  slug: string
+): Promise<{ categoryName: string; products: Product[] }> {
+  const normalizedSlug = slug.toLowerCase().trim();
+
+  // 1. Resolve category name from categories table
+  let categoryName = '';
+  try {
+    const { data: catData } = await supabase
+      .from('categories')
+      .select('name, slug')
+      .eq('slug', normalizedSlug)
+      .maybeSingle();
+
+    if (catData?.name) {
+      categoryName = catData.name;
+    }
+  } catch (err) {
+    console.warn(`Could not lookup category name for ${slug}:`, err);
+  }
+
+  if (!categoryName) {
+    const knownConfig = DEFAULT_CATEGORY_CONFIGS[normalizedSlug];
+    categoryName =
+      knownConfig?.name ||
+      normalizedSlug.charAt(0).toUpperCase() + normalizedSlug.slice(1).replace(/-/g, ' ');
+  }
+
+  // 2. Query products from Supabase
+  try {
+    // Search by category ILIKE matching categoryName OR slug
+    const { data, error } = await supabase
+      .from('products')
+      .select(
+        'id, name, price, regular_price, image, rating, category, brand, is_new, is_live, stock, colors, variants, description, specs, isFreeDelivery, customDeliveryCharge'
+      )
+      .or('is_live.eq.true,is_live.is.null')
+      .or(`category.ilike.%${categoryName}%,category.ilike.%${normalizedSlug}%`)
+      .order('created_at', { ascending: false });
+
+    if (!error && data && data.length > 0) {
+      const mapped = data.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        price: Number(p.price) || 0,
+        regularPrice: p.regular_price ? Number(p.regular_price) : undefined,
+        image: p.image || '/placeholder.png',
+        rating: Number(p.rating) || 5,
+        category: p.category || categoryName,
+        brand: p.brand || 'Update Mart',
+        isNew: Boolean(p.is_new),
+        isLive: p.is_live !== false,
+        stock: p.stock,
+        colors: safeParse(p.colors),
+        variants: safeParse(p.variants),
+        specs: safeParse(p.specs),
+        description: p.description,
+        isFreeDelivery: Boolean(p.isFreeDelivery),
+        customDeliveryCharge: p.customDeliveryCharge,
+      })) as Product[];
+
+      return { categoryName, products: mapped };
+    }
+  } catch (err) {
+    console.error(`Error querying products for category ${categoryName}:`, err);
+  }
+
+  // 3. Fallback: Filter from INITIAL_PRODUCTS
+  const fallbackFiltered = INITIAL_PRODUCTS.filter((p) => {
+    const cat = (p.category || '').toLowerCase();
+    return (
+      cat.includes(normalizedSlug) ||
+      cat.includes(categoryName.toLowerCase()) ||
+      normalizedSlug.includes(cat)
+    );
+  });
+
+  return {
+    categoryName,
+    products: fallbackFiltered.length > 0 ? fallbackFiltered : INITIAL_PRODUCTS.slice(0, 4),
+  };
 }

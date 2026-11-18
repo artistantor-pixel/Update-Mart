@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   Layers,
   Award,
@@ -586,21 +587,33 @@ export default function BrandCategoryManager() {
                   </div>
 
                   {/* Card Actions Footer */}
-                  <div className="p-5 pt-0 border-t border-slate-100 dark:border-white/5 flex items-center justify-end gap-2 mt-2">
-                    <button
-                      onClick={() => handleOpenEditModal(cat)}
-                      className="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors"
-                      title="Edit Category"
+                  <div className="p-5 pt-0 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-2 mt-2">
+                    <Link
+                      href={`/category/${cat.slug}`}
+                      target="_blank"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-primary-600 dark:text-indigo-400 hover:underline"
+                      title="View Live Category Page (/category/slug)"
                     >
-                      <Edit3 size={16} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget({ id: cat.id, name: cat.name, type: 'category' })}
-                      className="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
-                      title="Delete Category"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                      <ExternalLink size={13} />
+                      <span>View Page</span>
+                    </Link>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEditModal(cat)}
+                        className="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors"
+                        title="Edit Category"
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget({ id: cat.id, name: cat.name, type: 'category' })}
+                        className="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                        title="Delete Category"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -681,6 +694,14 @@ export default function BrandCategoryManager() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-1">
+                            <Link
+                              href={`/category/${cat.slug}`}
+                              target="_blank"
+                              className="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors"
+                              title="View Live Category Page"
+                            >
+                              <ExternalLink size={16} />
+                            </Link>
                             <button
                               onClick={() => handleOpenEditModal(cat)}
                               className="p-2 rounded-lg text-slate-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 transition-colors"

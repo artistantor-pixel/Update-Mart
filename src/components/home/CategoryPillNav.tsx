@@ -99,7 +99,7 @@ export default function CategoryPillNav({
               ) : (
                 <Link
                   key={cat.id}
-                  href={cat.slug === 'all' ? '/products' : `/products?category=${encodeURIComponent(cat.name)}`}
+                  href={cat.slug === 'all' ? '/products' : `/category/${cat.slug}`}
                   className={`snap-start flex-shrink-0 inline-flex items-center gap-2.5 px-4 sm:px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all border ${
                     isActive
                       ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-md'

@@ -77,7 +77,7 @@ export default function HeroBannerSlider({
             imageUrl:
               'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=1200&q=85',
             title: 'Future Tech & Smart Peripherals',
-            linkUrl: '/products?category=Electronics',
+            linkUrl: '/category/electronics',
             isActive: true,
             order: 2,
           },
@@ -86,7 +86,7 @@ export default function HeroBannerSlider({
             imageUrl:
               'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=1200&q=85',
             title: 'Luxury Timepieces & Watches',
-            linkUrl: '/products?category=Watches',
+            linkUrl: '/category/watches',
             isActive: true,
             order: 3,
           },
