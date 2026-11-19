@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Lock, ChevronLeft, ChevronRight, CreditCard, Banknote, Ticket } from 'lucide-react';
+import { Lock, ChevronLeft, ChevronRight, CreditCard, Banknote, Ticket, Trash2, Plus, Minus } from 'lucide-react';
 import { useOrderStore } from '@/store/orderStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useCartStore } from '@/store/cartStore';
@@ -24,7 +24,7 @@ export default function Checkout() {
   const router = useRouter();
   const addOrder = useOrderStore(state => state.addOrder);
   const { isCODEnabled, codFee, blockedPhones } = useSettingsStore();
-  const { items: cartItems, clearCart } = useCartStore();
+  const { items: cartItems, clearCart, removeItem, updateQuantity } = useCartStore();
   const { validatePromo } = usePromoStore();
   const { couriers, fetchCouriers } = useCourierStore();
   const products = useProductStore(state => state.products);
@@ -420,30 +420,90 @@ export default function Checkout() {
           {/* Order Summary Sidebar (Right side) */}
           <div className="lg:w-1/3 mt-8 lg:mt-0">
             <div className="bg-white/90 dark:bg-dark-800/90 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 border border-white/60 dark:border-white/10 shadow-2xl shadow-slate-200/50 dark:shadow-none sticky top-28">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Order Summary</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">Order Summary</h2>
+                <Link
+                  href="/cart"
+                  className="text-xs font-semibold text-primary-500 hover:text-primary-600 dark:text-primary-400 hover:underline"
+                >
+                  Edit Cart
+                </Link>
+              </div>
               
-              {/* Mini Cart Items */}
-              <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+              {/* Mini Cart Items with Delete & Quantity Edit */}
+              <div className="space-y-3.5 mb-6 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">
                 {enrichedCartItems.map((item) => (
-                  <div key={item.id} className="flex gap-4 items-center">
-                    <div className="relative">
-                      <div className="w-16 h-16 relative rounded-xl overflow-hidden bg-slate-50 dark:bg-dark-900 flex-shrink-0 border border-slate-100 dark:border-white/5">
-                        <Image src={item.image} alt={item.name} className="w-full h-full object-cover" fill={true} style={{objectFit: "cover"}} />
+                  <div key={item.id} className="p-3 rounded-2xl bg-slate-50/70 dark:bg-dark-900/40 border border-slate-100 dark:border-white/5 flex gap-3.5 items-center group">
+                    {/* Item Thumbnail */}
+                    <div className="relative flex-shrink-0">
+                      <div className="w-16 h-16 relative rounded-xl overflow-hidden bg-white dark:bg-dark-800 border border-slate-200/80 dark:border-white/5">
+                        <Image src={item.image} alt={item.name} className="w-full h-full object-cover" fill={true} sizes="64px" style={{objectFit: "cover"}} />
                       </div>
-                      <span className="absolute -top-2 -right-2 bg-slate-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">{item.quantity}</span>
                     </div>
+
+                    {/* Info + Inline Quantity Editor & Delete */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-slate-900 dark:text-white line-clamp-1">{item.name}</p>
-                        {item.isFreeDelivery && (
-                          <span className="text-[10px] uppercase font-bold text-emerald-700 bg-emerald-100 dark:bg-emerald-950/60 dark:text-emerald-300 px-1.5 py-0.2 rounded flex-shrink-0">
-                            Free Del.
-                          </span>
-                        )}
+                      <div className="flex items-start justify-between gap-1.5">
+                        <p className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white line-clamp-1">{item.name}</p>
+                        {/* Delete Button */}
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.id)}
+                          className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0 -mr-1 -mt-1"
+                          title="কার্ট থেকে মুছে ফেলুন"
+                          aria-label={`Remove ${item.name}`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
                       </div>
-                      <p className="text-xs text-slate-500">{item.variant}</p>
+
+                      {item.variant && (
+                        <p className="text-[11px] text-slate-500 truncate mb-2">{item.variant}</p>
+                      )}
+
+                      <div className="flex items-center justify-between mt-1">
+                        {/* Quantity Stepper */}
+                        <div className="flex items-center bg-white dark:bg-dark-800 border border-slate-200 dark:border-white/10 rounded-lg p-0.5 shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (item.quantity > 1) {
+                                updateQuantity(item.id, item.quantity - 1);
+                              } else {
+                                removeItem(item.id);
+                              }
+                            }}
+                            className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-dark-700 transition"
+                            title={item.quantity === 1 ? 'আইটেম মুছে ফেলুন' : 'পরিমাণ কমান'}
+                            aria-label="Decrease quantity"
+                          >
+                            <Minus size={11} />
+                          </button>
+                          <span className="w-6 text-center text-xs font-bold text-slate-900 dark:text-white">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="w-6 h-6 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white rounded hover:bg-slate-100 dark:hover:bg-dark-700 transition"
+                            title="পরিমাণ বাড়ান"
+                            aria-label="Increase quantity"
+                          >
+                            <Plus size={11} />
+                          </button>
+                        </div>
+
+                        {/* Price */}
+                        <div className="text-right">
+                          <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                            ৳{(item.price * item.quantity).toFixed(2)}
+                          </p>
+                          {item.quantity > 1 && (
+                            <p className="text-[10px] text-slate-400">৳{item.price.toFixed(0)} × {item.quantity}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="font-medium text-slate-900 dark:text-white">৳{(item.price * item.quantity).toFixed(2)}</p>
                   </div>
                 ))}
               </div>
