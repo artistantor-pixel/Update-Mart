@@ -20,6 +20,7 @@ import {
   Minus,
   ChevronRight,
   ZoomIn,
+  Sparkles,
 } from 'lucide-react';
 import ProductCard from '@/components/common/ProductCard';
 import { useProductStore } from '@/store/productStore';
@@ -275,7 +276,7 @@ export default function ProductDetails() {
   return (
     <div className="bg-white dark:bg-dark-900 min-h-screen transition-colors pb-24 sm:pb-20">
       {/* 1. Minimal Breadcrumb Navigation */}
-      <div className="border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-dark-900/40">
+      <div className="border-b border-slate-100 dark:border-white/5 bg-slate-50/40 dark:bg-dark-900/40">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
           <nav className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar">
             <Link href="/" className="hover:text-primary-500 transition-colors">
@@ -302,7 +303,7 @@ export default function ProductDetails() {
             </span>
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={handleCopyLink}
               title="Share link"
@@ -326,12 +327,12 @@ export default function ProductDetails() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-6 lg:pt-10">
-        {/* ================= PRIMARY GRID (56% Gallery : 44% Info) ================= */}
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-14 items-start">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 lg:pt-10">
+        {/* ================= PRIMARY GRID (Balanced 52% Gallery : 48% Info) ================= */}
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
           
-          {/* ================= LEFT: PRODUCT GALLERY (Dominant, Focused) ================= */}
-          <div className="w-full lg:w-[56%] flex flex-col-reverse md:flex-row gap-3 sm:gap-4 lg:sticky lg:top-24">
+          {/* ================= LEFT: PRODUCT GALLERY ================= */}
+          <div className="w-full lg:w-[52%] flex flex-col-reverse md:flex-row gap-3 sm:gap-4 lg:sticky lg:top-24">
             {/* Thumbnails */}
             {images.length > 1 && (
               <div className="flex md:flex-col gap-2.5 md:w-20 lg:w-22 overflow-x-auto no-scrollbar md:overflow-visible flex-shrink-0">
@@ -355,12 +356,12 @@ export default function ProductDetails() {
             )}
 
             {/* Main Hero Image */}
-            <div className="flex-1 relative bg-slate-50/70 dark:bg-dark-800/80 rounded-3xl border border-slate-100 dark:border-white/5 overflow-hidden group">
-              {/* Discrete discount tag if on sale */}
+            <div className="flex-1 relative bg-gradient-to-b from-[#fbfcfd] to-[#f3f6f9] dark:from-dark-800 dark:to-dark-800/80 rounded-3xl border border-slate-200/60 dark:border-white/10 overflow-hidden shadow-xs group">
+              {/* Discount Tag */}
               {savings > 0 && (
                 <div className="absolute top-4 left-4 z-10">
-                  <span className="bg-slate-900/90 dark:bg-white/90 text-white dark:text-slate-900 text-[11px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full backdrop-blur-xs shadow-xs">
-                    -{discountPercent}%
+                  <span className="inline-flex items-center gap-1 bg-amber-500 text-slate-950 font-black text-[11px] tracking-wider uppercase px-3 py-1 rounded-full shadow-sm shadow-amber-500/20">
+                    <Sparkles size={11} className="fill-slate-950" /> সাশ্রয় {discountPercent}%
                   </span>
                 </div>
               )}
@@ -374,7 +375,7 @@ export default function ProductDetails() {
                 <ZoomIn size={16} />
               </button>
 
-              {/* Product Visual Centerpiece */}
+              {/* Centerpiece Image */}
               <div
                 onClick={() => setShowLightbox(true)}
                 className="relative aspect-square w-full cursor-zoom-in flex items-center justify-center p-6 sm:p-8"
@@ -385,7 +386,7 @@ export default function ProductDetails() {
                   fill
                   priority
                   className="object-contain p-2 sm:p-4 transition-transform duration-500 group-hover:scale-103"
-                  sizes="(max-width: 768px) 100vw, 56vw"
+                  sizes="(max-width: 768px) 100vw, 52vw"
                 />
               </div>
 
@@ -399,86 +400,109 @@ export default function ProductDetails() {
           </div>
 
           {/* ================= RIGHT: PRODUCT ESSENTIALS & PURCHASE ================= */}
-          <div className="w-full lg:w-[44%] flex flex-col pt-1">
+          <div className="w-full lg:w-[48%] flex flex-col space-y-5">
             
-            {/* Category / Collection Tag */}
-            {product.category && (
-              <div className="mb-2">
-                <span className="text-xs font-semibold tracking-wider uppercase text-primary-500 dark:text-primary-400">
-                  {product.category}
+            {/* Header: Category Badge + Title */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-500/10 px-2.5 py-0.5 rounded-md border border-primary-100 dark:border-primary-500/20">
+                  {product.category || 'Featured'}
+                </span>
+                {product.brand && (
+                  <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                    • {product.brand}
+                  </span>
+                )}
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug">
+                {product.name}
+              </h1>
+
+              {/* Rating & Stock Status */}
+              <div className="flex items-center gap-3 mt-2.5 text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-1.5">
+                  <div className="flex items-center text-amber-400">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        size={14}
+                        className={
+                          i < Math.round(avgRating)
+                            ? 'text-amber-400 fill-amber-400'
+                            : 'text-slate-200 dark:text-slate-700'
+                        }
+                      />
+                    ))}
+                  </div>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{avgRating.toFixed(1)}</span>
+                  <a
+                    href="#reviews"
+                    onClick={() => setActiveTab('reviews')}
+                    className="hover:text-primary-500 transition-colors"
+                  >
+                    ({reviews.length} রিভিউ)
+                  </a>
+                </div>
+                <span className="text-slate-200 dark:text-slate-700">|</span>
+                <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium text-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  ইন স্টক • ডেলিভারির জন্য প্রস্তুত
                 </span>
               </div>
-            )}
-
-            {/* Product Title */}
-            <h1 className="text-2xl sm:text-3xl lg:text-[2rem] font-bold text-slate-900 dark:text-white tracking-tight leading-snug mb-3">
-              {product.name}
-            </h1>
-
-            {/* Subtle Rating summary */}
-            <div className="flex items-center gap-2 mb-5 text-xs text-slate-500 dark:text-slate-400">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={14}
-                    className={
-                      i < Math.round(avgRating)
-                        ? 'text-amber-400 fill-amber-400'
-                        : 'text-slate-200 dark:text-slate-700'
-                    }
-                  />
-                ))}
-              </div>
-              <span className="font-semibold text-slate-700 dark:text-slate-300">{avgRating.toFixed(1)}</span>
-              <span>•</span>
-              <a
-                href="#reviews"
-                onClick={() => setActiveTab('reviews')}
-                className="hover:text-primary-500 transition-colors"
-              >
-                {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}
-              </a>
             </div>
 
-            {/* Price Presentation (Clean, uncluttered, prominent) */}
-            <div className="flex items-baseline gap-3 mb-6 pb-6 border-b border-slate-100 dark:border-white/5">
-              <span className="text-3xl sm:text-4xl font-extrabold text-primary-500 dark:text-primary-400 tracking-tight">
-                ৳{effectivePrice.toLocaleString('en-US')}
-              </span>
-              {savings > 0 && (
-                <span className="text-lg sm:text-xl text-slate-400 dark:text-slate-500 font-normal line-through">
-                  ৳{originalPrice.toLocaleString('en-US')}
-                </span>
-              )}
+            {/* Eye-catching Pricing Card */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-dark-800/60 border border-slate-200/80 dark:border-white/10 shadow-2xs">
+              <div className="flex items-baseline justify-between gap-3">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-3xl sm:text-4xl font-black text-primary-500 dark:text-primary-400 tracking-tight">
+                    ৳{effectivePrice.toLocaleString('en-US')}
+                  </span>
+                  {savings > 0 && (
+                    <span className="text-lg sm:text-xl text-slate-400 dark:text-slate-500 font-semibold line-through">
+                      ৳{originalPrice.toLocaleString('en-US')}
+                    </span>
+                  )}
+                </div>
+                {savings > 0 && (
+                  <span className="inline-flex items-center bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-xs">
+                    সাশ্রয় ৳{savings.toLocaleString('en-US')}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2.5 pt-2.5 border-t border-slate-200/60 dark:border-white/5 flex items-center gap-1.5">
+                <CheckCircle2 size={13} className="text-emerald-500 flex-shrink-0" />
+                <span>ক্যাশ অন ডেলিভারি সুবিধা • পণ্য হাতে পেয়ে মূল্য পরিশোধ করুন</span>
+              </p>
             </div>
 
             {/* Color / Variant Swatches */}
             {(siblingProducts.length > 0 || colors.length > 0 || product.primaryColor) && (
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-2.5">
-                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    Color:{' '}
-                    <span className="text-slate-900 dark:text-white font-medium">
+              <div>
+                <div className="flex justify-between items-center mb-2.5 text-xs">
+                  <span className="font-semibold text-slate-600 dark:text-slate-400">
+                    কালার / কালার এডিশন:{' '}
+                    <span className="text-slate-900 dark:text-white font-bold">
                       {product.primaryColor?.name || selectedColor || colors[0]?.name || 'Standard'}
                     </span>
                   </span>
                 </div>
-                <div className="flex gap-2.5 flex-wrap">
+                <div className="flex gap-2.5 flex-wrap items-center">
                   {siblingProducts.length > 0
                     ? siblingProducts.map((sibling) => (
                         <Link
                           href={`/product/${sibling.id}`}
                           key={sibling.id}
-                          className={`w-9 h-9 rounded-full p-0.5 border-2 transition-all flex items-center justify-center ${
+                          className={`w-10 h-10 rounded-full p-0.5 transition-all duration-200 flex items-center justify-center ${
                             sibling.id === product.id
-                              ? 'border-primary-500 scale-105 shadow-xs'
-                              : 'border-transparent hover:border-slate-300 dark:hover:border-slate-600 opacity-70 hover:opacity-100'
+                              ? 'ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-dark-900 scale-105 shadow-xs'
+                              : 'opacity-70 hover:opacity-100 hover:scale-102'
                           }`}
                           title={sibling.primaryColor?.name || sibling.name}
                         >
                           <div
-                            className="w-full h-full rounded-full flex items-center justify-center text-[10px] font-bold bg-slate-100 dark:bg-dark-800 text-slate-700 dark:text-slate-300"
+                            className="w-full h-full rounded-full border border-black/10 flex items-center justify-center text-[10px] font-bold shadow-inner"
                             style={sibling.primaryColor ? { backgroundColor: sibling.primaryColor.hex } : {}}
                           >
                             {!sibling.primaryColor && sibling.name.charAt(0)}
@@ -492,15 +516,15 @@ export default function ProductDetails() {
                             setSelectedColor(c.name);
                             setColorImageUrl(c.imageUrl || null);
                           }}
-                          className={`w-9 h-9 rounded-full p-0.5 border-2 transition-all ${
+                          className={`w-10 h-10 rounded-full p-0.5 transition-all duration-200 ${
                             (selectedColor || colors[0]?.name) === c.name
-                              ? 'border-primary-500 scale-105 shadow-xs'
-                              : 'border-transparent hover:border-slate-300 dark:hover:border-slate-600 opacity-70 hover:opacity-100'
+                              ? 'ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-dark-900 scale-105 shadow-xs'
+                              : 'opacity-70 hover:opacity-100 hover:scale-102'
                           }`}
                           title={c.name}
                         >
                           <div
-                            className="w-full h-full rounded-full border border-black/10"
+                            className="w-full h-full rounded-full border border-black/10 shadow-inner"
                             style={{ backgroundColor: c.hex }}
                           />
                         </button>
@@ -513,12 +537,12 @@ export default function ProductDetails() {
             {Object.entries(variantGroups).map(([typeName, typeVariants]) => {
               const selected = selectedVariants[typeName];
               return (
-                <div key={typeName} className="mb-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                <div key={typeName}>
+                  <div className="flex justify-between items-center mb-2 text-xs">
+                    <span className="font-semibold text-slate-600 dark:text-slate-400">
                       {typeName}:{' '}
-                      <span className="text-slate-900 dark:text-white font-medium">
-                        {selected || 'Select an option'}
+                      <span className="text-slate-900 dark:text-white font-bold">
+                        {selected || 'Select option'}
                       </span>
                     </span>
                   </div>
@@ -555,14 +579,15 @@ export default function ProductDetails() {
             })}
 
             {/* ================= PURCHASE ACTION BLOCK ================= */}
-            <div ref={inlineCtaRef} className="space-y-3.5 pt-2">
+            <div ref={inlineCtaRef} className="space-y-3 pt-1">
+              {/* Row 1: Quantity Stepper + Add to Cart */}
               <div className="flex items-center gap-3">
                 {/* Quantity Counter */}
-                <div className="flex items-center bg-slate-50 dark:bg-dark-800 border border-slate-200/80 dark:border-white/10 rounded-2xl p-1">
+                <div className="flex items-center bg-slate-100 dark:bg-dark-800 border border-slate-200 dark:border-white/10 rounded-2xl p-1 h-12 flex-shrink-0">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-dark-700 disabled:opacity-25 transition shadow-2xs"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-dark-700 disabled:opacity-25 transition shadow-2xs"
                     aria-label="Decrease quantity"
                   >
                     <Minus size={14} />
@@ -572,7 +597,7 @@ export default function ProductDetails() {
                   </span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-dark-700 transition shadow-2xs"
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-dark-700 transition shadow-2xs"
                     aria-label="Increase quantity"
                   >
                     <Plus size={14} />
@@ -582,31 +607,34 @@ export default function ProductDetails() {
                 {/* Add to Cart Button */}
                 <button
                   onClick={handleAddToCart}
-                  className="flex-1 h-12 bg-white dark:bg-dark-800 hover:bg-slate-50 dark:hover:bg-dark-700 border-2 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white font-bold text-sm rounded-2xl transition flex items-center justify-center gap-2"
+                  className="flex-1 h-12 bg-white dark:bg-dark-800 hover:bg-slate-50 dark:hover:bg-dark-700 border-2 border-slate-900 dark:border-white/20 text-slate-900 dark:text-white font-bold text-sm sm:text-base rounded-2xl transition-all flex items-center justify-center gap-2 shadow-xs active:scale-[0.98]"
                 >
                   <ShoppingBag size={17} />
                   <span>কার্টে যোগ করুন</span>
                 </button>
               </div>
 
-              {/* Buy Now (Primary Dominant Button) */}
+              {/* Row 2: Dominant, Stunning "Buy Now" CTA Button */}
               <button
                 onClick={handleBuyNow}
-                className="w-full h-13.5 bg-primary-500 hover:bg-primary-600 text-white font-bold text-base rounded-2xl transition-all shadow-md shadow-primary-500/20 hover:shadow-primary-500/35 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                className="w-full h-14 bg-gradient-to-r from-primary-600 via-primary-500 to-[#3b47b2] hover:from-primary-700 hover:to-primary-600 text-white font-black text-base sm:text-lg rounded-2xl transition-all duration-200 shadow-xl shadow-primary-500/30 hover:shadow-primary-500/45 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] flex items-center justify-between px-6 sm:px-8 group"
               >
-                <span>অর্ডার করুন (Buy Now)</span>
-                <span className="bg-white/20 text-white text-xs font-semibold px-2 py-0.5 rounded-full ml-1">
-                  ৳{totalPrice.toLocaleString('en-US')}
-                </span>
+                <span className="text-white">অর্ডার করুন (Buy Now)</span>
+                <div className="flex items-center gap-2">
+                  <span className="bg-white/20 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded-full backdrop-blur-xs">
+                    ৳{totalPrice.toLocaleString('en-US')}
+                  </span>
+                  <ChevronRight size={18} className="text-white/80 group-hover:translate-x-1 transition-transform" />
+                </div>
               </button>
 
-              {/* Minimal Delivery Status line */}
-              <div className="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 pt-2">
-                <Truck size={14} className="text-primary-500 flex-shrink-0" />
+              {/* Reassurance Delivery Note */}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-dark-800/40 border border-slate-100 dark:border-white/5 flex items-center gap-2.5 text-xs text-slate-600 dark:text-slate-400">
+                <Truck size={15} className="text-primary-500 flex-shrink-0" />
                 <span>
                   {product.isFreeDelivery
                     ? 'ফ্রি ডেলিভারি প্রযোজ্য • সারাদেশে ক্যাশ অন ডেলিভারি'
-                    : 'সারাদেশে ক্যাশ অন ডেলিভারি সুবিধা (ঢাকা ২৪-৪৮ ঘণ্টা, ঢাকার বাইরে ২-৩ দিন)'}
+                    : 'সারাদেশে দ্রুত ক্যাশ অন ডেলিভারি (ঢাকা ১-২ দিন, ঢাকার বাইরে ২-৩ দিন)'}
                 </span>
               </div>
             </div>
