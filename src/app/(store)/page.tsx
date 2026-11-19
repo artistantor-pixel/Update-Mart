@@ -26,8 +26,8 @@ export const metadata: Metadata = {
     'Shop curated premium watches, flagship electronics, audio gear, and lifestyle essentials with instant nationwide delivery.',
 };
 
-// Force dynamic server rendering for fresh catalog on every request
-export const dynamic = 'force-dynamic';
+// Incremental Static Regeneration (ISR): Serve cached page instantly in ~30ms, revalidate in background every 60s
+export const revalidate = 60;
 
 export default async function Home() {
   // Parallel Next.js Server Component data fetching for lightning fast initial load

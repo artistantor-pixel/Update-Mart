@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
 import { Providers } from '@/components/Providers'
 import FacebookPixel from '@/components/FacebookPixel'
 import GtmScript from '@/components/GtmScript'
@@ -22,8 +23,27 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Meta Facebook Pixel Code */}
+        <Suspense fallback={null}>
+          <GtmScript />
+        </Suspense>
         <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+              } else {
+                document.documentElement.classList.remove('dark');
+              }
+            `,
+          }}
+        />
+      </head>
+
+      <body className={inter.className} suppressHydrationWarning>
+        {/* Meta Facebook Pixel loaded non-blockingly after page is interactive */}
+        <Script
+          id="fb-pixel"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               !function(f,b,e,v,n,t,s)
@@ -47,23 +67,6 @@ export default function RootLayout({
             alt=""
           />
         </noscript>
-        <Suspense fallback={null}>
-          <GtmScript />
-        </Suspense>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-              } else {
-                document.documentElement.classList.remove('dark');
-              }
-            `,
-          }}
-        />
-      </head>
-
-      <body className={inter.className} suppressHydrationWarning>
         <Suspense fallback={null}>
           <GtmNoscript />
         </Suspense>

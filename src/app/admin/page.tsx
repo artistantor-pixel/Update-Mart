@@ -95,12 +95,13 @@ export default function AdminDashboard() {
         setSupabaseToken(currentToken);
       }
 
-      const isNewLogin =
-        prevAuthStatusRef.current !== 'authenticated' ||
+      // Only wipe stores if switching to a genuinely different user account
+      const isSwitchingAccount =
+        prevUserEmailRef.current !== null &&
         prevUserEmailRef.current !== currentEmail;
 
-      if (isNewLogin) {
-        // Reset stores to clear any stale data from another user or earlier session
+      if (isSwitchingAccount) {
+        // Reset stores to clear any stale data from another user
         resetOrders();
         resetProducts();
         resetSettings();
@@ -111,6 +112,13 @@ export default function AdminDashboard() {
 
       // Automatically trigger a fresh network data fetch upon successful authentication / login
       refreshAllData();
+
+      // If this is the initial load (Supabase may be waking up from sleep), schedule a resilient second sync after 3 seconds
+      if (prevAuthStatusRef.current !== 'authenticated') {
+        setTimeout(() => {
+          refreshAllData();
+        }, 3000);
+      }
 
       prevAuthStatusRef.current = 'authenticated';
       prevUserEmailRef.current = currentEmail;

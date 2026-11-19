@@ -13,7 +13,7 @@ export const getSupabaseToken = () => currentToken;
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
-    fetch: (url, options = {}) => {
+    fetch: async (url, options = {}) => {
       const headers = new Headers(options.headers || {});
 
       if (currentToken) {
@@ -22,11 +22,24 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
         headers.set('Pragma', 'no-cache');
 
-        return fetch(url, {
+        const response = await fetch(url, {
           ...options,
           headers,
           cache: 'no-store',
         });
+
+        // If a custom token was rejected with 401, retry once without stale token
+        // so public/readable tables still load without hard-failing
+        if (response.status === 401) {
+          console.warn('[Supabase] Bearer token rejected (401). Retrying with default anon access.');
+          const fallbackHeaders = new Headers(options.headers || {});
+          return fetch(url, {
+            ...options,
+            headers: fallbackHeaders,
+          });
+        }
+
+        return response;
       }
 
       // For public storefront queries and build-time static generation

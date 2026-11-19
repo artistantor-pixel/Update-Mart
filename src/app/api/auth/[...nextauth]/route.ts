@@ -109,19 +109,25 @@ export const authOptions: NextAuthOptions = {
           .single();
           
         token.role = adminUser?.role || 'admin';
-        
-        // Generate Supabase JWT
-        if (process.env.SUPABASE_JWT_SECRET) {
-          const payload = {
-            aud: 'authenticated',
-            exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24), // 24 hours
-            sub: user.id,
-            email: user.email,
-            role: 'authenticated',
-          };
-          token.supabaseToken = jwt.sign(payload, process.env.SUPABASE_JWT_SECRET);
-        }
+        token.userId = user.id;
+        token.userEmail = user.email;
       }
+
+      // Keep Supabase JWT continuously fresh with rolling 7-day validity so admin never experiences 401 token expiration
+      const userEmail = (token.userEmail as string) || (token.email as string);
+      const userId = (token.userId as string) || (token.sub as string) || userEmail;
+
+      if (process.env.SUPABASE_JWT_SECRET && userEmail) {
+        const payload = {
+          aud: 'authenticated',
+          exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 7), // 7 days rolling validity
+          sub: userId,
+          email: userEmail,
+          role: 'authenticated',
+        };
+        token.supabaseToken = jwt.sign(payload, process.env.SUPABASE_JWT_SECRET);
+      }
+
       return token;
     },
     async session({ session, token }) {
